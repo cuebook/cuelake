@@ -7,4 +7,4 @@ class NotebookJobSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = NotebookJob
-        fields = ["id", "notebookId", "notebookName"]
+        fields = ["id", "notebookId"]

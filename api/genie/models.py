@@ -6,6 +6,6 @@ from django_celery_beat.models import PeriodicTask
 class NotebookJob(PeriodicTask):
     """
     Model class for a single job to be run on a single notebook
+    Subclass of django_celery_beat.models.PeriodicTask
     """
     notebookId = models.CharField(max_length=50, db_index=True)
-    notebookName = models.CharField(max_length=100)
