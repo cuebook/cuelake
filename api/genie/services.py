@@ -7,7 +7,7 @@ from utils.zeppelinAPI import ZeppelinAPI
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob" 
 
-class NotebookJobServices():
+class NotebookJobServices:
     """
     Class containing services related to NotebookJob model
     """
