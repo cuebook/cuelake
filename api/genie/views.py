@@ -4,8 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 @api_view(["GET"])
-def getNotebookJobs(request):
-    res = NotebookJobServices.getNotebookJobs()
+def getNotebooks(request, offset: int):
+    res = NotebookJobServices.getNotebooks(offset)
     return Response(res.json())
 
 @api_view(["POST"])

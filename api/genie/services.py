@@ -1,3 +1,4 @@
+import asyncio
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob
 from genie.serializers import NotebookJobSerializer
@@ -5,22 +6,42 @@ from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import ZeppelinAPI
 
 # Name of the celery task which calls the zeppelin api
-CELERY_TASK_NAME = "genie.tasks.runNotebookJob" 
+CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
+GET_NOTEBOOKJOBS_LIMIT = 5
 
 class NotebookJobServices:
     """
     Class containing services related to NotebookJob model
     """
     @staticmethod
-    def getNotebookJobs():
+    async def _fetchNotebookStatuses(notebooks: list):
         """
-        Service to fetch and serialize all NotebookJob objects
+        Async method to fetch notebook status details for multiple notebooks
+        :param notebooks: List of notebook describing dicts each containing the 'id' field
+        """
+        zeppelinApiObj = ZeppelinAPI()
+        notebookStatuses = await asyncio.gather(*(zeppelinApiObj.getNotebookStatus(notebook["id"]) for notebook in notebooks))
+        return notebookStatuses
+
+    @staticmethod
+    def getNotebooks(offset: int = 0):
+        """
+        Service to fetch and serialize NotebookJob objects
+        Number of NotebookJobs fetched is stored as the constant GET_NOTEBOOKJOBS_LIMIT
+        :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse()
-        notebookJobs = NotebookJob.objects.all()
-        notebooks = ZeppelinAPI().getAllNotebooks()
-        notebookJobsData = NotebookJobSerializer(notebookJobs, many=True).data
-        res.update(True, "NotebookJobs retrieved successfully", notebooks)
+        notebooks = ZeppelinAPI().getAllNotebooks()[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
+        notebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses(notebooks))
+        for i in range(len(notebookStatuses)):
+            notebookStatuses[i]["name"] = notebooks[i]["path"]
+            notebookJob = NotebookJob.objects.filter(notebookId=notebookStatuses[i]["id"]).first()
+            if notebookJob:
+                notebookStatuses[i]["isScheduled"] = True
+                notebookStatuses[i]["schedule"] = str(notebookJob.crontab)
+            else:
+                notebookStatuses[i]["isScheduled"] = False
+        res.update(True, "NotebookJobs retrieved successfully", notebookStatuses)
         return res
     
     @staticmethod
