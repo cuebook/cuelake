@@ -1,0 +1,51 @@
+{
+  "name": "notus-react",
+  "version": "1.0.0",
+  "description": "Notus React - A free Tailwind CSS and React UI Kit and Admin by Creative Tim.",
+  "repository": "https://github.com/creativetimofficial/notus-react",
+  "license": "MIT",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "5.14.0",
+    "@popperjs/core": "2.5.1",
+    "@tailwindcss/custom-forms": "0.2.1",
+    "chart.js": "2.9.3",
+    "gulp": "4.0.2",
+    "gulp-append-prepend": "1.0.8",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-google-maps": "9.4.5",
+    "react-router": "5.2.0",
+    "react-router-dom": "5.2.0",
+    "react-scripts": "3.4.3",
+    "tailwindcss": "1.8.10"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build && gulp licenses",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm run build:tailwind && npm start",
+    "build:tailwind": "tailwind build src/assets/styles/index.css -o src/assets/styles/tailwind.css"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "optionalDependencies": {
+    "@types/googlemaps": "3.39.13",
+    "@types/markerclustererplus": "2.1.33",
+    "@types/react": "16.9.49",
+    "typescript": "4.0.3"
+  }
+}
