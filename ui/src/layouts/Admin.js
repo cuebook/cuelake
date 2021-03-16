@@ -1,5 +1,6 @@
 import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
+import ReactNotification from 'react-notifications-component';
 
 // components
 
@@ -18,6 +19,7 @@ export default function Admin() {
   return (
     <>
       <Sidebar />
+      <ReactNotification />
       <div className="relative md:ml-64 bg-gray-200">
         <AdminNavbar />
         {/* Header */}

@@ -1,8 +1,7 @@
-import config from "../config";
-import { getCookie } from "utilities/general.js";
+import { getCookie } from "./general.js";
 
 export default class ApiService {
-  base_url = config.API_BASE_URL;
+  base_url = "http://localhost:8000";
 
   async get(endpoint) {
     let token = this.getCsrfToken();

@@ -1198,6 +1198,11 @@ video {
   border-radius: 0.25rem;
 }
 
+.rounded-sm {
+  border-radius: 0.15rem;
+}
+
+
 .rounded-lg {
   border-radius: 0.5rem;
 }
@@ -2880,4 +2885,26 @@ video {
   .xl\:w-8\/12 {
     width: 66.666667%;
   }
+}
+
+
+.notebook-status-wrapper{
+  display: flex;
+}
+
+.notebook-status{
+  width: 100%;
+}
+
+.notebook-paragraph-progressbar-box{
+  border-right: 1px solid;
+  cursor: pointer;
+}
+
+.notebook-paragraph-progressbar-box:hover{
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.notebook-paragraph-progressbar-box:last-child{
+  border-right: 0;
 }

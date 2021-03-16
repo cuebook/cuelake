@@ -14,3 +14,8 @@ def addNotebookJob(request):
     crontabScheduleId = request.data["crontabScheduleId"]
     res = NotebookJobServices.addNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
     return Response(res.json())
+
+@api_view(["GET"])
+def getSchedules(request):
+    res = NotebookJobServices.getSchedules()
+    return Response(res.json())

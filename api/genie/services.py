@@ -1,13 +1,13 @@
 import asyncio
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob
-from genie.serializers import NotebookJobSerializer
+from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import ZeppelinAPI
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
-GET_NOTEBOOKJOBS_LIMIT = 5
+GET_NOTEBOOKJOBS_LIMIT = 10
 
 class NotebookJobServices:
     """
@@ -55,4 +55,15 @@ class NotebookJobServices:
         crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
         NotebookJob.objects.create(name=notebookId, notebookId=notebookId, crontab=crontabScheduleObj, task=CELERY_TASK_NAME, args=f'["{notebookId}"]')
         res.update(True, "NotebookJob added successfully", None)
+        return res
+
+    @staticmethod
+    def getSchedules():
+        """
+        Service to get all schedules
+        """
+        res = ApiResponse()
+        crontabSchedules = CrontabSchedule.objects.all()
+        data = CrontabScheduleSerializer(crontabSchedules, many=True).data
+        res.update(True, "Schedules fetched successfully", data)
         return res
