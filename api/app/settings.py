@@ -132,5 +132,5 @@ STATIC_URL = '/static/'
 
 # Zeppelin Settings
 
-ZEPPELIN_HOST = "http://localhost"
-ZEPPELIN_PORT = "8081"
+ZEPPELIN_HOST = "http://zeppelin-server"
+ZEPPELIN_PORT = "80"

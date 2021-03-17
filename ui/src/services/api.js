@@ -1,7 +1,7 @@
 import { getCookie } from "./general.js";
 
 export default class ApiService {
-  base_url = "http://localhost:8000";
+  base_url = "api/";
 
   async get(endpoint) {
     let token = this.getCsrfToken();

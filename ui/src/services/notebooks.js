@@ -4,7 +4,7 @@ let apiService = new ApiService()
 
 class NotebookService {
     async getNotebooks(){
-        const response = await apiService.get("/api/notebooks/0")
+        const response = await apiService.get("notebooks/0")
         if(response.success == true)
             return response.data
         else
@@ -12,7 +12,7 @@ class NotebookService {
     }
 
     async getSchedules(){
-        const response = await apiService.get("/api/schedules/")
+        const response = await apiService.get("schedules/")
         if(response.success == true)
             return response.data
         else    
@@ -20,7 +20,7 @@ class NotebookService {
     }
 
     async addNotebookSchedule(notebookId, scheduleId){
-        const response = await apiService.post("/api/notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
+        const response = await apiService.post("notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
         if(response.success == true){
             store.addNotification({
                 title: "Success!",

@@ -1,5 +1,7 @@
 aiohttp==3.7.4.post0
 amqp==5.0.5
+anyjson==0.3.3
+appnope==0.1.2
 asgiref==3.3.1
 async-timeout==3.0.1
 attrs==20.3.0
@@ -15,9 +17,12 @@ click-repl==0.1.6
 decorator==4.4.2
 Django==3.1.7
 django-celery-beat==2.2.0
+django-cors-headers==3.7.0
 django-timezone-field==4.1.1
 djangorestframework==3.12.2
+gunicorn==20.0.4
 idna==2.10
+importlib-metadata==3.7.2
 ipython==7.21.0
 ipython-genutils==0.2.0
 jedi==0.18.0
@@ -41,3 +46,4 @@ urllib3==1.26.3
 vine==5.0.0
 wcwidth==0.2.5
 yarl==1.6.3
+zipp==3.4.1
