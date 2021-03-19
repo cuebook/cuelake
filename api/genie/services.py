@@ -83,6 +83,19 @@ class NotebookJobServices:
         return res
 
     @staticmethod
+    def updateNotebookJob(notebookJobId: str, crontabScheduleId: int):
+        """
+        Service to update crontab of an existing NotebookJob
+        :param notebookId: ID of the NotebookJob for which to update crontab
+        :param crontabScheduleId: ID of CrontabSchedule
+        """
+        res = ApiResponse()
+        crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
+        NotebookJob.objects.filter(id=notebookJobId).update(crontab=crontabScheduleObj)
+        res.update(True, "NotebookJob added successfully", None)
+        return res
+
+    @staticmethod
     def getSchedules():
         """
         Service to get all schedules

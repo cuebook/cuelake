@@ -15,6 +15,13 @@ def addNotebookJob(request):
     res = NotebookJobServices.addNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
     return Response(res.json())
 
+@api_view(["POST"])
+def updateNotebookJob(request):
+    notebookJobId = request.data["notebookJobId"]
+    crontabScheduleId = request.data["crontabScheduleId"]
+    res = NotebookJobServices.updateNotebookJob(notebookJobId=notebookJobId, crontabScheduleId=crontabScheduleId)
+    return Response(res.json())
+
 @api_view(["GET"])
 def getSchedules(request):
     res = NotebookJobServices.getSchedules()
