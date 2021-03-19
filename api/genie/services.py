@@ -1,6 +1,7 @@
 import asyncio
+import json
 from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob
+from genie.models import NotebookJob, RunStatus
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import ZeppelinAPI
@@ -22,6 +23,20 @@ class NotebookJobServices:
         zeppelinApiObj = ZeppelinAPI()
         notebookStatuses = await asyncio.gather(*(zeppelinApiObj.getNotebookStatus(notebook["id"]) for notebook in notebooks))
         return notebookStatuses
+    
+    @staticmethod
+    async def _fetchNotebookStatuses(notebooks: list):
+        """
+        Async method to fetch notebook status details for multiple notebooks
+        Returns a dict with notebook ids as keys
+        :param notebooks: List of notebook describing dicts each containing the 'id' field
+        """
+        zeppelinApiObj = ZeppelinAPI()
+        notebookStatuses = {}
+        for future in asyncio.as_completed([zeppelinApiObj.getNotebookStatus(notebook["id"]) for notebook in notebooks]):
+            status = await future
+            notebookStatuses[status["id"]] = status
+        return notebookStatuses
 
     @staticmethod
     def getNotebooks(offset: int = 0):
@@ -32,16 +47,26 @@ class NotebookJobServices:
         """
         res = ApiResponse()
         notebooks = ZeppelinAPI().getAllNotebooks()[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
-        notebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses(notebooks))
-        for i in range(len(notebookStatuses)):
-            notebookStatuses[i]["name"] = notebooks[i]["path"]
-            notebookJob = NotebookJob.objects.filter(notebookId=notebookStatuses[i]["id"]).first()
+        for notebook in notebooks:
+            notebook["name"] = notebook["path"]
+            notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
             if notebookJob:
-                notebookStatuses[i]["isScheduled"] = True
-                notebookStatuses[i]["schedule"] = str(notebookJob.crontab)
+                notebook["isScheduled"] = True
+                notebook["schedule"] = str(notebookJob.crontab)
+                lastScheduledRun = RunStatus.objects.filter(notebookJob=notebookJob).last()
+                if lastScheduledRun and lastScheduledRun.status != "RUNNING":
+                    notebook["lastScheduledRun"] = True
+                    notebook.update(json.loads(lastScheduledRun.logs))
+                else:
+                    notebook["lastScheduledRun"] = False
             else:
-                notebookStatuses[i]["isScheduled"] = False
-        res.update(True, "NotebookJobs retrieved successfully", notebookStatuses)
+                notebook["isScheduled"] = False
+                notebook["lastScheduledRun"] = False
+        zeppelinNotebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses([note for note in notebooks if not note["lastScheduledRun"]]))
+        for notebook in notebooks:
+            if not notebook["lastScheduledRun"]:
+                notebook.update(zeppelinNotebookStatuses[notebook["id"]])
+        res.update(True, "NotebookJobs retrieved successfully", notebooks)
         return res
     
     @staticmethod
