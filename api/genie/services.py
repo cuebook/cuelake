@@ -1,5 +1,6 @@
 import asyncio
 import json
+import pytz
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob, RunStatus
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer
@@ -80,7 +81,7 @@ class NotebookJobServices:
         """
         res = ApiResponse()
         notebookJob = NotebookJob.objects.get(id=notebookJobId)
-        notebookJobData = NotebookJobSerializer(notebookJob)
+        notebookJobData = NotebookJobSerializer(notebookJob).data
         runStatuses = notebookJob.runstatus_set.order_by("-timestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
         notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
         res.update(True, "NotebookJobs retrieved successfully", notebookJobData)
@@ -109,16 +110,50 @@ class NotebookJobServices:
         res = ApiResponse()
         crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
         NotebookJob.objects.filter(id=notebookJobId).update(crontab=crontabScheduleObj)
-        res.update(True, "NotebookJob added successfully", None)
+        res.update(True, "NotebookJob updated successfully", None)
         return res
 
     @staticmethod
     def getSchedules():
         """
-        Service to get all schedules
+        Service to get all CrontabSchedule objects
         """
         res = ApiResponse()
         crontabSchedules = CrontabSchedule.objects.all()
         data = CrontabScheduleSerializer(crontabSchedules, many=True).data
         res.update(True, "Schedules fetched successfully", data)
+        return res
+    
+    @staticmethod
+    def addSchedule(cron: str, timezone: str = None):
+        """
+        Service to add CrontabSchedule
+        :param cron: Crontab in string format
+        :param timezone: Timezone string for which to configure CrontabSchedule
+        """
+        res = ApiResponse()
+        cronElements = cron.split()
+        if len(cronElements) != 5:
+            res.update(False, "Crontab must contain five elements")
+            return res        
+        timezone = timezone if timezone else "UTC"
+        CrontabSchedule.objects.create(
+            minute=cronElements[0],
+            hour=cronElements[1],
+            day_of_month=cronElements[2],
+            month_of_year=cronElements[3],
+            day_of_week=cronElements[4],
+            timezone=timezone
+        )
+        res.update(True, "Schedule added successfully", None)
+        return res
+    
+    @staticmethod
+    def getTimezones():
+        """
+        Service to fetch all pytz timezones
+        """
+        res = ApiResponse()
+        timezones = pytz.all_timezones
+        res.update(True, "Timezones fetched successfully", timezones)
         return res
