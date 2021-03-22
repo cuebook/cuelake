@@ -2,13 +2,15 @@ import asyncio
 import json
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob, RunStatus
-from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer
+from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import ZeppelinAPI
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
+
 GET_NOTEBOOKJOBS_LIMIT = 10
+RUN_STATUS_LIMIT = 10
 
 class NotebookJobServices:
     """
@@ -70,6 +72,21 @@ class NotebookJobServices:
         return res
     
     @staticmethod
+    def getNotebookJobDetails(notebookJobId: int, runStatusOffset: int = 0):
+        """
+        Service to fetch run details and logs of the selected NotebookJob
+        :param notebookId: ID of the NotebookJob
+        :param runStatusOffset: Offset for fetching NotebookJob run statuses
+        """
+        res = ApiResponse()
+        notebookJob = NotebookJob.objects.get(id=notebookJobId)
+        notebookJobData = NotebookJobSerializer(notebookJob)
+        runStatuses = notebookJob.runstatus_set.order_by("-timestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
+        notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
+        res.update(True, "NotebookJobs retrieved successfully", notebookJobData)
+        return res
+
+    @staticmethod
     def addNotebookJob(notebookId: str, crontabScheduleId: int):
         """
         Service to add a new NotebookJob
@@ -83,7 +100,7 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def updateNotebookJob(notebookJobId: str, crontabScheduleId: int):
+    def updateNotebookJob(notebookJobId: int, crontabScheduleId: int):
         """
         Service to update crontab of an existing NotebookJob
         :param notebookId: ID of the NotebookJob for which to update crontab
