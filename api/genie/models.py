@@ -1,4 +1,3 @@
-from attr import make_class
 from django.db import models
 from django_celery_beat.models import PeriodicTask
 

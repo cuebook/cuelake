@@ -1,7 +1,7 @@
 import { getCookie } from "./general.js";
 
 export default class ApiService {
-  base_url = "api/";
+  base_url = "api/genie/";
 
   async get(endpoint) {
     let token = this.getCsrfToken();
