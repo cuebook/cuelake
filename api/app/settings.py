@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'genie',
-    'configuration',
+    'system',
     'rest_framework',
     'django_celery_beat'
 ]

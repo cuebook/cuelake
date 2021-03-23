@@ -1,6 +1,6 @@
-from genie.services import NotebookJobServices
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from genie.services import NotebookJobServices
 
 class NotebookView(APIView):
     """

@@ -16,17 +16,7 @@ RUN_STATUS_LIMIT = 10
 class NotebookJobServices:
     """
     Class containing services related to NotebookJob model
-    """
-    @staticmethod
-    async def _fetchNotebookStatuses(notebooks: list):
-        """
-        Async method to fetch notebook status details for multiple notebooks
-        :param notebooks: List of notebook describing dicts each containing the 'id' field
-        """
-        zeppelinApiObj = ZeppelinAPI()
-        notebookStatuses = await asyncio.gather(*(zeppelinApiObj.getNotebookStatus(notebook["id"]) for notebook in notebooks))
-        return notebookStatuses
-    
+    """    
     @staticmethod
     async def _fetchNotebookStatuses(notebooks: list):
         """

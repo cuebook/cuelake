@@ -1,0 +1,1 @@
+ACCOUNT_SETTING_SLACK_URL_KEY = "slack-url"

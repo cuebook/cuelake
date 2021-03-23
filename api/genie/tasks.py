@@ -7,6 +7,7 @@ from celery import shared_task
 from django.conf import settings
 
 from genie.models import NotebookJob, RunStatus
+from system.services import NotificationServices
 
 def _getNotebookStatus(notebookId: str, startISO: str):
     """
@@ -60,4 +61,7 @@ def runNotebookJob(notebookId: str):
                 logResponseJSON = logResponse.json()
                 if logResponseJSON["status"] == "OK":
                     runStatus.logs = json.dumps(logResponseJSON["body"])
+            if finalStatus == "FAILURE":
+                message = f"Scheduled run of notebook {notebookId} failed during {startISO} run. Check RunStatus for details."
+                NotificationServices.notifyOnSlack(message=message)
             runStatus.save()
