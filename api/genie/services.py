@@ -39,7 +39,9 @@ class NotebookJobServices:
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse()
-        notebooks = ZeppelinAPI().getAllNotebooks()[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
+        notebooks = ZeppelinAPI().getAllNotebooks()
+        notebookCount = len(notebooks)
+        notebooks = notebooks[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
         for notebook in notebooks:
             notebook["name"] = notebook["path"]
             notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
@@ -59,7 +61,7 @@ class NotebookJobServices:
         for notebook in notebooks:
             if not notebook["lastScheduledRun"]:
                 notebook.update(zeppelinNotebookStatuses[notebook["id"]])
-        res.update(True, "NotebookJobs retrieved successfully", notebooks)
+        res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
     
     @staticmethod
@@ -86,7 +88,7 @@ class NotebookJobServices:
         """
         res = ApiResponse()
         crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
-        NotebookJob.objects.create(name=notebookId, notebookId=notebookId, crontab=crontabScheduleObj, task=CELERY_TASK_NAME, args=f'["{notebookId}"]')
+        NotebookJob.objects.update_or_create(name=notebookId, notebookId=notebookId, defaults={"crontab":crontabScheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}"]'})
         res.update(True, "NotebookJob added successfully", None)
         return res
 

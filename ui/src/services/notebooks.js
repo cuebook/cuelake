@@ -1,10 +1,9 @@
-import ApiService from "./api";
+import apiService from "./api";
 import { store } from 'react-notifications-component';
-let apiService = new ApiService()
 
 class NotebookService {
-    async getNotebooks(){
-        const response = await apiService.get("notebooks/0")
+    async getNotebooks(offset){
+        const response = await apiService.get("notebooks/" + offset)
         if(response.success == true)
             return response.data
         else
@@ -39,6 +38,19 @@ class NotebookService {
             })
             return response.data
         }
+    }
+
+    async getTimezones(){
+        const response = await apiService.get("timezones/")
+        if(response.success == true)
+            return response.data
+        else 
+            return null
+    }
+
+    async addSchedule(cronTabSchedule, selectedTimezone){
+        const response = await apiService.post("schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
+        return response
     }
 }
 let notebookService = new NotebookService();

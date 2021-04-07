@@ -1,8 +1,10 @@
 import { getCookie } from "./general.js";
 
-export default class ApiService {
-  base_url = "api/genie/";
-
+class ApiService {
+  host = "";
+  base_url = this.host + "api/genie/";
+  zeppelin_base_url = "/zeppelin";
+  
   async get(endpoint) {
     let token = this.getCsrfToken();
     let response = await fetch(this.base_url + endpoint, {
@@ -60,3 +62,6 @@ export default class ApiService {
     return token ? token : "";
   };
 }
+
+let apiService = new ApiService()
+export default apiService;

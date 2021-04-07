@@ -4,16 +4,13 @@ import React from "react";
 
 import NotebookTable from "components/Notebooks/NotebookTable.js";
 
-export default function Tables() {
+export default function NotebookTableFunction() {
   return (
     <>
-      <div className="flex flex-wrap mt-4">
+      <div className="flex flex-wrap mt-4 mh-full">
         <div className="w-full mb-12 px-4">
           <NotebookTable />
         </div>
-        {/* <div className="w-full mb-12 px-4">
-          <CardTable color="dark" />
-        </div> */}
       </div>
     </>
   );

@@ -1,0 +1,36 @@
+.iframe{
+    height: calc(100vh - 28px);
+    width: 100%;
+    margin-top: -68px;
+}
+
+.actions{
+    text-align: right;
+    font-size: 18px;
+    &>span{
+        margin-right: 8px;
+        cursor: pointer;
+        &:hover{
+            color: skyblue;
+        }
+    }
+
+}
+
+.scheduleText{
+    cursor: pointer;
+    .icon{
+        display:none;
+        margin-left: 5px;
+    }
+    &:hover{
+        color: #1890ff;
+        .icon{
+            display: inline-block;
+        }
+    }
+}
+
+.linkText{
+    font-size: 12px;
+}

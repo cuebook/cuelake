@@ -5,6 +5,7 @@ import 'react-notifications-component/dist/theme.css'
 
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/styles/tailwind.css";
+import 'antd/dist/antd.css';
 
 // layouts
 

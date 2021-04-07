@@ -14,6 +14,7 @@ import FooterAdmin from "components/Footers/FooterAdmin.js";
 import Dashboard from "views/admin/Dashboard.js";
 import Settings from "views/admin/Settings.js";
 import Notebooks from "views/admin/Notebooks.js";
+import NotebookView from "views/admin/NotebookView.js";
 
 export default function Admin() {
   return (
@@ -27,10 +28,11 @@ export default function Admin() {
         <div className="px-0 md:px-0 mx-auto w-full">
           <Switch>
             <Route path="/notebooks" exact component={Notebooks} />
+            <Route path="/notebook/:notebookId" exact component={NotebookView} />
             <Route path="/settings" exact component={Settings} />
             <Redirect from="/" to="/notebooks" />
           </Switch>
-          <FooterAdmin />
+          {/* <FooterAdmin /> */}
         </div>
       </div>
     </>
