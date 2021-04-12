@@ -43,6 +43,27 @@ class ZeppelinAPI:
         response = requests.get(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
         return self.__parseResponse(response)
 
+    def runNotebookJob(self, notebookId: str):
+        """
+        Run all paragraphs from a notebook
+        """
+        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+        return self.__parseResponse(response)
+
+    def stopNotebookJob(self, notebookId: str):
+        """
+        Stop all paragraphs from a notebook
+        """
+        response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+        return self.__parseResponse(response)
+
+    def clearNotebookResults(self, notebookId: str):
+        """
+        Clear all paragraph results from a notebook
+        """
+        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/clear")
+        return self.__parseResponse(response)
+
     def __parseResponse(self, response):
         """
         Parses the response returned by zeppelin APIs
@@ -50,8 +71,11 @@ class ZeppelinAPI:
         try:
             responseJSON = response.json()
             if responseJSON["status"] == "OK":
-                return responseJSON["body"]
+                return responseJSON.get("body", True)
             else:
                 return False
         except Exception as ex:
             return False
+
+# Export initalized class
+Zeppelin = ZeppelinAPI()

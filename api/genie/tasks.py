@@ -8,6 +8,11 @@ from django.conf import settings
 
 from genie.models import NotebookJob, RunStatus
 from system.services import NotificationServices
+from utils.zeppelinAPI import Zeppelin
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 def _getNotebookStatus(notebookId: str, startISO: str):
     """
@@ -39,29 +44,58 @@ def runNotebookJob(notebookId: str):
     Celery task to run a zeppelin notebook
     :param notebookId: ID of the zeppelin notebook which to run
     """
-    zeppelinUrl = f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/api/notebook/job/{notebookId}"
     notebookJob = NotebookJob.objects.get(notebookId=notebookId)
-    startISO = dt.datetime.now(dt.timezone.utc).isoformat()
-    response = requests.post(zeppelinUrl)
-    if response.status_code == 200 and response.json()["status"] == "OK":
-        runStatus = RunStatus.objects.create(notebookJob=notebookJob, status="RUNNING")
-        finalStatus = ""
-        try:
-            polling.poll(
-                lambda: _getNotebookStatus(notebookId, startISO) != "RUNNING", step=5, timeout=3600,
-            )
-        except Exception as ex:
-            finalStatus = "FAILURE"
-        else:
-            finalStatus = _getNotebookStatus(notebookId, startISO)
-        finally:
-            runStatus.status = finalStatus
-            logResponse = requests.get(zeppelinUrl)
-            if logResponse.status_code == 200:
-                logResponseJSON = logResponse.json()
-                if logResponseJSON["status"] == "OK":
-                    runStatus.logs = json.dumps(logResponseJSON["body"])
-            if finalStatus == "FAILURE":
-                message = f"Scheduled run of notebook {notebookId} failed during {startISO} run. Check RunStatus for details."
-                NotificationServices.notifyOnSlack(message=message)
+    runStatus = RunStatus.objects.create(notebookJob=notebookJob, status="RUNNING")
+    try:
+        # Check if notebook is already running
+        if(checkIfNotebookRunning(notebookId)):
+            runStatus.status="ERROR"
+            runStatus.message="Notebook already running"
             runStatus.save()
+        else:
+            # Clear noteook results
+            Zeppelin.clearNotebookResults(notebookId)
+            response = Zeppelin.runNotebookJob(notebookId)
+            if response:
+                try:
+                    polling.poll(
+                        lambda: checkIfNotebookRunningAndStoreLogs(notebookId, runStatus) != True, step=3, timeout=3600
+                    )
+                except Exception as ex:
+                    runStatus.status = "FAILURE"
+                    runStatus.message = str(ex)
+                    runStatus.save()
+                finally:
+                    NotificationServices.notifyOnSlack(message="")
+            else:
+                runStatus.status="ERROR"
+                runStatus.message = "Failed running notebook"
+                runStatus.save()
+    except Exception as ex:
+        runStatus.status="ERROR"
+        runStatus.message = str(ex)
+        runStatus.save()
+
+def checkIfNotebookRunning(notebookId: str):
+    response = Zeppelin.getNotebookDetails(notebookId)
+    isNotebookRunning = response.get("info", {}).get("isRunning", False)
+    return isNotebookRunning
+
+def checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
+    response = Zeppelin.getNotebookDetails(notebookId)
+    runStatus.logs = response
+    runStatus.save()
+    isNotebookRunning = response.get("info", {}).get("isRunning", False)
+    if not isNotebookRunning:
+        setNotebookStatus(response, runStatus)
+    return isNotebookRunning
+
+def setNotebookStatus(response: dict, runStatus: RunStatus):
+    paragraphs = response.get("paragraphs", [])
+    for paragraph in paragraphs:
+        if paragraph.get("status") != "FINISHED":
+            runStatus.status="ERROR"
+            runStatus.save()
+            return
+    runStatus.status="SUCCESS"
+    runStatus.save()

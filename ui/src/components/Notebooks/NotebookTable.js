@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import { useHistory } from "react-router-dom";
@@ -12,9 +12,13 @@ import {
   Tooltip,
   Popover,
   Form,
-  message
+  message,
+  Drawer,
+  Row,
+  Col,
+  Switch
 } from "antd";
-import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined} from '@ant-design/icons';
+import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined} from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -28,7 +32,10 @@ export default function NotebookTable() {
   const [cronTabSchedule, setCronTabSchedule] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
   const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState('');
+  const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState('');
   const history = useHistory();
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
 
   useEffect(() => {
     if (!notebooks) {
@@ -40,6 +47,14 @@ export default function NotebookTable() {
     if (!timezones) {
       getTimezones();
     }
+
+    const refreshNotebookInterval = setInterval(() => {
+      refreshNotebooks((currentPageRef.current - 1)*10)
+    }, 3000);
+
+    return () => {
+      clearInterval(refreshNotebookInterval);
+    };
   }, []);
 
   const getNotebooks = async (offset) => {
@@ -48,6 +63,11 @@ export default function NotebookTable() {
     setNotebooks(response);
     setLoading(false)
     if(!offset) setCurrentPage(1)
+  };
+
+  const refreshNotebooks = async (offset) => {
+    const response = await notebookService.getNotebooks(offset);
+    setNotebooks(response);
   };
 
   const getSchedules = async () => {
@@ -84,7 +104,13 @@ export default function NotebookTable() {
 
   const addNotebookSchedule = async (selectedSchedule) => {
     if(selectedSchedule && selectedNotebook && selectedSchedule !== -1){
-      await notebookService.addNotebookSchedule(selectedNotebook, selectedSchedule);
+      const response = await notebookService.addNotebookSchedule(selectedNotebook, selectedSchedule);
+      if(response.success){
+        message.success(response.message)
+      }
+      else{
+        message.error(response.message)
+      }
       setSelectedNotebook(null)
       getNotebooks((currentPage - 1)*10)
     }
@@ -110,6 +136,42 @@ export default function NotebookTable() {
 
   const navigateToNotebook = (record) => {
     history.push("/notebook/" + record.id);
+  }
+
+  const openRunLogs = (notebook) => {
+    setIsRunLogsDrawerVisible(true)
+  }
+
+  const closeRunLogsDrawer = () => {
+    setIsRunLogsDrawerVisible(false)
+  }
+
+  const runNotebook = async (notebook) => {
+    const response = await notebookService.runNotebook(notebook.id)
+    if(response.success)
+      message.success("Notebook " + notebook.name.substring(1) + " ran successfully")
+    else{
+      message.error(response.message)
+    }
+  }
+
+  const stopNotebook = async (notebook) => {
+    const response = await notebookService.stopNotebook(notebook.id)
+    if(response.success)
+      message.success("Notebook " + notebook.name.substring(1) + " stopped successfully")
+    else{
+      message.error(response.message)
+    }
+  }
+
+  const onNotebookToggleChange = async (event, notebook) => {
+    const response = await notebookService.toggleNotebookSchedule(event, notebook.id)
+    if(response.success){
+      refreshNotebooks((currentPage - 1)*10)
+    }
+    else{
+      message.error(response.message)
+    }
   }
 
   const handleCancel = () => {
@@ -150,25 +212,32 @@ export default function NotebookTable() {
       dataIndex: "schedule",
       key: "schedule",
       width: "20%",
-      render: (schedule, record) => {
-        if(schedule && selectedNotebook != record.id){
+      render: (schedule, notebook) => {
+        if(schedule && selectedNotebook != notebook.id){
           return (
-            <div className={style.scheduleText} onClick={()=>showScheduleDropDown(record.id)}>
+            <>
+            { notebook.isScheduled ?
+            <Switch size="small" checked={notebook.isActive} onChange={(event) => onNotebookToggleChange(event, notebook)} />
+            :
+            null
+          }
+            <div className={style.scheduleText} onClick={()=>showScheduleDropDown(notebook.id)}>
               <span>{schedule}</span>
               <span className={style.icon}><EditOutlined /></span>
             </div>
+            </>
           )
         }
         else{
           return (
             <>
               { 
-                selectedNotebook == record.id ?
+                selectedNotebook == notebook.id ?
                 <Select defaultValue="Select Cron Schedule" style={{ width: 250 }} onChange={handleScheduleChange}>
                   {scheduleOptionsElement}
                 </Select>
                 :
-                <a className={style.linkText} onClick={()=>showScheduleDropDown(record.id)}>Add Schedule</a>
+                <a className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Add Schedule</a>
               }
             </>
           );
@@ -223,14 +292,21 @@ export default function NotebookTable() {
       render: (notebook, text) => {
         return (
           <div className={style.actions}>
-            <Tooltip title={"Run Notebook"}>
-              <PlayCircleOutlined />
-            </Tooltip>
+            { notebook.isRunning 
+              ?
+              <Tooltip title={"Stop Notebook"}> 
+                <StopOutlined onClick={() => stopNotebook(notebook)} />
+              </Tooltip>
+              :
+              <Tooltip title={"Run Notebook"}> 
+                <PlayCircleOutlined onClick={() => runNotebook(notebook)} />
+              </Tooltip>
+            }
             <Tooltip title={"Edit Notebook"}>
               <EditOutlined onClick={() => navigateToNotebook(notebook)} />
             </Tooltip>
             <Tooltip title={"View Run Logs"}>
-              <UnorderedListOutlined onClick={() => navigateToNotebook(notebook)} />
+              <UnorderedListOutlined onClick={() => openRunLogs(notebook)} />
             </Tooltip>
           </div>
         );
@@ -272,6 +348,41 @@ export default function NotebookTable() {
             </Form.Item>
           </Form>
       </Modal>
+      <Drawer
+          title="Run logs"
+          width={720}
+          onClose={closeRunLogsDrawer}
+          visible={isRunLogsDrawerVisible}
+          bodyStyle={{ paddingBottom: 80 }}
+          footer={
+            <div
+              style={{
+                textAlign: 'right',
+              }}
+            >
+              <Button onClick={closeRunLogsDrawer} style={{ marginRight: 8 }}>
+                Cancel
+              </Button>
+              <Button onClick={closeRunLogsDrawer} type="primary">
+                Submit
+              </Button>
+            </div>
+          }
+        >
+          <Form layout="vertical" hideRequiredMark>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="name"
+                  label="Name"
+                  rules={[{ required: true, message: 'Please enter user name' }]}
+                >
+                  <Input placeholder="Please enter user name" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </Drawer>
     </>
   );
 }

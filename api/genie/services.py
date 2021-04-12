@@ -5,7 +5,7 @@ from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob, RunStatus
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer
 from utils.apiResponse import ApiResponse
-from utils.zeppelinAPI import ZeppelinAPI
+from utils.zeppelinAPI import Zeppelin
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -24,9 +24,8 @@ class NotebookJobServices:
         Returns a dict with notebook ids as keys
         :param notebooks: List of notebook describing dicts each containing the 'id' field
         """
-        zeppelinApiObj = ZeppelinAPI()
         notebookStatuses = {}
-        for future in asyncio.as_completed([zeppelinApiObj.getNotebookStatus(notebook["id"]) for notebook in notebooks]):
+        for future in asyncio.as_completed([Zeppelin.getNotebookStatus(notebook["id"]) for notebook in notebooks]):
             status = await future
             notebookStatuses[status["id"]] = status
         return notebookStatuses
@@ -38,30 +37,27 @@ class NotebookJobServices:
         Number of NotebookJobs fetched is stored as the constant GET_NOTEBOOKJOBS_LIMIT
         :param offset: Offset for fetching NotebookJob objects
         """
-        res = ApiResponse()
-        notebooks = ZeppelinAPI().getAllNotebooks()
-        notebookCount = len(notebooks)
-        notebooks = notebooks[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
-        for notebook in notebooks:
-            notebook["name"] = notebook["path"]
-            notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
-            if notebookJob:
-                notebook["isScheduled"] = True
-                notebook["schedule"] = str(notebookJob.crontab)
-                lastScheduledRun = RunStatus.objects.filter(notebookJob=notebookJob).last()
-                if lastScheduledRun and lastScheduledRun.status != "RUNNING":
-                    notebook["lastScheduledRun"] = True
-                    notebook.update(json.loads(lastScheduledRun.logs))
-                else:
+        res = ApiResponse(message="Error retrieving notebooks")
+        notebooks = Zeppelin.getAllNotebooks()
+        if notebooks:
+            notebookCount = len(notebooks)
+            notebooks = notebooks[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
+            for notebook in notebooks:
+                notebook["name"] = notebook["path"]
+                notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
+                if notebookJob:
+                    notebook["isScheduled"] = True
+                    notebook["schedule"] = str(notebookJob.crontab)
+                    notebook["isActive"] = notebookJob.enabled
                     notebook["lastScheduledRun"] = False
-            else:
-                notebook["isScheduled"] = False
-                notebook["lastScheduledRun"] = False
-        zeppelinNotebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses([note for note in notebooks if not note["lastScheduledRun"]]))
-        for notebook in notebooks:
-            if not notebook["lastScheduledRun"]:
-                notebook.update(zeppelinNotebookStatuses[notebook["id"]])
-        res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
+                else:
+                    notebook["isScheduled"] = False
+                    notebook["lastScheduledRun"] = False
+            zeppelinNotebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses([note for note in notebooks if not note["lastScheduledRun"]]))
+            for notebook in notebooks:
+                if not notebook["lastScheduledRun"]:
+                    notebook.update(zeppelinNotebookStatuses[notebook["id"]])
+            res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
     
     @staticmethod
@@ -102,6 +98,18 @@ class NotebookJobServices:
         res = ApiResponse()
         crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
         NotebookJob.objects.filter(id=notebookJobId).update(crontab=crontabScheduleObj)
+        res.update(True, "NotebookJob updated successfully", None)
+        return res
+
+    @staticmethod
+    def toggleNotebookJob(notebookId: int, enabled: bool):
+        """
+        Service to update crontab of an existing NotebookJob
+        :param notebookId: ID of the NotebookJob for which to update crontab
+        :param crontabScheduleId: ID of CrontabSchedule
+        """
+        res = ApiResponse()
+        NotebookJob.objects.filter(notebookId=notebookId).update(enabled=enabled)
         res.update(True, "NotebookJob updated successfully", None)
         return res
 
@@ -148,4 +156,37 @@ class NotebookJobServices:
         res = ApiResponse()
         timezones = pytz.all_timezones
         res.update(True, "Timezones fetched successfully", timezones)
+        return res
+
+    @staticmethod
+    def runNotebookJob(notebookId: str):
+        """
+        Service to run notebook job
+        """
+        res = ApiResponse("Error in running notebook")
+        response = Zeppelin.runNotebookJob(notebookId)
+        if response:
+            res.update(True, "Notebook ran successfully", None)
+        return res
+
+    @staticmethod
+    def stopNotebookJob(notebookId: str):
+        """
+        Service to run notebook job
+        """
+        res = ApiResponse(message="Error in stopping notebook")
+        response = Zeppelin.stopNotebookJob(notebookId)
+        if response:
+            res.update(True, "Notebook stopped successfully", None)
+        return res
+
+    @staticmethod
+    def clearNotebookResults(notebookId: str):
+        """
+        Service to run notebook job
+        """
+        res = ApiResponse(message="Error in clearing notebook")
+        response = Zeppelin.clearNotebookResults(notebookId)
+        if response:
+            res.update(True, "Notebook cleared successfully", None)
         return res

@@ -20,24 +20,7 @@ class NotebookService {
 
     async addNotebookSchedule(notebookId, scheduleId){
         const response = await apiService.post("notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
-        if(response.success == true){
-            store.addNotification({
-                title: "Success!",
-                message: "Schedule added successfully",
-                type: "success",
-                container: "top-right",
-            })
-            return response.data
-        }
-        else{
-            store.addNotification({
-                title: "Error!",
-                message: "response.message",
-                type: "error",
-                container: "top-right",
-            })
-            return response.data
-        }
+        return response
     }
 
     async getTimezones(){
@@ -50,6 +33,21 @@ class NotebookService {
 
     async addSchedule(cronTabSchedule, selectedTimezone){
         const response = await apiService.post("schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
+        return response
+    }
+
+    async stopNotebook(notebookId){
+        const response = await apiService.delete("notebook/" + notebookId)
+        return response
+    }
+
+    async runNotebook(notebookId){
+        const response = await apiService.post("notebook/" + notebookId)
+        return response
+    }
+
+    async toggleNotebookSchedule(enabled, notebookId){
+        const response = await apiService.put("notebookjob/", {notebookId: notebookId, enabled: enabled})
         return response
     }
 }

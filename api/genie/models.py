@@ -12,7 +12,9 @@ class RunStatus(models.Model):
     """
     Model class to store logs and statuses of NotebookJob runs
     """
-    timestamp = models.DateTimeField(auto_now_add=True)
+    startTimestamp = models.DateTimeField(auto_now_add=True)
+    endTimestamp = models.DateTimeField(null=True, default=None)
     notebookJob = models.ForeignKey(NotebookJob, on_delete=models.CASCADE)
     logs = models.TextField(default="{}") # Should be valid JSON
     status = models.CharField(max_length=7)
+    message = models.CharField(max_length=5000, null=True, default=None)
