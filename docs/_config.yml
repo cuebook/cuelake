@@ -2,7 +2,7 @@ title: "CueLake"
 description: Use SQL to build a data lakehouse and merge incremental data.
 remote_theme: pmarsceill/just-the-docs
 color_scheme: "light"
-url: "https://cuebook.github.io"
+url: "https://cuelake.cuebook.ai/"
 baseurl: ""
 github_username: cuebook
 
