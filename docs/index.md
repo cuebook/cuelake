@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Home
+title: Overview
 nav_order: 1
 description: "CueLake does the EL in ELT (Extract, Load, Transform) pipelines to a data lakehouse"
 permalink: /
 ---
 
-# CueLake
+# Overview
 CueLake does the `EL` in `ELT` (Extract, Load, Transform) pipelines to a **data lakehouse**.
 
 You write simple select statements to extract incremental data and schedule these statements. CueLake uses **Spark SQL** to execute these statements against your databases and then merges incremental data into your data lakehouse (powered by **Apache Iceberg**).
