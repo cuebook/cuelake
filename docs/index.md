@@ -26,3 +26,4 @@ Now open http://localhost:8080
 For general help using CueLake, read the documentation, or go to [Github Discussions](https://github.com/cuebook/cuelake/discussions).
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
+
