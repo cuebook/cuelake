@@ -1,3 +1,11 @@
+---
+layout: default
+title: Home
+nav_order: 1
+description: "CueLake does the EL in ELT (Extract, Load, Transform) pipelines to a data lakehouse"
+permalink: /
+---
+
 # CueLake
 CueLake does the `EL` in `ELT` (Extract, Load, Transform) pipelines to a **data lakehouse**.
 
@@ -26,4 +34,15 @@ Now open http://localhost:8080
 For general help using CueLake, read the documentation, or go to [Github Discussions](https://github.com/cuebook/cuelake/discussions).
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
+
+## Contributors!
+
+<ul class="list-style-none">
+{% for contributor in site.github.contributors %}
+  <li class="d-inline-block mr-1">
+     <a href="{{ contributor.html_url }}"><img src="{{ contributor.avatar_url }}" width="32" height="32" alt="{{ contributor.login }}"/></a>
+  </li>
+{% endfor %}
+</ul>
+
 
