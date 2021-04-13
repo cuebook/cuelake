@@ -1,3 +1,6 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/maintainability)](https://codeclimate.com/github/cuebook/cuelake/maintainability)
+
+
 # CueLake
 CueLake does the `EL` in `ELT` (Extract, Load, Transform) pipelines to a **data lakehouse**.
 
