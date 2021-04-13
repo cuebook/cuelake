@@ -2,7 +2,7 @@
 layout: default
 title: Why CueLake?
 nav_order: 2
-permalink: /
+permalink: /viewpoint
 ---
 
 # Our Viewpoint
