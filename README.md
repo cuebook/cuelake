@@ -23,7 +23,7 @@ Now open http://localhost:8080
 * Uses Celery for scheduling jobs. Support for Airflow, Dagster and Prefect is in the roadmap.
 
 # Support
-For general help using CueLake, read the documentation, or go to [Github Discussions](https://github.com/cuebook/cuelake/discussions).
+For general help using CueLake, read the [documentation](https://cuelake.cuebook.ai/), or go to [Github Discussions](https://github.com/cuebook/cuelake/discussions).
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
 
