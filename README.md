@@ -6,6 +6,12 @@ You write simple select statements to extract incremental data and schedule thes
 CueLake auto starts and stops the Spark cluster. For every scheduled run, CueLake starts the Spark cluster, loads incremental data into the lakehouse, and then shuts down the cluster.
 
 # Getting started
+```
+kubectl create namespace cuelake
+kubectl apply -f https://raw.githubusercontent.com/cuebook/cuelake/main/cuelake.yaml -n cuelake
+kubectl port-forward services/lakehouse 8080:80 -n cuelake
+```
+Now open http://localhost:8080
 
 # Features
 
