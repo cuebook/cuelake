@@ -3,7 +3,7 @@ description: Use SQL to build a data lakehouse and merge incremental data.
 remote_theme: pmarsceill/just-the-docs
 color_scheme: "light"
 url: "https://cuebook.github.io"
-baseurl: "/cuelake"
+baseurl: ""
 github_username: cuebook
 
 # Enable or disable the site search
