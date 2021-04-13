@@ -2,3 +2,6 @@ title: "Cuelake"
 remote_theme: pmarsceill/just-the-docs
 color_scheme: "dark"
 search_enabled: true
+url: "https://cuebook.github.io"
+baseurl: "/cuelake"
+github_username: cuebook
