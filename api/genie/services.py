@@ -70,7 +70,7 @@ class NotebookJobServices:
         res = ApiResponse()
         notebookJob = NotebookJob.objects.get(id=notebookJobId)
         notebookJobData = NotebookJobSerializer(notebookJob).data
-        runStatuses = notebookJob.runstatus_set.order_by("-timestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
+        runStatuses = notebookJob.runstatus_set.order_by("-startTimestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
         notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
         res.update(True, "NotebookJobs retrieved successfully", notebookJobData)
         return res

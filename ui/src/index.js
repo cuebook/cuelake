@@ -8,18 +8,13 @@ import "assets/styles/tailwind.css";
 import 'antd/dist/antd.css';
 
 // layouts
-
 import Admin from "layouts/Admin.js";
-import Auth from "layouts/Auth.js";
-
-// views without layouts
-import Index from "views/Index.js";
 
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
       {/* add routes with layouts */}
-      <Route path="/auth" component={Auth} />
+      {/* <Route path="/auth" component={Auth} /> */}
       <Route path="/" component={Admin} />
       {/* add redirect for first page */}
       <Redirect from="*" to="/" />

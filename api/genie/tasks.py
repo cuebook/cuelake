@@ -83,7 +83,7 @@ def checkIfNotebookRunning(notebookId: str):
 
 def checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
     response = Zeppelin.getNotebookDetails(notebookId)
-    runStatus.logs = response
+    runStatus.logs = json.dumps(response)
     runStatus.save()
     isNotebookRunning = response.get("info", {}).get("isRunning", False)
     if not isNotebookRunning:

@@ -7,11 +7,8 @@ import ReactNotification from 'react-notifications-component';
 import AdminNavbar from "components/Navbars/AdminNavbar.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 import HeaderStats from "components/Headers/HeaderStats.js";
-import FooterAdmin from "components/Footers/FooterAdmin.js";
 
 // views
-
-import Dashboard from "views/admin/Dashboard.js";
 import Settings from "views/admin/Settings.js";
 import Notebooks from "views/admin/Notebooks.js";
 import NotebookView from "views/admin/NotebookView.js";
@@ -32,7 +29,6 @@ export default function Admin() {
             <Route path="/settings" exact component={Settings} />
             <Redirect from="/" to="/notebooks" />
           </Switch>
-          {/* <FooterAdmin /> */}
         </div>
       </div>
     </>
