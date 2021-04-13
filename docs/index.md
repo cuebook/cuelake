@@ -30,7 +30,7 @@ For general help using CueLake, read the documentation, or go to [Github Discuss
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
 
-## Contributors!
+# Contributors!
 
 <ul class="list-style-none">
 {% for contributor in site.github.contributors %}
