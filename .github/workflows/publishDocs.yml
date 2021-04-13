@@ -3,7 +3,7 @@ name: Publish Docs CI
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   jekyll:
     runs-on: ubuntu-16.04
