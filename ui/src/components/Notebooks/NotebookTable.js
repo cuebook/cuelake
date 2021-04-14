@@ -19,6 +19,7 @@ import {
   Switch
 } from "antd";
 import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined} from '@ant-design/icons';
+import NotebookRunLogs from "./NotebookRunLogs.js"
 
 const { Option } = Select;
 
@@ -29,6 +30,7 @@ export default function NotebookTable() {
   const [loading, setLoading] = useState('');
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
+  const [runLogNotebook, setRunLogNotebook] = useState('');
   const [cronTabSchedule, setCronTabSchedule] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
   const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState('');
@@ -139,6 +141,7 @@ export default function NotebookTable() {
   }
 
   const openRunLogs = (notebook) => {
+    setRunLogNotebook(notebook)
     setIsRunLogsDrawerVisible(true)
   }
 
@@ -349,7 +352,7 @@ export default function NotebookTable() {
           </Form>
       </Modal>
       <Drawer
-          title="Run logs"
+          title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
           width={720}
           onClose={closeRunLogsDrawer}
           visible={isRunLogsDrawerVisible}
@@ -361,28 +364,18 @@ export default function NotebookTable() {
               }}
             >
               <Button onClick={closeRunLogsDrawer} style={{ marginRight: 8 }}>
-                Cancel
-              </Button>
-              <Button onClick={closeRunLogsDrawer} type="primary">
-                Submit
+                Close
               </Button>
             </div>
           }
         >
-          <Form layout="vertical" hideRequiredMark>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label="Name"
-                  rules={[{ required: true, message: 'Please enter user name' }]}
-                >
-                  <Input placeholder="Please enter user name" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Drawer>
+          { isRunLogsDrawerVisible 
+            ? 
+            <NotebookRunLogs notebook={runLogNotebook}></NotebookRunLogs>
+            :
+            null
+          }
+      </Drawer>
     </>
   );
 }

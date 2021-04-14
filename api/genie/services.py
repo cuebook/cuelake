@@ -50,6 +50,7 @@ class NotebookJobServices:
                     notebook["schedule"] = str(notebookJob.crontab)
                     notebook["isActive"] = notebookJob.enabled
                     notebook["lastScheduledRun"] = False
+                    notebook["notebookJobId"] = notebookJob.id
                 else:
                     notebook["isScheduled"] = False
                     notebook["lastScheduledRun"] = False
@@ -71,7 +72,9 @@ class NotebookJobServices:
         notebookJob = NotebookJob.objects.get(id=notebookJobId)
         notebookJobData = NotebookJobSerializer(notebookJob).data
         runStatuses = notebookJob.runstatus_set.order_by("-startTimestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
+        notebookRunCount = notebookJob.runstatus_set.count()
         notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
+        notebookJobData["count"] = notebookRunCount
         res.update(True, "NotebookJobs retrieved successfully", notebookJobData)
         return res
 

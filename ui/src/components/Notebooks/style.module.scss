@@ -21,7 +21,7 @@
     cursor: pointer;
     display: inline-block;
     margin-left: 10px;
-    
+
     .icon{
         display:none;
         margin-left: 5px;
@@ -36,4 +36,20 @@
 
 .linkText{
     font-size: 12px;
+}
+
+.runLogTable{
+    width: 100%;
+}
+
+.divider{
+    height: 2px;
+    width: 100%;
+    background: #eee;
+    margin-bottom: 10px;
+}
+
+.logsDiv{
+    height: 400px;
+    overflow: auto;
 }

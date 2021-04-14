@@ -10,6 +10,14 @@ class NotebookService {
             return null
     }
 
+    async getNotebookLogs(notebookJobId, offset){
+        const response = await apiService.get("notebookjob/" + notebookJobId + "?offset=" + offset)
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
+
     async getSchedules(){
         const response = await apiService.get("schedules/")
         if(response.success == true)
