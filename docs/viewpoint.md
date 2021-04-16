@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Why CueLake?
+title: Our Viewpoint
 nav_order: 2
 permalink: /viewpoint
 ---

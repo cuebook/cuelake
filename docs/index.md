@@ -13,10 +13,16 @@ You write simple select statements to extract incremental data and schedule thes
 
 CueLake auto starts and stops the Spark cluster. For every scheduled run, CueLake starts the Spark cluster, loads incremental data into the lakehouse, and then shuts down the cluster.
 
-#### What is a Lakehouse?
+### What is a Lakehouse?
 A lakehouse is a new, open architecture that combines the best elements of data lakes and data warehouses (see Databricks articles [here](https://databricks.com/blog/2020/01/30/what-is-a-data-lakehouse.html) and [here](https://databricks.com/research/lakehouse-a-new-generation-of-open-platforms-that-unify-data-warehousing-and-advanced-analytics)).
 
 # Features
+* **Upsert Incremental data.** CueLake uses Iceberg’s `merge into` query to automatically merge incremental data.
+* **Auto Start/Stop Cloud Infrastructure.** CueLake uses Kubernetes to auto start and stop cloud infrastructure required to run data pipelines.
+* **In-built Scheduler** to schedule your pipelines.
+* **Automated maintenance of Iceberg tables.** CueLake does automated maintenance of Iceberg tables -  expires snapshots, removes old metadata and orphan files, compacts data files.
+* **Monitoring.**  Get Slack alerts when a pipeline fails. CueLake maintains detailed logs.
+* **Data Security.** Your data always stays within your cloud account.
 
 ### Current Limitations
 * Supports relational databases (Oracle, MySQL, Postgres) as data source. More sources will be added later.
