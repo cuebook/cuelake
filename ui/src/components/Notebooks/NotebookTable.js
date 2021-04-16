@@ -72,10 +72,8 @@ export default function NotebookTable() {
   };
 
   const refreshNotebooks = async (offset) => {
-    if(notebooks.length){
-      const response = await notebookService.getNotebooks(offset);
-      setNotebooks(response);
-    }
+    const response = await notebookService.getNotebooks(offset);
+    setNotebooks(response);
   };
 
   const getSchedules = async () => {
