@@ -25,8 +25,8 @@ import AddNotebook from "./AddNotebook.js"
 const { Option } = Select;
 
 export default function NotebookTable() {
-  const [notebooks, setNotebooks] = useState('');
-  const [schedules, setSchedules] = useState('');
+  const [notebooks, setNotebooks] = useState([]);
+  const [schedules, setSchedules] = useState([]);
   const [timezones, setTimezones] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
@@ -42,7 +42,7 @@ export default function NotebookTable() {
   currentPageRef.current = currentPage;
 
   useEffect(() => {
-    if (!notebooks) {
+    if (!notebooks.length) {
         getNotebooks(0);
     }
     if (!schedules) {
@@ -64,14 +64,18 @@ export default function NotebookTable() {
   const getNotebooks = async (offset) => {
     setLoading(true)
     const response = await notebookService.getNotebooks(offset);
-    setNotebooks(response);
+    if(response){
+      setNotebooks(response);
+    }
     setLoading(false)
     if(!offset) setCurrentPage(1)
   };
 
   const refreshNotebooks = async (offset) => {
-    const response = await notebookService.getNotebooks(offset);
-    setNotebooks(response);
+    if(notebooks.length){
+      const response = await notebookService.getNotebooks(offset);
+      setNotebooks(response);
+    }
   };
 
   const getSchedules = async () => {

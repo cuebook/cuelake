@@ -108,7 +108,7 @@ spec:
         image: cuebook/zeppelin-server:0.9.0
         command: ["sh", "-c"]
         args:
-          - curl https://raw.githubusercontent.com/cuebook/cuelake/main/templates/Oracle%20To%20S3%20Lakehouse.zpln -o $(ZEPPELIN_HOME)/notebook/"Oracle To S3 Lakehouse_2G1N7JTYB.zpln" && $(ZEPPELIN_HOME)/bin/zeppelin.sh
+          - curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/interpreter.json -o $(ZEPPELIN_HOME)/conf/interpreter.json && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-env.sh -o $(ZEPPELIN_HOME)/conf/zeppelin-env.sh && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-site.xml -o $(ZEPPELIN_HOME)/conf/zeppelin-site.xml && $(ZEPPELIN_HOME)/bin/zeppelin.sh
         lifecycle:
           preStop:
             exec:
