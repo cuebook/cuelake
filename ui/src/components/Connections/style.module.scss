@@ -64,3 +64,17 @@
     float: inherit;
     margin-bottom: 40px !important;
 }
+
+.addConnectionForm{
+    display: inline-block;
+    width: 100%;
+    .formItem{
+        padding: 0 5px;
+        float: left;
+        display: inline-block;
+    }
+}
+
+.submitButton{
+    padding: 0 5px;
+}

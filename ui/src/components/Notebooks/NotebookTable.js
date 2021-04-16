@@ -193,6 +193,7 @@ export default function NotebookTable() {
 
   const onAddNotebookSuccess = () => {
     refreshNotebooks((currentPage - 1)*10)
+    closeNewNotebookDrawer()
   }
 
   let scheduleOptionsElement = []

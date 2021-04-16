@@ -1,6 +1,7 @@
 import asyncio
 import json
 import pytz
+import time
 from django.template import Template, Context
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate
@@ -80,7 +81,14 @@ class NotebookJobServices:
             for cp in connectionParams:
                 paramName = cp.connectionParam.name
                 context["sourceConnection_" + paramName] = cp.value
-        print(context)
+        # Handling S3 path - Splitting it to get the table name
+        if payload.get("destinationTableS3Path", False):
+            destinationTableName = payload["destinationTableS3Path"].rsplit('/', 1)[1]
+            warehouseLocation = payload["destinationTableS3Path"].rsplit('/', 1)[0]
+            context["destinationTableName"] = destinationTableName
+            context["warehouseLocation"] = warehouseLocation
+        # Adding a temp table name to the context
+        context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
         notebook = Template(notebookTemplate.template).render(Context(context))
         response = Zeppelin.addNotebook(notebook)
         if response:

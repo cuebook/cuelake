@@ -144,12 +144,12 @@ export default function AddNotebook(props) {
             hideRequiredMark
         >
           <div className="row">
+            {notebookFormElements}
             <div className={style.inputGroup}>
-              <Form.Item hasFeedback name="name" label="Notebook Name">
+              <Form.Item required name="name" label="Notebook Name" rules={[{"required": true, "message": "Notebook name is required"}]}>
                 <Input className={style.inputArea} />
               </Form.Item>
             </div>
-            {notebookFormElements}
           </div>
           <Button
             icon=""
@@ -157,7 +157,7 @@ export default function AddNotebook(props) {
             className="mr-2"
             htmlType="submit"
           >
-            SUBMIT
+            Create Notebook
           </Button>
         </Form>
       </div>

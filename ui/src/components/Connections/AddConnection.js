@@ -51,7 +51,7 @@ export default function AddConnection(props) {
             connectionParamElements.push(
                 <div
                   style={{ width: item.properties.width }}
-                  className={style.inputGroup}
+                  className={style.formItem}
                   key={item.id}
                 >
                   <Form.Item 
@@ -99,22 +99,24 @@ export default function AddConnection(props) {
             scrollToFirstError
             hideRequiredMark
         >
-          <div className="row">
-            <div className={style.inputGroup}>
+          <div className={style.addConnectionForm}>
+            <div className={style.formItem} style={{ width: "100%" }}>
               <Form.Item hasFeedback name="name" label="Connection Name">
                 <Input className={style.inputArea} />
               </Form.Item>
             </div>
             {connectionParamElements}
           </div>
-          <Button
-            icon=""
-            type="primary"
-            className="mr-2"
-            htmlType="submit"
-          >
-            SUBMIT
-          </Button>
+          <div className={style.submitButton}>
+            <Button
+                icon=""
+                type="primary"
+                className="mr-2"
+                htmlType="submit"
+            >
+                Add Connection
+            </Button>
+          </div>
         </Form>
       </div>
     );
