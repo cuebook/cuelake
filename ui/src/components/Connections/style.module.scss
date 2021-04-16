@@ -1,0 +1,66 @@
+.actions{
+    text-align: right;
+    font-size: 18px;
+    &>span{
+        margin-right: 8px;
+        cursor: pointer;
+        &:hover{
+            color: skyblue;
+        }
+    }
+}
+
+.connection{
+    width: calc(33.33% - 10px);
+    margin-right: 10px;
+    margin-bottom: 10px;
+    height: 100px;
+    float: left;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    text-align: center;
+    background-color: #eee;
+    cursor: pointer;
+
+    &:hover{
+        background-color: #ddd;
+    }
+}
+
+.connectionLogo{
+    background-size: contain;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    width: 50%;
+    margin: auto auto;
+    height: 70px;
+}
+
+.connectionLogoTable{
+    background-size: contain;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    width: 50px;
+    height: 22px;
+    float: left;
+    margin-right: 20px;
+}
+
+.selectedConnectionDiv{
+    width: 100%;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+}
+
+.connectionBackButton{
+    position: absolute;
+    top: 40px;
+    cursor: pointer;
+}
+
+.selectedConnection{
+    margin: 0 auto !important;
+    float: inherit;
+    margin-bottom: 40px !important;
+}

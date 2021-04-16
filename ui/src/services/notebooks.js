@@ -58,6 +58,16 @@ class NotebookService {
         const response = await apiService.put("notebookjob/", {notebookId: notebookId, enabled: enabled})
         return response
     }
+
+    async getNotebookTemplates(){
+        const response = await apiService.get("notebookTemplates/")
+        return response
+    }
+
+    async addNotebook(payload){
+        const response = await apiService.post("notebook", payload)
+        return response
+    }
 }
 let notebookService = new NotebookService();
 export default notebookService

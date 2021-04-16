@@ -20,6 +20,7 @@ import {
 } from "antd";
 import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined} from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
+import AddNotebook from "./AddNotebook.js"
 
 const { Option } = Select;
 
@@ -27,14 +28,15 @@ export default function NotebookTable() {
   const [notebooks, setNotebooks] = useState('');
   const [schedules, setSchedules] = useState('');
   const [timezones, setTimezones] = useState('');
-  const [loading, setLoading] = useState('');
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [cronTabSchedule, setCronTabSchedule] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
-  const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState('');
-  const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState('');
+  const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState(false);
+  const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
+  const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
@@ -181,6 +183,18 @@ export default function NotebookTable() {
     setIsAddScheduleModalVisible(false)
   }
 
+  const closeNewNotebookDrawer = () => {
+    setIsNewNotebookDrawerVisible(false)
+  }
+
+  const openNewNotebookDrawer = () => {
+    setIsNewNotebookDrawerVisible(true)
+  }
+
+  const onAddNotebookSuccess = () => {
+    refreshNotebooks((currentPage - 1)*10)
+  }
+
   let scheduleOptionsElement = []
   if(schedules){
     scheduleOptionsElement.push(<Option value={"Add Schedule"} key={"0"}>Add Schedule</Option>)
@@ -320,6 +334,15 @@ export default function NotebookTable() {
   return (
 
     <>
+      <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
+          <Button
+              key="createTag"
+              type="primary"
+              onClick={() => openNewNotebookDrawer()}
+          >
+              New Notebook
+          </Button>
+      </div>
       <Table
         rowKey={"id"}
         scroll={{ x: "100%" }}
@@ -372,6 +395,31 @@ export default function NotebookTable() {
           { isRunLogsDrawerVisible 
             ? 
             <NotebookRunLogs notebook={runLogNotebook}></NotebookRunLogs>
+            :
+            null
+          }
+      </Drawer>
+      <Drawer
+          title={"New Notebook"}
+          width={720}
+          onClose={closeNewNotebookDrawer}
+          visible={isNewNotebookDrawerVisible}
+          bodyStyle={{ paddingBottom: 80 }}
+          footer={
+            <div
+              style={{
+                textAlign: 'right',
+              }}
+            >
+              <Button onClick={closeNewNotebookDrawer} style={{ marginRight: 8 }}>
+                Cancel
+              </Button>
+            </div>
+          }
+        >
+          { isNewNotebookDrawerVisible 
+            ? 
+            <AddNotebook onAddNotebookSuccess={onAddNotebookSuccess}></AddNotebook>
             :
             null
           }

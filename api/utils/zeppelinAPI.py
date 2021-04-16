@@ -64,6 +64,13 @@ class ZeppelinAPI:
         response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/clear")
         return self.__parseResponse(response)
 
+    def addNotebook(self, notebook: dict):
+        """
+        Clear all paragraph results from a notebook
+        """
+        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}", notebook)
+        return self.__parseResponse(response)
+
     def __parseResponse(self, response):
         """
         Parses the response returned by zeppelin APIs

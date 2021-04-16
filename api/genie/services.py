@@ -1,9 +1,10 @@
 import asyncio
 import json
 import pytz
+from django.template import Template, Context
 from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus
-from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer
+from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate
+from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
@@ -59,6 +60,31 @@ class NotebookJobServices:
                 if not notebook["lastScheduledRun"]:
                     notebook.update(zeppelinNotebookStatuses[notebook["id"]])
             res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
+        return res
+
+    @staticmethod
+    def addNotebook(payload):
+        res = ApiResponse(message="Error adding notebook")
+        notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))
+        context = payload # Storing payload in context variable so that it can be used for rendering
+        # Handling connection variables
+        if payload.get("sourceConnection", False):
+            connection = Connection.objects.get(id=payload["sourceConnection"])
+            connectionParams = connection.cpvc.all()
+            for cp in connectionParams:
+                paramName = cp.connectionParam.name
+                context["sourceConnection_" + paramName] = cp.value
+        if payload.get("targetConnection", False):
+            connection = Connection.objects.get(id=payload["sourceConnection"])
+            connectionParams = connection.cpvc.all()
+            for cp in connectionParams:
+                paramName = cp.connectionParam.name
+                context["sourceConnection_" + paramName] = cp.value
+        print(context)
+        notebook = Template(notebookTemplate.template).render(Context(context))
+        response = Zeppelin.addNotebook(notebook)
+        if response:
+            res.update(True, "Notebook added successfully")
         return res
     
     @staticmethod
@@ -192,4 +218,86 @@ class NotebookJobServices:
         response = Zeppelin.clearNotebookResults(notebookId)
         if response:
             res.update(True, "Notebook cleared successfully", None)
+        return res
+
+
+class Connections:
+
+    @staticmethod
+    def getConnections():
+        res = ApiResponse()
+        connections = Connection.objects.all()
+        serializer = ConnectionSerializer(connections, many=True)
+        res.update(True, "Connections retrieved successfully", serializer.data)
+        return res
+
+    @staticmethod
+    def getConnection(connection_id):
+        res = ApiResponse()
+        connections = Connection.objects.get(id=connection_id)
+        serializer = ConnectionDetailSerializer(connections)
+        res.update(True, "Connection retrieved successfully", serializer.data)
+        return res
+
+    @staticmethod
+    def addConnection(payload):
+        res = ApiResponse()
+        connectionType = ConnectionType.objects.get(id=payload["connectionType_id"])
+        connection = Connection.objects.create(
+            name=payload["name"], description=payload["description"], connectionType=connectionType
+        )
+        for param in payload["params"]:
+            cp = ConnectionParam.objects.get(name=param, connectionType=connectionType)
+            ConnectionParamValue.objects.create(
+                connectionParam=cp, value=payload["params"][param], connection=connection
+            )
+        res.update(True, "Connection added successfully")
+        return res
+
+    @staticmethod
+    def removeConnection(connection_id):
+        res = ApiResponse()
+        Connection.objects.get(id=connection_id).delete()
+        res.update(True, "Connection deleted successfully")
+        return res
+
+    @staticmethod
+    def updateConnection(connection_id, payload):
+        res = ApiResponse()
+        Connection.objects.filter(id=connection_id).update(
+            name=payload.get("name", ""),
+            description=payload.get("description", ""),
+            connectionType=ConnectionType.objects.get(id=payload["connectionType_id"]),
+        )
+        connection = Connection.objects.get(id=connection_id)
+        # ToDo: delete params related to this & then update
+        for param in payload["params"]:
+            cp = ConnectionParam.objects.get(id=param["paramId"])
+            # if cp.isEncrypted:
+            #     encryptionObject= AESCipher()
+            #     param['paramValue'] = encryptionObject.encrypt(param['paramValue'])
+            ConnectionParamValue.objects.create(
+                connectionParam=cp, value=param["paramValue"], connection=connection
+            )
+
+        res.update(True, "Connection updated successfully")
+        return res
+
+    @staticmethod
+    def getConnectionTypes():
+        res = ApiResponse()
+        connectionTypes = ConnectionType.objects.all()
+        serializer = ConnectionTypeSerializer(connectionTypes, many=True)
+        res.update(True, "Successfully retrieved connection types", serializer.data)
+        return res
+
+
+class NotebookTemplateService:
+
+    @staticmethod
+    def getNotebookTemplates():
+        res = ApiResponse()
+        templates = NotebookTemplate.objects.all()
+        serializer = NotebookTemplateSerializer(templates, many=True)
+        res.update(True, "Connections retrieved successfully", serializer.data)
         return res
