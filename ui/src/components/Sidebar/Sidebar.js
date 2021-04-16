@@ -21,7 +21,7 @@ export default function Sidebar() {
             className="md:block text-left md:pb-1 text-gray-700 mr-0 inline-block whitespace-no-wrap text-sm uppercase font-bold p-0 px-0"
             to="/"
           >
-            <img src={require("assets/img/cuebook.png")} />
+            <img src={require("assets/img/cuelake.png")} />
           </Link>
           <div
             className={
@@ -68,7 +68,7 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-tools mr-2 text-sm " +
+                      "fas fa-database mr-2 text-sm " +
                       (window.location.href.indexOf("/connections") !== -1
                         ? "opacity-75"
                         : "text-gray-400")

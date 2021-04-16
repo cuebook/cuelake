@@ -410,17 +410,6 @@ export default function NotebookTable() {
           onClose={closeNewNotebookDrawer}
           visible={isNewNotebookDrawerVisible}
           bodyStyle={{ paddingBottom: 80 }}
-          footer={
-            <div
-              style={{
-                textAlign: 'right',
-              }}
-            >
-              <Button onClick={closeNewNotebookDrawer} style={{ marginRight: 8 }}>
-                Cancel
-              </Button>
-            </div>
-          }
         >
           { isNewNotebookDrawerVisible 
             ? 
