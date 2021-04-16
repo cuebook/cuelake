@@ -45,7 +45,7 @@ export default function NotebookTable() {
     if (!notebooks.length) {
         getNotebooks(0);
     }
-    if (!schedules) {
+    if (!schedules.length) {
       getSchedules();
     }
     if (!timezones) {
