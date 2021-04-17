@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Input, message, Select } from "antd";
 import { useHistory } from "react-router-dom";
 import AceEditor from "react-ace";
-import "ace-builds/src-noconflict/mode-sql";
-import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/mode-mysql";
+import "ace-builds/src-noconflict/theme-chrome";
 
 import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
 import connectionService from "services/connection.js";
 import { Link } from "react-router-dom";
+import { LeftOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -80,20 +81,17 @@ export default function AddNotebook(props) {
         </Select>
       case 'sql':
         return <AceEditor
-            mode="sql"
-            theme="github"
-            // onChange={onChange}
-            name="UNIQUE_ID_OF_DIV"
-            editorProps={{ $blockScrolling: true }}
-            enableBasicAutocompletion={true}
-            enableLiveAutocompletion={true}
+            mode="mysql"
+            theme="chrome"
+            name="sqlEditor"
+            highlightActiveLine={true}
             setOptions={{
-                
-                enableSnippets: false,
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
                 showLineNumbers: true,
-                tabSize: 4,
-                useWorker: false
-            }}
+                tabSize: 2,
+                }}
             style={{
                 width: "100%",
                 height: "15em"
@@ -131,9 +129,15 @@ export default function AddNotebook(props) {
     }
 
 
-    let addConnectionFormElement = (
+    let addNotebookFormElement = (
       <div>
-        <p>{selectedNotebookTemplate.name}</p>
+        <div className={style.selectedNotebookTemplate}>
+            <div className={style.templateBackButton} onClick={()=>setSelectedNotebookTemplate({})}>
+                <LeftOutlined />
+                Back
+            </div>
+            <p className={style.selectedNotebookTemplateName}>{selectedNotebookTemplate.name}</p>
+        </div>
         <Form 
             layout="vertical" 
             className="mb-2" 
@@ -167,25 +171,13 @@ export default function AddNotebook(props) {
     let selectNotebookTemplatElement = (
       <div className={style.items}>
         {notebookTemplates.map((notebookTemplate, index) => (
-            <div className={style.item} key={index}>
-              <div className={style.itemContent}>
-                <div className={style.itemControl}>
-                  <Button
+            <div className={style.notebookTemplate} key={index}>
+                <Button
                     style={{ height: "100%", width: "100%" }}
                     onClick={e => handleNotebookTemplateSelect(notebookTemplate)}
-                  >
+                    >
                     {notebookTemplate.name}
-                  </Button>
-                </div>
-                {/* 
-                TODO - Add Images
-                  <img
-                  style={{ width: "50%", height: "50%" }}
-                  src={require("assets/media/" + item.name + ".png")}
-                  alt={connectionType.name}
-                /> */}
-              </div>
-              <div className="text-gray-6"></div>
+                </Button>
             </div>
         ))}
       </div>
@@ -196,7 +188,7 @@ export default function AddNotebook(props) {
         <div className="row">
           {selectedNotebookTemplate.id ? (
             <div className="col-md-8 card offset-md-2 shadow-sm bg-white p-5 mb-5 rounded">
-              {addConnectionFormElement}
+              {addNotebookFormElement}
             </div>
           ) : (
             selectNotebookTemplatElement

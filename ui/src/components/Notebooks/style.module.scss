@@ -53,3 +53,26 @@
     height: 400px;
     overflow: auto;
 }
+
+.selectedNotebookTemplate{
+    width: 100%;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    margin-bottom: 30px;
+
+    .selectedNotebookTemplateName{
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .templateBackButton{
+        position: absolute;
+        top: 6px;
+        cursor: pointer;
+    }
+}
+
+.notebookTemplate{
+    margin-bottom: 10px;
+}
