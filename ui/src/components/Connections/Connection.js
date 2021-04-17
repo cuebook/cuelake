@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Table, Button, Form, Input, message, Tooltip, Drawer } from "antd";
+import React, { useState, useEffect } from "react";
+import { Table, Button, Popconfirm, Input, message, Tooltip, Drawer } from "antd";
 import style from "./style.module.scss";
-import { search } from "services/general.js";
-import { Link } from "react-router-dom";
 import connectionService from "services/connection.js";
 import AddConnection from "./AddConnection.js";
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import ViewConnection from "./ViewConnection.js";
+import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 const ButtonGroup = Button.Group;
@@ -13,7 +12,8 @@ const ButtonGroup = Button.Group;
 export default function Connection() {
   const [connections, setConnections] = useState([]);
   const [selectedConnection, setSelectedConnection] = useState('');
-  const [isConnectionDrawerVisible, setIsConnectionDrawerVisible] = useState('');
+  const [isAddConnectionDrawerVisible, setIsAddConnectionDrawerVisible] = useState('');
+  const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useState('');
 
   useEffect(() => {
     if (!connections.length) {
@@ -36,20 +36,25 @@ export default function Connection() {
     }
   }
 
-  const editConnection = async () => {
-    // TODO
+  const viewConnection = async (connection) => {
+    setSelectedConnection(connection)
+    setIsViewConnectionDrawerVisible(true)
   }
 
-  const closeConnectionDrawer = () => {
-    setIsConnectionDrawerVisible(false)
+  const closeAddConnectionDrawer = () => {
+    setIsAddConnectionDrawerVisible(false)
+  }
+
+  const closeViewConnectionDrawer = () => {
+    setIsViewConnectionDrawerVisible(false)
   }
 
   const openAddConnectionForm = () => {
-    setIsConnectionDrawerVisible(true)
+    setIsAddConnectionDrawerVisible(true)
   }
 
   const onAddConnectionSuccess = async () => {
-    closeConnectionDrawer();
+    closeAddConnectionDrawer();
     fetchConnections();
   }
 
@@ -79,12 +84,20 @@ export default function Connection() {
         key: "",
         render: (text, connection) => (
          <div className={style.actions}>
-            <Tooltip title={"Edit Connection"}>
-              <EditOutlined onClick={() => editConnection(connection)} />
+            <Tooltip title={"View Connection"}>
+              <EyeOutlined onClick={() => viewConnection(connection)} />
             </Tooltip>
-            <Tooltip title={"Delete Connection"}>
-              <DeleteOutlined onClick={() => deleteConnection(connection)} />
-            </Tooltip>
+            <Popconfirm
+                title={"Are you sure to delete "+ connection.name +"?"}
+                onConfirm={() => deleteConnection(connection)}
+                // onCancel={cancel}
+                okText="Yes"
+                cancelText="No"
+            >
+                <Tooltip title={"Delete Connection"}>
+                    <DeleteOutlined />
+                </Tooltip>
+            </Popconfirm>
           </div>
         )
       }
@@ -111,16 +124,29 @@ export default function Connection() {
         <Drawer
           title={"Add Connection"}
           width={720}
-          onClose={closeConnectionDrawer}
-          visible={isConnectionDrawerVisible}
+          onClose={closeAddConnectionDrawer}
+          visible={isAddConnectionDrawerVisible}
         >
-          { isConnectionDrawerVisible 
+          { isAddConnectionDrawerVisible 
             ? 
             <AddConnection onAddConnectionSuccess={onAddConnectionSuccess} />
             :
             null
           }
-      </Drawer>
+        </Drawer>
+        <Drawer
+          title={selectedConnection.name}
+          width={720}
+          onClose={closeViewConnectionDrawer}
+          visible={isViewConnectionDrawerVisible}
+        >
+          { isViewConnectionDrawerVisible 
+            ? 
+            <ViewConnection connection={selectedConnection} />
+            :
+            null
+          }
+        </Drawer>
     </div>
     );
   }

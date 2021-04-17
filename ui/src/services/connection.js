@@ -7,8 +7,8 @@ class ConnectionService {
         return response
     }
 
-    async getConnection(){
-        const response = await apiService.get("connection")
+    async getConnection(connectionId){
+        const response = await apiService.get("connection/" + connectionId)
         return response
     }
 

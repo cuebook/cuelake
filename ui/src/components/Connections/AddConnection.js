@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Input, message } from "antd";
-import { useHistory } from "react-router-dom";
 import { LeftOutlined } from '@ant-design/icons';
 
 import style from "./style.module.scss";
@@ -10,7 +9,6 @@ export default function AddConnection(props) {
   const [connectionTypes, setConnectionTypes] = useState([]);
   const [selectedConnectionType, setSelectedConnectionType] = useState('');
   const [form] = Form.useForm();
-  const history = useHistory();
 
   useEffect(() => {
     if (!connectionTypes.length) {

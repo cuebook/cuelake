@@ -1,1 +1,23 @@
-[{"model": "genie.connectiontype", "pk": 1, "fields": {"name": "Oracle"}}]
+[
+    {
+        "model": "genie.connectiontype",
+        "pk": 1,
+        "fields": {
+            "name": "Oracle"
+        }
+    },
+    {
+        "model": "genie.connectiontype",
+        "pk": 2,
+        "fields": {
+            "name": "Postgres"
+        }
+    },
+    {
+        "model": "genie.connectiontype",
+        "pk": 3,
+        "fields": {
+            "name": "MySQL"
+        }
+    }
+]
