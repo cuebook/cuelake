@@ -25,7 +25,7 @@ class RunStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RunStatus
-        fields = ["id", "notebookJob", "startTimestamp", "status", "logsJSON"]
+        fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType"]
 
 class CrontabScheduleSerializer(serializers.ModelSerializer):
     """

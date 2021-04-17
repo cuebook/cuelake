@@ -44,22 +44,21 @@ class NotebookJobServices:
         if notebooks:
             notebookCount = len(notebooks)
             notebooks = notebooks[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
+            notebookIds = [notebook["id"] for notebook in notebooks]
+            notebookJobs = NotebookJob.objects.filter(notebookId__in=notebookIds)
             for notebook in notebooks:
                 notebook["name"] = notebook["path"]
-                notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
+                notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.name == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True
                     notebook["schedule"] = str(notebookJob.crontab)
                     notebook["isActive"] = notebookJob.enabled
-                    notebook["lastScheduledRun"] = False
                     notebook["notebookJobId"] = notebookJob.id
                 else:
                     notebook["isScheduled"] = False
-                    notebook["lastScheduledRun"] = False
-            zeppelinNotebookStatuses = asyncio.run(NotebookJobServices._fetchNotebookStatuses([note for note in notebooks if not note["lastScheduledRun"]]))
-            for notebook in notebooks:
-                if not notebook["lastScheduledRun"]:
-                    notebook.update(zeppelinNotebookStatuses[notebook["id"]])
+                notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
+                if notebookRunStatus:
+                    notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
 
@@ -96,17 +95,16 @@ class NotebookJobServices:
         return res
     
     @staticmethod
-    def getNotebookJobDetails(notebookJobId: int, runStatusOffset: int = 0):
+    def getNotebookJobDetails(notebookId: int, runStatusOffset: int = 0):
         """
         Service to fetch run details and logs of the selected NotebookJob
         :param notebookId: ID of the NotebookJob
         :param runStatusOffset: Offset for fetching NotebookJob run statuses
         """
         res = ApiResponse()
-        notebookJob = NotebookJob.objects.get(id=notebookJobId)
-        notebookJobData = NotebookJobSerializer(notebookJob).data
-        runStatuses = notebookJob.runstatus_set.order_by("-startTimestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
-        notebookRunCount = notebookJob.runstatus_set.count()
+        notebookJobData = {}
+        runStatuses = RunStatus.objects.filter(notebookId=notebookId).order_by("-startTimestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
+        notebookRunCount = RunStatus.objects.filter(notebookId=notebookId).count()
         notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
         notebookJobData["count"] = notebookRunCount
         res.update(True, "NotebookJobs retrieved successfully", notebookJobData)

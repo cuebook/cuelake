@@ -39,13 +39,12 @@ def _getNotebookStatus(notebookId: str, startISO: str):
 
 
 @shared_task
-def runNotebookJob(notebookId: str):
+def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
     """
     Celery task to run a zeppelin notebook
     :param notebookId: ID of the zeppelin notebook which to run
     """
-    notebookJob = NotebookJob.objects.get(notebookId=notebookId)
-    runStatus = RunStatus.objects.create(notebookJob=notebookJob, status="RUNNING")
+    runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType=runType)
     try:
         # Check if notebook is already running
         if(checkIfNotebookRunning(notebookId)):

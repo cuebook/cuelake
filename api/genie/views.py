@@ -40,9 +40,9 @@ class NotebookJobView(APIView):
     The put and post methods only require request body and not path parameters
     The get method requires the notebookJobId as the path parameter
     """
-    def get(self, request, notebookJobId=None):
+    def get(self, request, notebookId=None):
         offset = int(request.GET.get("offset", 0))
-        res = NotebookJobServices.getNotebookJobDetails(notebookJobId=notebookJobId, runStatusOffset=offset)
+        res = NotebookJobServices.getNotebookJobDetails(notebookId=notebookId, runStatusOffset=offset)
         return Response(res.json())
     
     def post(self, request):

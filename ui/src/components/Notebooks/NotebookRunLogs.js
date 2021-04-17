@@ -28,7 +28,7 @@ export default function NotebookRunLogs(props) {
   useEffect(() => {
     if (!notebookLogs) {
         setCurrentPage(1)
-        getNotebookLogs(props.notebook.notebookJobId, 0);
+        getNotebookLogs(props.notebook.id, 0);
     }
   }, []);
 
@@ -45,7 +45,7 @@ export default function NotebookRunLogs(props) {
 
   const handleTableChange = (event) => {
     setCurrentPage(event.current)
-    getNotebookLogs(props.notebook.notebookJobId, (event.current - 1)*10)
+    getNotebookLogs(props.notebook.id, (event.current - 1)*10)
   }
 
 

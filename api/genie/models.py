@@ -14,9 +14,10 @@ class RunStatus(models.Model):
     """
     startTimestamp = models.DateTimeField(auto_now_add=True)
     endTimestamp = models.DateTimeField(null=True, default=None)
-    notebookJob = models.ForeignKey(NotebookJob, on_delete=models.CASCADE)
+    notebookId = models.CharField(max_length=20, default="000000000")
     logs = models.TextField(default="{}") # Should be valid JSON
-    status = models.CharField(max_length=7)
+    status = models.CharField(max_length=20)
+    runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
 
 

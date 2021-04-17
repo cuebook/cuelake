@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import TimeAgo from 'react-timeago';
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import { useHistory } from "react-router-dom";
@@ -267,15 +268,43 @@ export default function NotebookTable() {
       }
     },
     {
+      title: "Latest Run",
+      dataIndex: "lastRun",
+      key: "lastRun",
+      width: "10%",
+      render: (lastRun) => {
+        return (
+          <span>
+            {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : ""}
+          </span>
+        );
+      }
+    },
+    {
+      title: "Latest Run Status",
+      dataIndex: "lastRun",
+      key: "lastRun",
+      width: "10%",
+      render: (lastRun) => {
+        return (
+          <span>
+            {lastRun ? lastRun.status : ""}
+          </span>
+        );
+      }
+    },
+    {
       title: "Last Run",
-      dataIndex: "paragraphs",
-      key: "paragraphs",
+      dataIndex: "lastRun",
+      key: "lastRun",
       width: "25%",
-      render: (text, notebook) => {
-        const lastRunStatusChildElements = []
-        if(notebook && notebook.paragraphs){
-          const paragraphPercent = 100/(notebook.paragraphs.length)
-          notebook.paragraphs.forEach(paragraph => {
+      render: (lastRun, notebook) => {
+        let lastRunStatusElement = null
+        if(lastRun && lastRun.logsJSON && lastRun.logsJSON.paragraphs){
+          let paragraphs = lastRun.logsJSON.paragraphs
+          let lastRunStatusChildElements = []
+          const paragraphPercent = 100/(paragraphs.length)
+          paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
             if(paragraph.status === "FINISHED" || paragraph.status === "READY") paragraphClassName = "bg-green-500";
             else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
@@ -283,8 +312,9 @@ export default function NotebookTable() {
             else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";
             let content = 
               <div className={style.tooltip}>
-                {paragraph.started ? <p>Start Time: {paragraph.started}</p> : null}
-                {paragraph.finished ? <p>End Time: {paragraph.finished}</p> : null}
+                {paragraph.title ? <p><b>{paragraph.title}</b></p> : null}
+                {paragraph.dateStarted ? <p>Start Time: {paragraph.dateStarted}</p> : null}
+                {paragraph.dateFinished ? <p>End Time: {paragraph.dateFinished}</p> : null}
                 {paragraph.status ? <p>Status: {paragraph.status}</p> : null}
                 {paragraph.progress ? <p>Progress: {paragraph.progress}</p> : null}
               </div>
@@ -298,11 +328,12 @@ export default function NotebookTable() {
               </Popover>
             )
           })
-        }
-        return (
-          <div className="overflow-hidden h-2 mt-2 mb-2 text-xs flex rounded-sm bg-blue-200 w-full">
+          lastRunStatusElement = <div className="overflow-hidden h-2 mt-2 mb-2 text-xs flex rounded-sm bg-blue-200 w-full">
             {lastRunStatusChildElements}
           </div>
+        }
+        return (
+          lastRunStatusElement
         );
       }
     },
