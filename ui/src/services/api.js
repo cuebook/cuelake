@@ -2,7 +2,7 @@ import { getCookie } from "./general.js";
 
 class ApiService {
   host = "";
-  base_url = this.host + "api/genie/";
+  base_url = this.host + "api/";
   zeppelin_base_url = "/zeppelin";
   
   async get(endpoint) {

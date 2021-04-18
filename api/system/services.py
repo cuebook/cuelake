@@ -2,22 +2,62 @@ import json
 import requests
 from system.models import AccountSetting
 from utils.apiResponse import ApiResponse
+import logging
 
-from .constants import ACCOUNT_SETTING_SLACK_URL_KEY
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
+from .constants import ACCOUNT_SETTING_SLACK_URL_KEY, NOTIFY_ON_SUCCESS_KEY, NOTIFY_ON_FAILURE_KEY
 
 class NotificationServices:
     """
     Class containing services related to notifications
     """
     @staticmethod
-    def notifyOnSlack(message: str):
+    def notify(notebookName: str, isSuccess: bool, message: str):
         """
         Service to send message to preconfigured slack channel
         :param message: Message to be sent to slack
         """
-        slackWebHookUrl = AccountSettingServices.getAccountSetting(key=ACCOUNT_SETTING_SLACK_URL_KEY).data
-        if slackWebHookUrl:
-            requests.post(slackWebHookUrl, data=json.dumps({"text": message}))
+        try:
+            slackWebHookUrl = AccountSetting.objects.get(key=ACCOUNT_SETTING_SLACK_URL_KEY).value
+            isNotifyOnSuccess = AccountSetting.objects.get(key=NOTIFY_ON_SUCCESS_KEY).value == "true"
+            isNotifyOnFailure = AccountSetting.objects.get(key=NOTIFY_ON_FAILURE_KEY).value == "true"
+            if slackWebHookUrl:
+                if (isNotifyOnFailure and not isSuccess) or (isNotifyOnSuccess and isSuccess):
+                    NotificationServices.sendSlackNotification(slackWebHookUrl, notebookName, isSuccess, message)
+        except:
+            pass
+
+    def sendSlackNotification(slackWebHookUrl: str, notebookName: str, isSuccess: bool, message: str):
+        messageContent = {
+            "text": "Job run for " + notebookName + " was " + ("successful" if isSuccess else "unsuccessful"),
+            "blocks": [
+    	    {
+    		    "type": "section",
+    		    "text": {
+    			    "type": "mrkdwn",
+    			    "text": "Notebook: *" + notebookName + "*"
+    		    }
+    	    },
+            {
+    		    "type": "section",
+    		    "text": {
+    			    "type": "mrkdwn",
+    			    "text": "Status: *" + ("SUCCESS" if isSuccess else "ERROR") + "*"
+    		    }
+    	    },
+            {
+    		    "type": "section",
+    		    "text": {
+    			    "type": "mrkdwn",
+    			    "text": "Message: " + message
+    		    }
+    	    }
+            ]   
+        }
+        requests.post(slackWebHookUrl, data=json.dumps(messageContent))
+
 
 class AccountSettingServices:
     """
@@ -43,21 +83,22 @@ class AccountSettingServices:
         Service to get keys and values of all AccountSettings
         """
         res = ApiResponse()
-        data = list(AccountSetting.objects.all().values("key", "value"))
+        data = list(AccountSetting.objects.all().values("key", "value", "label", "type"))
         res.update(True, "Fetched account settings successfully", data)
         return res
     
     @staticmethod
-    def setAccountSetting(key: str, value: str):
+    def updateAccountSettings(settings: list):
         """
         Service to set specified value of AccountSetting with specified key
         :param key: Key of the Account Setting
         :param value: Value to be set in the Account Setting
         """
         res = ApiResponse()
-        settingObj, _ = AccountSetting.objects.get_or_create(key=key)
-        settingObj.value = value
-        settingObj.save()
+        for setting in settings:
+            accountSetting = AccountSetting.objects.get(key=setting["key"])
+            accountSetting.value = setting["value"]
+            accountSetting.save()
         res.update(True, "Updated account setting successfully")
         return res
 

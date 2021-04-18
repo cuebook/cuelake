@@ -11,7 +11,5 @@ class AccountSettingView(APIView):
         return Response(res.json())
     
     def post(self, request):
-        key = request.data["key"]
-        value = request.data["value"]
-        res = AccountSettingServices.setAccountSetting(key=key, value=value)
+        res = AccountSettingServices.updateAccountSettings(request.data)
         return Response(res.json())

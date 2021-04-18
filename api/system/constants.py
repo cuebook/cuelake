@@ -1,1 +1,3 @@
-ACCOUNT_SETTING_SLACK_URL_KEY = "slack-url"
+ACCOUNT_SETTING_SLACK_URL_KEY = "slackWebhookUrl"
+NOTIFY_ON_SUCCESS_KEY = "notifyOnSuccess"
+NOTIFY_ON_FAILURE_KEY = "notifyOnFailure"

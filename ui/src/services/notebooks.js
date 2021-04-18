@@ -3,7 +3,7 @@ import { store } from 'react-notifications-component';
 
 class NotebookService {
     async getNotebooks(offset){
-        const response = await apiService.get("notebooks/" + offset)
+        const response = await apiService.get("genie/notebooks/" + offset)
         if(response.success == true)
             return response.data
         else
@@ -11,7 +11,7 @@ class NotebookService {
     }
 
     async getNotebookLogs(notebookJobId, offset){
-        const response = await apiService.get("notebookjob/" + notebookJobId + "?offset=" + offset)
+        const response = await apiService.get("genie/notebookjob/" + notebookJobId + "?offset=" + offset)
         if(response.success == true)
             return response.data
         else
@@ -19,7 +19,7 @@ class NotebookService {
     }
 
     async getSchedules(){
-        const response = await apiService.get("schedules/")
+        const response = await apiService.get("genie/schedules/")
         if(response.success == true)
             return response.data
         else    
@@ -27,12 +27,12 @@ class NotebookService {
     }
 
     async addNotebookSchedule(notebookId, scheduleId){
-        const response = await apiService.post("notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
+        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
         return response
     }
 
     async getTimezones(){
-        const response = await apiService.get("timezones/")
+        const response = await apiService.get("genie/timezones/")
         if(response.success == true)
             return response.data
         else 
@@ -40,42 +40,42 @@ class NotebookService {
     }
 
     async addSchedule(cronTabSchedule, selectedTimezone){
-        const response = await apiService.post("schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
+        const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
         return response
     }
 
     async stopNotebook(notebookId){
-        const response = await apiService.delete("notebook/actions/" + notebookId)
+        const response = await apiService.delete("genie/notebook/actions/" + notebookId)
         return response
     }
 
     async runNotebook(notebookId){
-        const response = await apiService.post("notebook/actions/" + notebookId)
+        const response = await apiService.post("genie/notebook/actions/" + notebookId)
         return response
     }
 
     async toggleNotebookSchedule(enabled, notebookId){
-        const response = await apiService.put("notebookjob/", {notebookId: notebookId, enabled: enabled})
+        const response = await apiService.put("genie/notebookjob/", {notebookId: notebookId, enabled: enabled})
         return response
     }
 
     async getNotebookTemplates(){
-        const response = await apiService.get("notebookTemplates/")
+        const response = await apiService.get("genie/notebookTemplates/")
         return response
     }
 
     async addNotebook(payload){
-        const response = await apiService.post("notebook", payload)
+        const response = await apiService.post("genie/notebook", payload)
         return response
     }
 
     async cloneNotebook(notebookId, newNotebookName){
-        const response = await apiService.post("notebook/" + notebookId, {name: newNotebookName})
+        const response = await apiService.post("genie/notebook/" + notebookId, {name: newNotebookName})
         return response
     }
 
     async deleteNotebook(notebookId){
-        const response = await apiService.delete("notebook/" + notebookId)
+        const response = await apiService.delete("genie/notebook/" + notebookId)
         return response
     }
 }

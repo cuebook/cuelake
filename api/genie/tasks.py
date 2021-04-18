@@ -47,7 +47,8 @@ def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
     runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType=runType)
     try:
         # Check if notebook is already running
-        if(checkIfNotebookRunning(notebookId)):
+        isRunning, notebookName = checkIfNotebookRunning(notebookId)
+        if(isRunning):
             runStatus.status="ERROR"
             runStatus.message="Notebook already running"
             runStatus.save()
@@ -61,11 +62,10 @@ def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
                         lambda: checkIfNotebookRunningAndStoreLogs(notebookId, runStatus) != True, step=3, timeout=3600
                     )
                 except Exception as ex:
-                    runStatus.status = "FAILURE"
+                    runStatus.status = "ERROR"
                     runStatus.message = str(ex)
                     runStatus.save()
-                finally:
-                    NotificationServices.notifyOnSlack(message="")
+                    NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
             else:
                 runStatus.status="ERROR"
                 runStatus.message = "Failed running notebook"
@@ -74,11 +74,13 @@ def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
         runStatus.status="ERROR"
         runStatus.message = str(ex)
         runStatus.save()
+        NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
 
 def checkIfNotebookRunning(notebookId: str):
     response = Zeppelin.getNotebookDetails(notebookId)
     isNotebookRunning = response.get("info", {}).get("isRunning", False)
-    return isNotebookRunning
+    notebookName = response.get("name", "Undefined")
+    return isNotebookRunning, notebookName
 
 def checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
     response = Zeppelin.getNotebookDetails(notebookId)
@@ -91,10 +93,13 @@ def checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
 
 def setNotebookStatus(response: dict, runStatus: RunStatus):
     paragraphs = response.get("paragraphs", [])
+    notebookName = response.get("name", "Undefined")
     for paragraph in paragraphs:
         if paragraph.get("status") != "FINISHED":
             runStatus.status="ERROR"
             runStatus.save()
+            NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title") + " " + paragraph.get("id") + " failed")
             return
     runStatus.status="SUCCESS"
     runStatus.save()
+    NotificationServices.notify(notebookName=notebookName, isSuccess=True, message="Run successful")
