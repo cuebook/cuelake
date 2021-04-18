@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Getting Started
-nav_order: 3
+nav_order: 4
 permalink: /getting-started
 ---
 
@@ -53,6 +53,6 @@ Note that first run will load the historical data as defined in the SQL query.
 
 Once the run is complete, you can check the data in S3. To check, click on New notebook, select Blank as the template. Now try the following SQL query to query S3.
 
-## Merge Incremental data
+### Merge Incremental data
 To upsert incremental data, run the above notebook again, after a few rows have been inserted or updated.
 To confirm that merge is successful, query the S3 table.
