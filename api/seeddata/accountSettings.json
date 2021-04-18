@@ -1,0 +1,32 @@
+[
+    {
+      "model": "system.accountsetting",
+      "pk": 1,
+      "fields": {
+        "key": "notifyOnSuccess",
+        "label": "Notify on Success",
+        "value": "false",
+        "type": "bool"
+      }
+    },
+    {
+      "model": "system.accountsetting",
+      "pk": 2,
+      "fields": {
+        "key": "notifyOnFailure",
+        "label": "Notify on Failure",
+        "value": "false",
+        "type": "bool"
+      }
+    },
+    {
+      "model": "system.accountsetting",
+      "pk": 3,
+      "fields": {
+        "key": "slackWebhookUrl",
+        "label": "Slack Webhook URL",
+        "value": "",
+        "type": "text"
+      }
+    }
+]
