@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
+import Moment from 'react-moment';
 import {
     Table,
     Button,
@@ -70,10 +71,10 @@ export default function NotebookRunLogs(props) {
 
   const columns = [
     {
-      title: "Start Time",
-      dataIndex: "startTimestamp",
-      key: "startTimestamp",
-      width: "40%",
+      title: "Run Status",
+      dataIndex: "status",
+      key: "status",
+      width: "15%",
       render: text => {
         return (
           <span>
@@ -83,26 +84,70 @@ export default function NotebookRunLogs(props) {
       }
     },
     {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        width: "40%",
-        render: text => {
-          return (
-            <span>
-              {text}
-            </span>
-          );
+      title: "Run Timestamp",
+      dataIndex: "startTimestamp",
+      key: "startTimestamp",
+      width: "30%",
+      render: text => {
+        return (
+          <span>
+            <Moment format="DD-MM-YYYY hh:mm:ss">{text}</Moment>
+          </span>
+        );
+      }
+    },
+    {
+      title: "Run Paragraph Status",
+      dataIndex: "logsJSON",
+      key: "logsJSON",
+      width: "40%",
+      render: (logsJSON, runStatus) => {
+        let lastRunStatusElement = null
+        if(logsJSON && logsJSON.paragraphs){
+          let paragraphs = logsJSON.paragraphs
+          let lastRunStatusChildElements = []
+          const paragraphPercent = 100/(paragraphs.length)
+          paragraphs.forEach(paragraph => {
+            let paragraphClassName = ""
+            if(paragraph.status === "FINISHED" || paragraph.status === "READY") paragraphClassName = "bg-green-500";
+            else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
+            else if(paragraph.status === "RUNNING") paragraphClassName = "bg-blue-400";
+            else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";
+            let content = 
+              <div className={style.tooltip}>
+                {paragraph.title ? <p><b>{paragraph.title}</b></p> : null}
+                {paragraph.dateStarted ? <p>Start Time: {paragraph.dateStarted}</p> : null}
+                {paragraph.dateFinished ? <p>End Time: {paragraph.dateFinished}</p> : null}
+                {paragraph.status ? <p>Status: {paragraph.status}</p> : null}
+                {paragraph.progress ? <p>Progress: {paragraph.progress}</p> : null}
+              </div>
+            lastRunStatusChildElements.push(
+              <Popover content={content} key={paragraph.id}>
+                <div 
+                  style={{width: paragraphPercent + "%"}} 
+                  data-tip data-for={paragraph.id} 
+                  className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center notebook-paragraph-progressbar-box ${paragraphClassName}`}>
+                </div>
+              </Popover>
+            )
+          })
+          lastRunStatusElement = <div className="overflow-hidden h-2 mt-2 mb-2 text-xs flex rounded-sm bg-blue-200 w-full">
+            {lastRunStatusChildElements}
+          </div>
         }
+        return (
+          lastRunStatusElement
+        );
+      }
     },
     {
         title: "",
         dataIndex: "",
         key: "",
-        width: "20%",
+        width: "10%",
         render: (text, notebookJobRun) => {
           return (
-            <a onClick={() => viewLog(notebookJobRun)}>View Logs</a>
+            <a onClick={() => viewLog(notebookJobRun)}>Logs</a>
           );
         }
     }
