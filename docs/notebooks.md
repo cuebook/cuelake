@@ -2,7 +2,7 @@
 layout: default
 title: Notebooks
 nav_order: 6
-permalink: /Notebooks
+permalink: /notebooks
 ---
 
 # Notebooks
