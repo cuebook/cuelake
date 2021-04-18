@@ -45,12 +45,12 @@ class NotebookService {
     }
 
     async stopNotebook(notebookId){
-        const response = await apiService.delete("notebook/" + notebookId)
+        const response = await apiService.delete("notebook/actions/" + notebookId)
         return response
     }
 
     async runNotebook(notebookId){
-        const response = await apiService.post("notebook/" + notebookId)
+        const response = await apiService.post("notebook/actions/" + notebookId)
         return response
     }
 
@@ -66,6 +66,16 @@ class NotebookService {
 
     async addNotebook(payload){
         const response = await apiService.post("notebook", payload)
+        return response
+    }
+
+    async cloneNotebook(notebookId, newNotebookName){
+        const response = await apiService.post("notebook/" + notebookId, {name: newNotebookName})
+        return response
+    }
+
+    async deleteNotebook(notebookId){
+        const response = await apiService.delete("notebook/" + notebookId)
         return response
     }
 }

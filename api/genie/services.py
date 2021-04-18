@@ -8,6 +8,7 @@ from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, Con
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
+from genie.tasks import runNotebookJob as runNotebookJobTask
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -199,9 +200,8 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        response = Zeppelin.runNotebookJob(notebookId)
-        if response:
-            res.update(True, "Notebook ran successfully", None)
+        runNotebookJobTask.delay(notebookId=notebookId, runType="Manual")
+        res.update(True, "Notebook triggered successfully", None)
         return res
 
     @staticmethod
@@ -210,6 +210,8 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
+        # TODO
+        # Update runStatus that the task was aborted
         response = Zeppelin.stopNotebookJob(notebookId)
         if response:
             res.update(True, "Notebook stopped successfully", None)
@@ -224,6 +226,28 @@ class NotebookJobServices:
         response = Zeppelin.clearNotebookResults(notebookId)
         if response:
             res.update(True, "Notebook cleared successfully", None)
+        return res
+
+    @staticmethod
+    def cloneNotebook(notebookId: str, payload: dict):
+        """
+        Service to run notebook job
+        """
+        res = ApiResponse(message="Error in cloning notebook")
+        response = Zeppelin.cloneNotebook(notebookId, json.dumps(payload))
+        if response:
+            res.update(True, "Notebook cloned successfully", None)
+        return res
+
+    @staticmethod
+    def deleteNotebook(notebookId: str):
+        """
+        Service to run notebook job
+        """
+        res = ApiResponse(message="Error in cloning notebook")
+        response = Zeppelin.deleteNotebook(notebookId)
+        if response:
+            res.update(True, "Notebook deleted successfully", None)
         return res
 
 

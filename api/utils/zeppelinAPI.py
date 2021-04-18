@@ -71,6 +71,22 @@ class ZeppelinAPI:
         response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}", notebook)
         return self.__parseResponse(response)
 
+    def cloneNotebook(self, notebookId: str, payload: dict):
+        """
+        Clear all paragraph results from a notebook
+        """
+        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}", payload)
+        print(response.json())
+        print(payload)
+        return self.__parseResponse(response)
+
+    def deleteNotebook(self, notebookId: str):
+        """
+        Clear all paragraph results from a notebook
+        """
+        response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
+        return self.__parseResponse(response)
+
     def __parseResponse(self, response):
         """
         Parses the response returned by zeppelin APIs

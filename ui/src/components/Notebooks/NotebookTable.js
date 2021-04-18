@@ -9,17 +9,15 @@ import {
   Modal,
   Input,
   Select,
-  Icon,
   Tooltip,
   Popover,
   Form,
   message,
   Drawer,
-  Row,
-  Col,
+  Popconfirm,
   Switch
 } from "antd";
-import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined} from '@ant-design/icons';
+import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined} from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 
@@ -169,6 +167,28 @@ export default function NotebookTable() {
     const response = await notebookService.stopNotebook(notebook.id)
     if(response.success)
       message.success("Notebook " + notebook.name.substring(1) + " stopped successfully")
+    else{
+      message.error(response.message)
+    }
+  }
+
+  const cloneNotebook = async (notebook) => {
+    const response = await notebookService.cloneNotebook(notebook.id, notebook.name.substring(1) + " Copy")
+    if(response.success){
+      message.success("Notebook " + notebook.name.substring(1) + " cloned successfully")
+      refreshNotebooks((currentPage - 1)*10)
+    }
+    else{
+      message.error(response.message)
+    }
+  }
+
+  const deleteNotebook = async (notebook) => {
+    const response = await notebookService.deleteNotebook(notebook.id)
+    if(response.success){
+      message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
+      refreshNotebooks((currentPage - 1)*10)
+    }
     else{
       message.error(response.message)
     }
@@ -345,7 +365,7 @@ export default function NotebookTable() {
       render: (notebook, text) => {
         return (
           <div className={style.actions}>
-            { notebook.isRunning 
+            { notebook.lastRun && (notebook.lastRun.status === "RUNNING" ||  notebook.lastRun.status === "PENDING")
               ?
               <Tooltip title={"Stop Notebook"}> 
                 <StopOutlined onClick={() => stopNotebook(notebook)} />
@@ -355,9 +375,28 @@ export default function NotebookTable() {
                 <PlayCircleOutlined onClick={() => runNotebook(notebook)} />
               </Tooltip>
             }
+            {/* 
+            TODO
+            Add edit functionality from UI
             <Tooltip title={"Edit Notebook"}>
               <EditOutlined onClick={() => navigateToNotebook(notebook)} />
+            </Tooltip> */}
+            <Tooltip title={"Notebook"}>
+              <FileTextOutlined onClick={() => navigateToNotebook(notebook)} />
             </Tooltip>
+            <Tooltip title={"Clone Notebook"}>
+              <CopyOutlined onClick={() => cloneNotebook(notebook)} />
+            </Tooltip>
+            <Popconfirm
+                title={"Are you sure to delete "+ notebook.name.substring(1) +"?"}
+                onConfirm={() => deleteNotebook(notebook)}
+                okText="Yes"
+                cancelText="No"
+            >
+                <Tooltip title={"Delete Notebook"}>
+                  <DeleteOutlined />
+                </Tooltip>
+            </Popconfirm>
             <Tooltip title={"View Run Logs"}>
               <UnorderedListOutlined onClick={() => openRunLogs(notebook)} />
             </Tooltip>

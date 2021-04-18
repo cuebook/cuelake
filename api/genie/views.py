@@ -9,6 +9,19 @@ class NotebookOperationsView(APIView):
     Class to get notebooks from zeppelin server
     """
     def post(self, request, notebookId):
+        res = NotebookJobServices.cloneNotebook(notebookId, request.data)
+        return Response(res.json())
+
+    def delete(self, request, notebookId):
+        res = NotebookJobServices.deleteNotebook(notebookId)
+        return Response(res.json())
+
+
+class NotebookActionsView(APIView):
+    """
+    Class to get notebooks from zeppelin server
+    """
+    def post(self, request, notebookId):
         res = NotebookJobServices.runNotebookJob(notebookId)
         return Response(res.json())
 
