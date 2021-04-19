@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'genie',
     'system',
     'rest_framework',
-    'django_celery_beat'
+    'django_celery_beat',
+    'workflows'
 ]
 
 MIDDLEWARE = [
