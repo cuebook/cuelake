@@ -8,12 +8,13 @@ permalink: /how-it-works
 # How it works
 CueLake is built upon three core open source products - [Zeppelin](https://zeppelin.apache.org/), [Spark SQL](https://spark.apache.org/), and [Iceberg](https://iceberg.apache.org/).
 
-Every pipeline is a notebook in CueLake. When you add a new pipeline from a template CueLake, it automatically creates a Zeppelin notebook. The notebook has one or more paragraphs that get executed in a sequence. CueLake monitors the execution of each notebook, and maintains detailed logs for each paragraph.
+Every pipeline is a notebook in CueLake. When you add a new pipeline from a template in CueLake, it automatically creates a Zeppelin notebook. The notebook has one or more paragraphs that get executed in a sequence. CueLake monitors the execution of each notebook, and maintains detailed logs for each paragraph.
 
 Here are examples of a few tasks that paragraphs execute:
 * Execute Spark SQL query to fetch incremental data from the database.
-* Sort the data before merging into Iceberg tables.
-* Run maintenance queries on Iceberg tables
+* Sort the incremental data.
+* Merge the incremental data into the Iceberg table.
+* Run maintenance on Iceberg table
 
 When assigned a schedule, a notebook gets executed as per the schedule.
 

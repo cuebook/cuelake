@@ -1185,6 +1185,12 @@
           "type": "textarea",
           "description": ""
         },
+        "spark.sql.catalog.lakehouse.warehouse": {
+          "name": "spark.sql.catalog.lakehouse.warehouse",
+          "value": "s3://cuelake",
+          "type": "textarea",
+          "description": ""
+        },
         "zeppelin.spark.concurrentSQL": {
           "name": "zeppelin.spark.concurrentSQL",
           "value": true,
