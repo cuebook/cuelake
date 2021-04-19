@@ -7,8 +7,8 @@ import  AlertSettings from "./AlertSettings.js"
 const { TabPane } = Tabs;
 
 export default function Settings(){
-  return <div className={style.settingsWrapper}>
-        <Tabs defaultActiveKey="1" >
+  return <div className="settings-div">
+        <Tabs defaultActiveKey="1" type="card" size={"large"}>
         <TabPane tab="Alerts" key="1">
             <AlertSettings />
         </TabPane>

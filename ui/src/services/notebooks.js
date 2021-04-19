@@ -78,6 +78,11 @@ class NotebookService {
         const response = await apiService.delete("genie/notebook/" + notebookId)
         return response
     }
+
+    async unassignSchedule(notebookId){
+        const response = await apiService.delete("genie/notebookjob/" + notebookId)
+        return response
+    }
 }
 let notebookService = new NotebookService();
 export default notebookService

@@ -138,6 +138,17 @@ class NotebookJobServices:
         return res
 
     @staticmethod
+    def deleteNotebookJob(notebookId: int):
+        """
+        Service to update crontab of an existing NotebookJob
+        :param notebookId: ID of the Notebook for which to delete
+        """
+        res = ApiResponse()
+        NotebookJob.objects.filter(name=notebookId).delete()
+        res.update(True, "NotebookJob deleted successfully", None)
+        return res
+
+    @staticmethod
     def toggleNotebookJob(notebookId: int, enabled: bool):
         """
         Service to update crontab of an existing NotebookJob

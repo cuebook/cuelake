@@ -18,17 +18,17 @@
 }
 
 .scheduleText{
-    cursor: pointer;
     display: inline-block;
     margin-left: 10px;
 
     .icon{
+        cursor: pointer;
         display:none;
         margin-left: 5px;
     }
     &:hover{
-        color: #1890ff;
         .icon{
+            color: #1890ff;
             display: inline-block;
         }
     }

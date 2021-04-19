@@ -15,9 +15,11 @@ import {
   message,
   Drawer,
   Popconfirm,
-  Switch
+  Switch,
+  Menu, 
+  Dropdown
 } from "antd";
-import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined} from '@ant-design/icons';
+import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined } from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 
@@ -154,6 +156,16 @@ export default function NotebookTable() {
     setIsRunLogsDrawerVisible(false)
   }
 
+  const unassignSchedule = async(notebookId) => {
+    const response = await notebookService.unassignSchedule(notebookId);
+    if(response.success){
+      refreshNotebooks((currentPage - 1)*10)
+    }
+    else{
+      message.error(response.message)
+    }
+  }
+
   const runNotebook = async (notebook) => {
     const response = await notebookService.runNotebook(notebook.id)
     if(response.success)
@@ -259,14 +271,11 @@ export default function NotebookTable() {
         if(schedule && selectedNotebook != notebook.id){
           return (
             <>
-            { notebook.isScheduled ?
-            <Switch size="small" checked={notebook.isActive} onChange={(event) => onNotebookToggleChange(event, notebook)} />
-            :
-            null
-          }
-            <div className={style.scheduleText} onClick={()=>showScheduleDropDown(notebook.id)}>
+            <div className={style.scheduleText}>
               <span>{schedule}</span>
-              <span className={style.icon}><EditOutlined /></span>
+              <Tooltip title={"Unassign Schedule"}> 
+                <span className={style.icon} onClick={()=>unassignSchedule(notebook.id)}><CloseOutlined /></span>
+              </Tooltip>
             </div>
             </>
           )
@@ -280,7 +289,7 @@ export default function NotebookTable() {
                   {scheduleOptionsElement}
                 </Select>
                 :
-                <a className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Add Schedule</a>
+                <a className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Assign Schedule</a>
               }
             </>
           );
@@ -317,7 +326,7 @@ export default function NotebookTable() {
       title: "Last Run",
       dataIndex: "lastRun",
       key: "lastRun",
-      width: "25%",
+      width: "15%",
       render: (lastRun, notebook) => {
         let lastRunStatusElement = null
         if(lastRun && lastRun.logsJSON && lastRun.logsJSON.paragraphs){
@@ -326,7 +335,7 @@ export default function NotebookTable() {
           const paragraphPercent = 100/(paragraphs.length)
           paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
-            if(paragraph.status === "FINISHED" || paragraph.status === "READY") paragraphClassName = "bg-green-500";
+            if(paragraph.status === "FINISHED") paragraphClassName = "bg-green-500";
             else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
             else if(paragraph.status === "RUNNING") paragraphClassName = "bg-blue-400";
             else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";
@@ -363,6 +372,30 @@ export default function NotebookTable() {
       key: "",
       width: "10%",
       render: (notebook, text) => {
+        const menu = (<Menu>
+            <Menu.Item key="0" onClick={() => cloneNotebook(notebook)} >
+              <CopyOutlined />
+              Clone Notebook
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="1">
+              <Popconfirm
+                  title={"Are you sure to delete "+ notebook.name.substring(1) +"?"}
+                  onConfirm={() => deleteNotebook(notebook)}
+                  okText="Yes"
+                  cancelText="No"
+              >
+              <DeleteOutlined />
+                Delete Notebook
+              </Popconfirm>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="2" onClick={() => openRunLogs(notebook)} >
+              <UnorderedListOutlined />
+              View Run Logs
+            </Menu.Item>
+          </Menu>
+        )
         return (
           <div className={style.actions}>
             { notebook.lastRun && (notebook.lastRun.status === "RUNNING" ||  notebook.lastRun.status === "PENDING")
@@ -384,21 +417,10 @@ export default function NotebookTable() {
             <Tooltip title={"Notebook"}>
               <FileTextOutlined onClick={() => navigateToNotebook(notebook)} />
             </Tooltip>
-            <Tooltip title={"Clone Notebook"}>
-              <CopyOutlined onClick={() => cloneNotebook(notebook)} />
-            </Tooltip>
-            <Popconfirm
-                title={"Are you sure to delete "+ notebook.name.substring(1) +"?"}
-                onConfirm={() => deleteNotebook(notebook)}
-                okText="Yes"
-                cancelText="No"
-            >
-                <Tooltip title={"Delete Notebook"}>
-                  <DeleteOutlined />
-                </Tooltip>
-            </Popconfirm>
-            <Tooltip title={"View Run Logs"}>
-              <UnorderedListOutlined onClick={() => openRunLogs(notebook)} />
+            <Tooltip title={"More"}>
+              <Dropdown overlay={menu} trigger={['click']}>
+                <MoreOutlined />
+              </Dropdown>
             </Tooltip>
           </div>
         );
@@ -424,6 +446,7 @@ export default function NotebookTable() {
         columns={columns}
         dataSource={notebooks.notebooks}
         loading={loading}
+        size={"small"}
         pagination={{
           current: currentPage,
           pageSize: 10,
