@@ -42,21 +42,19 @@ If you don’t want to use Kubernetes and instead want to try it out on your loc
 
 ## Configure AWS
 ### Provide access to S3 and Glue
-1. In your AWS console, go to Elastic Kubernetes Service.
+In your AWS console, go to Elastic Kubernetes Service.
 
 ![EKS Clusters](images/EKS_Clusters_s.png)
 
-2. Choose your cluster and go to the Configuration tab.
-3. Under Configuration, go to the Compute tab.
+Choose your cluster and go to the Configuration tab. Under Configuration, go to the Compute tab.
 
 ![Node Group](images/NodeGroup_s.png)
 
-4. Select your Node Group.
-5. Click on the `Node IAM Role ARN` to go to the IAM Roles screen.
+Select your Node Group. Click on the `Node IAM Role ARN` to go to the IAM Roles screen.
 
 ![Node IAM Role ARN](images/NodeIAMRoleARN_s.png)
 
-6. Attach two policies - `AmazonS3FullAccess` and `AWSGlueConsoleFullAccess`
+Attach two policies - `AmazonS3FullAccess` and `AWSGlueConsoleFullAccess`
 
 ### Create Glue database
 1. In your AWS console, go to AWS Glue.
