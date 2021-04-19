@@ -43,6 +43,7 @@ If you don’t want to use Kubernetes and instead want to try it out on your loc
 ## Configure AWS
 ### Provide access to S3 and Glue
 1. In your AWS console, go to Elastic Kubernetes Service.
+![EKS Clusters](images/EKS_Clusters_s.png)
 2. Choose your cluster and go to the Configuration tab.
 3. Under Configuration, go to the Compute tab.
 4. Select your Node Group.
