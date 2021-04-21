@@ -8,7 +8,7 @@ You write simple select statements to extract incremental data and schedule thes
 
 CueLake uses **Apache Zeppelin** to auto start and stop the Spark cluster. For every scheduled run, CueLake starts the Spark cluster, loads incremental data into the lakehouse, and then shuts down the cluster.
 
-![CueLake](images/CueLake.gif)
+![CueLake](docs/images/CueLake.gif)
 
 
 # Getting started
