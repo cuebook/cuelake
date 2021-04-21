@@ -34,7 +34,7 @@
 
 <property>
   <name>zeppelin.interpreter.lifecyclemanager.timeout.threshold</name>
-  <value>60000</value>
+  <value>300000</value>
   <description>Milliseconds of the interpreter timeout threshold, by default it is 1 hour</description>
 </property>
 
