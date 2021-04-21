@@ -14,29 +14,6 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-def _getNotebookStatus(notebookId: str, startISO: str):
-    """
-    Internal method to check whether a specific notebook is running or not
-    Returns a string, one out of "SUCCESS", "FAILURE", "RUNNING"
-    :param notebookId: ID of the zeppelin notebook which to run
-    :param startISO: ISO format string of notebook run starting time to ignore old runs 
-    """
-    zeppelinUrl = f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/api/notebook/job/{notebookId}"
-    response = requests.get(zeppelinUrl)
-    if response.status_code == 200:
-        responseJSON = response.json()
-        if responseJSON["status"] == "OK":
-            paragraphs = responseJSON["body"].get("paragraphs")
-            if paragraphs:
-                for para in paragraphs:
-                    para["started"] = dp.parse(para["started"]).isoformat()
-                if any([para["status"] == "ERROR" and para["started"][:19] > startISO[:19]  for para in paragraphs]):
-                    return "FAILURE"
-                if all([para["status"] == "FINISHED" and para["started"][:19] > startISO[:19] for para in paragraphs]):
-                    return "SUCCESS"
-    return "RUNNING"
-
-
 
 @shared_task
 def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
