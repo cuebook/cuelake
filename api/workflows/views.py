@@ -1,3 +1,51 @@
-from django.shortcuts import render
+from django.http import HttpRequest
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from workflows.services import WorkflowServices
 
-# Create your views here.
+class Workflows(APIView):
+    """
+    Class to get and post workflows 
+    """
+    def get(self, request, offset: int):
+        """Gets all workflows"""
+        res = WorkflowServices.getWorkflows(offset)
+        return Response(res.json())
+
+    def post(self, request):
+        data = request.data
+        if 'id' in data:
+            res = Workflows.updateWorkflow(data)
+        else:
+            res = Workflows.createWorkflow(data)
+        return Response(res.json())
+
+    # def delete(self, request, notebookId):
+    #     res = NotebookJobServices.deleteNotebook(notebookId)
+    #     return Response(res.json())
+
+
+class WorkflowRun(APIView):
+    """
+    Class to get and post WorkflowRun
+    """
+    def get(self, request, workflowId: int, offset: int):
+        """Gets all workflows runs associated with given workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = WorkflowServices.getWorkflowRuns(workflowId, offset)
+        return Response(res.json())
+
+
+class WorkflowRunLog(APIView):
+    """
+    Class to get and post WorkflowRun
+    """
+    def get(self, request, workflowId: int):
+        """Gets all workflows runs associated with given workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = WorkflowServices.getWorkflowRunLogs(workflowId)
+        return Response(res.json())
+

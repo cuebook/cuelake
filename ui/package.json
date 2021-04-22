@@ -23,6 +23,7 @@
     "react-scripts": "3.4.3",
     "react-timeago": "^5.2.0",
     "react-tooltip": "^4.2.15",
+    "reactstrap": "^8.9.0",
     "tailwindcss": "1.8.10"
   },
   "scripts": {

@@ -10,7 +10,7 @@ class Workflow(PeriodicTask):
 	"""
 	Subclass of django_celery_beat.models.PeriodicTask
 	"""
-	dependsOnWorkflow = models.ForeignKey("self", on_delete=models.CASCADE, db_index=True)
+	dependsOnWorkflow = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, db_index=True)
 	dependsOnWorkflowStatus = models.CharField(max_length=50, default=STATUS_SUCCESS)
 
 class WorkflowRun(models.Model):
