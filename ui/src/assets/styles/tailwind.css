@@ -2921,3 +2921,12 @@ video {
 .view-connection .ant-input[disabled]{
   color: rgba(0, 0, 0, 0.75) !important;
 }
+
+.settings-div .ant-tabs-tabpane{
+  background: rgb(255, 255, 255);
+  margin: 0px 1px;
+  overflow: hidden;
+}
+.settings-div .ant-tabs-nav{
+  margin-bottom: 0 !important;
+}

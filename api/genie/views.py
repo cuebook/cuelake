@@ -74,6 +74,10 @@ class NotebookJobView(APIView):
             res = NotebookJobServices.toggleNotebookJob(notebookId=notebookId, enabled=enabled)
         return Response(res.json())
 
+    def delete(self, request, notebookId=None):
+        res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId)
+        return Response(res.json())
+
 class ScheduleView(APIView):
     """
     Class to get and add available crontab schedules

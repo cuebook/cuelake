@@ -16,5 +16,9 @@ When you choose a template, you enter the SQL and other details in a `Notebook F
 ## Schedule Notebook
 To schedule a notebook, assign a cron schedule to a notebook.
 
-## Run History
-Run history shows all previous runs of a notebook, including the detailed logs.
+![Schedule](images/Schedule.png)
+
+## Run Logs
+Run Logs shows all previous runs of a notebook, including the detailed logs.
+
+![Run Logs](images/RunLogs.png)

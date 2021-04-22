@@ -61,6 +61,19 @@ Attach two policies - `AmazonS3FullAccess` and `AWSGlueConsoleFullAccess`
 2. Click on Databases in the left menu.
 3. Click on Add database to create a database named "**cuelake**".
 
+### Setup S3 bucket as Warehouse
+In your AWS console, create a new S3 bucket. CueLake will use this bucket to store Iceberg tables.
+
+Next setup this S3 bucket as the warehouse location in Spark.
+Go to the Settings screen in CueLake and click on Interpreter Settings tab. Search for **spark** interpreter. In the spark interpreter, click on `edit`.
+
+![Node IAM Role ARN](images/Spark_Interpreter.png)
+
+Go to the bottom of the paragraph. For property `spark.sql.catalog.lakehouse.warehouse`, enter the S3 bucket's path as the value. For example, if your S3 bucket is cuelake2, your spark property must be as below. Click `Save` and restart the interpreter.
+
+![Node IAM Role ARN](images/Warehouse.png)
+
+
 ## Add New Notebook
 1. Go to the Notebooks screen and click on `New Notebook`
 2. Select `Incremental Refresh` template
@@ -68,15 +81,15 @@ Attach two policies - `AmazonS3FullAccess` and `AWSGlueConsoleFullAccess`
 4. Enter the SQL Select statement
 5. In the Timestamp column, enter the column name of the incremental column. This must be of data type Timestamp. 
 6. Enter the Primary Key Column 
-7. Enter the complete S3 path for the destination table. The S3 path must end with the name of the destination table.
+7. Enter a name for the destination table.
 8. Give a name to the notebook and click `Create Notebook`.
 
 ![Notebook Form](images/Notebook.png)
 
 
-Now Run the notebook. This will create a new table in the specified S3 path. Note that first run will load the historical data as defined in the SQL query. 
+Now Run the notebook. This will create a new iceberg table in your S3 bucket. Note that first run will load the historical data as defined in the SQL query. 
 
-Once the run is successful, you can query data from the newly created table in S3. Click the `Query` button in the notebook.
+Once the run is successful, you can query data from the newly created table. Go to the Notebooks screen and click on `New Notebook`. Select `Blank` template, give a name to the notebook and click `Create Notebook`. In the Notebooks screen, click the `Notebook` icon for your notebook to open the Zeppelin notebook. Your iceberg table can be queried as `lakehouse.cuelake.<your-destination-table-name>`.
 
 ### Merge Incremental data
 To upsert incremental data into your S3 table, run the above notebook again, after a few rows have been inserted or updated.

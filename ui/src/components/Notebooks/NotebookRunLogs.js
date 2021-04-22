@@ -109,7 +109,7 @@ export default function NotebookRunLogs(props) {
           const paragraphPercent = 100/(paragraphs.length)
           paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
-            if(paragraph.status === "FINISHED" || paragraph.status === "READY") paragraphClassName = "bg-green-500";
+            if(paragraph.status === "FINISHED") paragraphClassName = "bg-green-500";
             else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
             else if(paragraph.status === "RUNNING") paragraphClassName = "bg-blue-400";
             else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";

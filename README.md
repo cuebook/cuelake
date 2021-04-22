@@ -8,6 +8,9 @@ You write simple select statements to extract incremental data and schedule thes
 
 CueLake uses **Apache Zeppelin** to auto start and stop the Spark cluster. For every scheduled run, CueLake starts the Spark cluster, loads incremental data into the lakehouse, and then shuts down the cluster.
 
+![CueLake](docs/images/CueLake.gif)
+
+
 # Getting started
 CueLake uses Kubernetes `kubectl` for installation. Create a namespace and then install using the `cuelake.yaml` file. Creating a namespace is optional. You can install in the default namespace or in any existing namespace.
 
