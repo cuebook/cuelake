@@ -203,6 +203,22 @@
         "model": "genie.connectionparam",
         "pk": 11,
         "fields": {
+          "name": "sslRequired",
+          "label": "SSL Required",
+          "isEncrypted": false,
+          "connectionType": 2,
+          "properties": {
+            "rules": [
+            ],
+            "type": "boolean",
+            "width": "50%"
+          }
+        }
+      },
+      {
+        "model": "genie.connectionparam",
+        "pk": 12,
+        "fields": {
           "name": "host",
           "label": "Host",
           "isEncrypted": false,
@@ -221,7 +237,7 @@
       },
       {
         "model": "genie.connectionparam",
-        "pk": 12,
+        "pk": 13,
         "fields": {
           "name": "database",
           "label": "Database",
@@ -241,7 +257,7 @@
       },
       {
         "model": "genie.connectionparam",
-        "pk": 13,
+        "pk": 14,
         "fields": {
           "name": "port",
           "label": "Port",
@@ -261,7 +277,7 @@
       },
       {
         "model": "genie.connectionparam",
-        "pk": 14,
+        "pk": 15,
         "fields": {
           "name": "username",
           "label": "Username",
@@ -281,7 +297,7 @@
       },
       {
         "model": "genie.connectionparam",
-        "pk": 15,
+        "pk": 16,
         "fields": {
           "name": "password",
           "label": "Password",
@@ -293,6 +309,22 @@
                 "required": true,
                 "message": "Password  can't be empty"
               }
+            ],
+            "type": "text",
+            "width": "50%"
+          }
+        }
+      },
+      {
+        "model": "genie.connectionparam",
+        "pk": 17,
+        "fields": {
+          "name": "sslRequired",
+          "label": "SSL Required",
+          "isEncrypted": false,
+          "connectionType": 3,
+          "properties": {
+            "rules": [
             ],
             "type": "text",
             "width": "50%"
