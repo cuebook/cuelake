@@ -2,11 +2,11 @@ import asyncio
 import json
 import pytz
 import time
-from django.template import Template, Context
 from workflows.models import Workflow, WorkflowRun, NotebookJob
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
+
 # from genie.tasks import runNotebookJob as runNotebookJobTask
 
 # Name of the celery task which calls the zeppelin api
@@ -16,7 +16,8 @@ CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 class WorkflowServices:
     """
     Class containing services related to NotebookJob model
-    """    
+    """
+
     @staticmethod
     def getWorkflows(offset: int = 0):
         """
@@ -27,31 +28,66 @@ class WorkflowServices:
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
         total = workflows.count()
-        data = WorkflowSerializer(workflows[offset: LIMIT], many=True).data
+        data = WorkflowSerializer(workflows[offset:LIMIT], many=True).data
 
-        res.update(True, "Workflows retrieved successfully", {"total": total, "workflows": data})
+        res.update(
+            True,
+            "Workflows retrieved successfully",
+            {"total": total, "workflows": data},
+        )
         return res
 
     @staticmethod
-    def createWorkflow(name):
+    def createWorkflow(
+        name: str, schedule: int, triggerWorkflowId: int, triggerWorkflowStatus: str
+    ):
         """
-        Creates workflow 
+        Creates workflow
+        :param name: name of new workflow
+        :param schedule: crontab id
+        :param triggerWorkflowId: id of workflow which triggers this workflow
+        :param triggerWorkflowStatus: ["success", "failure", "always"] required
+                status of triggerWorkflow to trigger this workflow
         """
         res = ApiResponse(message="Error in creating workflow")
-        workflow = Workflow.objects.create(name=name)
+        workflow = Workflow.objects.create(
+            name=name,
+            crontab_id=schedule,
+            triggerWorkflow_id=triggerWorkflowId,
+            triggerWorkflowStatus=triggerWorkflowStatus,
+        )
         res.update(True, "Workflow created successfully", workflow.id)
         return res
 
-
     @staticmethod
-    def updateWorkflow(id: int, name: str):
+    def updateWorkflow(
+        id: int,
+        name: str,
+        schedule: int,
+        triggerWorkflowId: int,
+        triggerWorkflowStatus: str,
+    ):
         """
         Updates workflow
+        :param name: name of new workflow
+        :param schedule: crontab id
+        :param triggerWorkflowId: id of workflow which triggers this workflow
+        :param triggerWorkflowStatus: ["success", "failure", "always"] required
+                status of triggerWorkflow to trigger this workflow
         """
-        res = ApiResponse(message="Error retrieving workflows")
-        res.update(True, "Workflows retrieved successfully", {"total": total, "workflows": data})
+        res = ApiResponse(message="Error in updating workflow")
+        workflow = Workflow.objects.filter(id=id).update(
+            name=name,
+            crontab_id=schedule,
+            triggerWorkflow_id=triggerWorkflowId,
+            triggerWorkflowStatus=triggerWorkflowStatus,
+        )
+        try:
+            if workflow:
+                res.update(True, "Workflow updated successfully", workflow)
+        except:
+            res.update(False, "Error in updating workflow")
         return res
-
 
     @staticmethod
     def getWorkflowRuns(workflowId: int, offset: int):
@@ -65,7 +101,11 @@ class WorkflowServices:
         total = workflowRuns.count()
         data = WorkflowRunSerializer(workflowRuns[offset:LIMIT], many=True).data
 
-        res.update(True, "WorkflowRuns retrieved successfully", {"total": total, "workflowRuns": data})
+        res.update(
+            True,
+            "WorkflowRuns retrieved successfully",
+            {"total": total, "workflowRuns": data},
+        )
         return res
 
     @staticmethod
@@ -77,9 +117,12 @@ class WorkflowServices:
         res = ApiResponse(message="Error in retrieving workflow logs")
         workflowRun = WorkflowRun.objects.get(id=workflowRunId)
         total = []
-        res.update(True, "WorkflowRuns retrieved successfully", {"total": total, "workflowRunLogs": []})
+        res.update(
+            True,
+            "WorkflowRuns retrieved successfully",
+            {"total": total, "workflowRunLogs": []},
+        )
         return res
-
 
     # @staticmethod
     # def addNotebook(payload):

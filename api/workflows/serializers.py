@@ -7,14 +7,17 @@ class WorkflowSerializer(serializers.ModelSerializer):
     """
     Serializer for the model NotebookJob
     """
-    dependsOnWorkflow = serializers.SerializerMethodField()
+    triggerWorkflow = serializers.SerializerMethodField()
     lastRun = serializers.SerializerMethodField()
+    schedule = serializers.SerializerMethodField()
 
-    def get_dependsOnWorkflow(self, obj):
+    def get_triggerWorkflow(self, obj):
         """
         Gets name of depends on Workflow
         """
-        return obj.dependsOnWorkflow.name if obj.dependsOnWorkflow else None
+        if not obj.triggerWorkflow:
+            return None
+        return {'id': obj.triggerWorkflow.id, 'name': obj.triggerWorkflow.name} 
 
     def get_lastRun(self, obj):
     	"""
@@ -26,9 +29,15 @@ class WorkflowSerializer(serializers.ModelSerializer):
     	else:
     		return None
 
+    def get_schedule(self, obj):
+        """ Get schedule"""
+        if not obj.crontab:
+            return None
+        return {'id': obj.crontab.id, 'name': str(obj.crontab)}
+
     class Meta:
         model = Workflow
-        fields = ["id", "name", "dependsOnWorkflow", "dependsOnWorkflowStatus", "lastRun"]
+        fields = ["id", "name", "triggerWorkflow", "triggerWorkflowStatus", "lastRun", "schedule"]
 
 
 class WorkflowRunSerializer(serializers.ModelSerializer):

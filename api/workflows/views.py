@@ -15,10 +15,17 @@ class Workflows(APIView):
 
     def post(self, request):
         data = request.data
-        if 'id' in data:
-            res = Workflows.updateWorkflow(data)
+
+        name = data.get("name", "")
+        schedule = data.get("schedule", "")
+        triggerWorkflowId = data.get("triggerWorkflowId", "")
+        triggerWorkflowStatus = data.get("triggerWorkflowStatus", "")
+        print(type(data['id']))
+
+        if 'id' in data and data['id']:
+            res = WorkflowServices.updateWorkflow(data['id'], name, schedule, triggerWorkflowId, triggerWorkflowStatus)
         else:
-            res = Workflows.createWorkflow(data)
+            res = WorkflowServices.createWorkflow(name, schedule, triggerWorkflowId, triggerWorkflowStatus)
         return Response(res.json())
 
     # def delete(self, request, notebookId):

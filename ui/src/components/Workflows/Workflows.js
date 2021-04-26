@@ -15,12 +15,19 @@ import {
     Drawer,
     Row,
     Col,
-    Switch
+    Switch,
+    Tabs
   } from "antd";
 import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined} from '@ant-design/icons';
 import { Badge } from "reactstrap";
 import WorkflowRuns from "./WorkflowRuns"
+import SelectSchedule from "components/Schedule/selectSchedule"
+
 import workflowsService from "services/workflows";
+import notebookService from "services/notebooks";
+
+const { TabPane } = Tabs;
+const { Option } = Select;
 
 export default function Workflows(props) {
     const [workflows, setWorkflows] = useState([]);
@@ -28,11 +35,13 @@ export default function Workflows(props) {
     const [total, setTotal] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedWorkflow, setSelectedWorkflow] = useState('');
+    const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
     const [isWorkflowModalVisible, setIsWorkflowModalVisible] = useState(false);
 
-    const [cronTabSchedule, setCronTabSchedule] = useState('');
-    const [selectedTimezone, setSelectedTimezone] = useState('');
+    const [newWorkflowName, setNewWorkflowName] = useState(false);
+    const [triggerWorkflow, setTriggerWorkflow] = useState(false);
+    const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState("always");
 
     const currentPageRef = useRef(currentPage);
     currentPageRef.current = currentPage;
@@ -59,16 +68,6 @@ export default function Workflows(props) {
     }
     
     useEffect(() => {
-      // if (!notebooks.length) {
-      //     getNotebooks(0);
-      // }
-      // if (!schedules.length) {
-      //   getSchedules();
-      // }
-      // if (!timezones) {
-      //   getTimezones();
-      // }
-
       const refreshWorkflowsInterval = setInterval(() => {
         refreshWorkflows((currentPageRef.current - 1)*10)
       }, 3000);
@@ -99,24 +98,30 @@ export default function Workflows(props) {
     const editWorkflow = workflow => {
       setIsWorkflowModalVisible(true)
       setSelectedWorkflow(workflow)
+
+      if (workflow.schedule){
+        setSelectedSchedule(workflow.schedule.id)
+      }
+
+      setNewWorkflowName(workflow.name)
+      setTriggerWorkflow(workflow.triggerWorkflow)
+      setTriggerWorkflowStatus(workflow.triggerWorkflowStatus)
     }
 
-    const saveWorkflow = (data) => {
-      setIsWorkflowModalVisible(false)
-      setSelectedWorkflow('')
-    }
-
-    const saveSchedule = async (event) => {
-      if(cronTabSchedule, selectedTimezone){
-        // const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone);
-        // if(response.success){
-        //   setCronTabSchedule("")
-        //   setSelectedTimezone("")
-        //   getSchedules()
-        // }
-        // else{
-        //   message.error(response.message);
-        // }
+    const saveWorkflow = async () => {
+      if(newWorkflowName){
+        const data = {
+          id: selectedWorkflow.id,
+          name: newWorkflowName,
+          schedule: selectedSchedule,
+          triggerWorkflowId: triggerWorkflow.id,
+          triggerWorkflowStatus: triggerWorkflowStatus
+        }
+        const response = await workflowsService.setWorkflows(data);
+        if(response){
+          setIsWorkflowModalVisible(false)
+          settingIntialValues()
+        }
       }
       else{
         message.error('Please fill values');
@@ -125,7 +130,16 @@ export default function Workflows(props) {
 
     const handleCancel = () => {
       setIsWorkflowModalVisible(false)
-      setSelectedWorkflow('')
+      settingIntialValues()
+    }
+
+    const settingIntialValues = () => {
+      console.log("setting initial values")
+      setSelectedWorkflow("")
+      setNewWorkflowName(false)
+      setSelectedSchedule(null)
+      setTriggerWorkflow(false)
+      setTriggerWorkflowStatus("always")
     }
 
     const columns = [
@@ -143,23 +157,40 @@ export default function Workflows(props) {
       },
       {
         title: "Triggers On",
-        dataIndex: "dependsOnWorkflow",
-        key: "dependsOn",
-        render: (text, record) => {
-          return (
-            <span>
-              {text ? text + " " : ""}
-              {text ?         
-                <Badge
-                  color="primary"
-                  className={`m-1 ${style.badge}`}
-                  pill
-                  key={record.id}
-                >{record.dependsOnWorkflowStatus}</Badge> : null
-              }
-            </span>
-          );
-        }
+        children: [
+          {
+            title: 'Workflow',
+            dataIndex: "triggerWorkflow",
+            key: "triggerWorkflow",
+            render: (text, record) => {
+              return (
+                <span>
+                  {text ? text.name + " " : ""}
+                  {text ?         
+                    <Badge
+                      color="primary"
+                      className={`m-1 ${style.badge}`}
+                      pill
+                      key={record.id}
+                    >{record.triggerWorkflowStatus}</Badge> : null
+                  }
+                </span>
+              );
+            }
+          },
+          {
+            title: 'Schedule',
+            dataIndex: "schedule",
+            key: "schedule",
+            render: (text, record) => {
+              return (
+                <span>
+                  {text ? text.name: ""}
+                </span>
+              );
+            }
+          }
+        ],
       },
       {
         title: "Last run",
@@ -198,12 +229,9 @@ export default function Workflows(props) {
                 </Tooltip>
               }
               */}
-              {/* 
-              TODO
-              Add edit functionality from UI
-              <Tooltip title={"Edit Notebook"}>
-                <EditOutlined onClick={() => navigateToNotebook(notebook)} />
-              </Tooltip> */}
+              <Tooltip title={"Edit Workflow"}>
+                <EditOutlined onClick={() => editWorkflow(record)} />
+              </Tooltip>
               <Tooltip title={"View Runs"}>
                 <UnorderedListOutlined onClick={() => openRunLogs(record)} />
               </Tooltip>
@@ -213,6 +241,63 @@ export default function Workflows(props) {
     }
     ]
 
+    const workflowOptionElements = workflows.map(workflow => 
+      <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
+    )
+
+    const statuses = ["success", "failure", "always"]
+    const statusOptionElements = statuses.map(status => 
+        <Option value={status} key={status}> {status} </Option>
+      )
+
+    const editCreateWorkflowElement = <Modal 
+              title={true ? "Add Workflow" : "EditWorkflow"}
+              visible={true}
+              onOk={saveWorkflow}
+              onCancel={handleCancel}
+              okText="Save"
+            >
+                <Form layout={"vertical"}>
+                  <Form.Item label="Name">
+                    <Input onChange={(event) => setNewWorkflowName(event.target.value)} value={newWorkflowName} placeholder="Sample Workflow">
+                    </Input>
+                  </Form.Item>
+                  <Form.Item label="TRIGGERS ON">
+                    <Tabs defaultActiveKey="1">
+                        <TabPane
+                          tab={
+                            <span>
+                              Schedule
+                            </span>
+                          }
+                          key="1"
+                        >
+                          <SelectSchedule onChange={(value)=>setSelectedSchedule(value)} schedule={selectedSchedule}/>
+                        </TabPane>
+                        <TabPane
+                          tab={
+                            <span>
+                              Workflow
+                            </span>
+                          }
+                          key="2"
+                        >
+                          <Form.Item label="Workflow Name">
+                            <Select placeholder="Select Workflow" value={triggerWorkflow.id} onChange={(value, option) => setTriggerWorkflow(option.workflow)}>
+                              {workflowOptionElements}
+                            </Select>
+                          </Form.Item>
+                          <Form.Item label="Workflow Status">
+                            <Select onChange={(value) => setTriggerWorkflowStatus(value)} value={triggerWorkflowStatus} defaultValue="always">
+                              {statusOptionElements}
+                            </Select>
+                          </Form.Item>
+                        </TabPane>
+                      </Tabs>
+                  </Form.Item>
+                </Form>
+            </Modal>
+
     return (
         <div>
             <Button 
@@ -221,24 +306,7 @@ export default function Workflows(props) {
               >
               Add Workflow
             </Button>
-            <Modal 
-              title={true ? "Add Workflow" : "EditWorkflow"}
-              visible={isWorkflowModalVisible}
-              onOk={saveWorkflow}
-              onCancel={handleCancel}
-              okText="Save"
-            >
-                <Form layout={"vertical"}>
-                  <Form.Item label="Crontab Schedule (m/h/dM/MY/d)">
-                    <Input placeholder="* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
-                  </Form.Item>
-                  <Form.Item label="Timezone">
-                    <Select onChange={(value) => setSelectedTimezone(value)}>
-                      {"timezoneElements"}
-                    </Select>
-                  </Form.Item>
-                </Form>
-            </Modal>
+            { isWorkflowModalVisible ? editCreateWorkflowElement : null }
             <Table
                 rowKey={"id"}
                 scroll={{ x: "100%" }}
