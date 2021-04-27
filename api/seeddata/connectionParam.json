@@ -326,7 +326,7 @@
           "properties": {
             "rules": [
             ],
-            "type": "text",
+            "type": "boolean",
             "width": "50%"
           }
         }
