@@ -4,12 +4,13 @@ import json
 import pytz
 import time
 from django.db import transaction
-from workflows.models import Workflow, WorkflowRun, NotebookJob
+import polling
+from workflows.models import Workflow, WorkflowRun, NotebookJob, STATUS_SUCCESS, STATUS_FAILURE, STATUS_ALWAYS, STATUS_RUNNING
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
-# from genie.tasks import runNotebookJob as runNotebookJobTask
+from genie.tasks import runNotebookJob as runNotebookJobTask
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -139,9 +140,42 @@ class WorkflowServices:
         return res
 
     @staticmethod
-    def runWorkflow(id: int):
-        """ Runs workflow """
-        return None
+    def runWorkflow(workflowId: int):
+        """ 
+        Runs workflow
+        """
+        notebookIds = list(NotebookJob.objects.filter(workflow_id=workflowId).values_list("notebookId", flat=True))
+        runStatusIds = []
+        workflowRun = WorkflowRun.objects.create(workflow_id=workflowId, status=STATUS_RUNNING)
+        for notebookId in noteookIds:
+            runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType="Scheduled")
+            runNotebookJobTask.delay(notebookId=notebookId, runStatus=runStatus)
+            runStatusIds.append(runStatus.id)
+
+        workflowStatus = polling.poll(
+            lambda: WorkflowServices.__checkGivenRunStatuses(notebookId, runStatus) != "stillRunning", step=3, timeout=3600
+        )
+
+        if workflowStatus:
+            workflowRun.status = STATUS_SUCCESS
+            workflow.save()
+        else:
+            workflowRun.status = STATUS_FAILURE
+            workflow.save()
+            
+        dependentWorkflowIds = list(Workflow.objects.filter(triggerWorkflow_id=workflowId, triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRun.status]).values_list("id", flat=True))
+        return dependentWorkflowIds
+
+
+    @staticmethod
+    def __checkGivenRunStatuses(runStatusIds: List[int]):
+        """Check if given runStatuses are status is SUCCESS"""
+
+        if len(runStatusIds) == RunStatus.objects.filter(id__in=runStatusIds).exclude(status="RUNNING").count():
+            return len(runStatusIds) == RunStatus.objects.filter(id__in=runStatusIds, status="SUCCESS").count()
+
+        return "stillRunning"
+
 
     # @staticmethod
     # def addNotebook(payload):
