@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
+import _ from "lodash";
 import {
     Table,
     Button,
@@ -32,14 +33,18 @@ const { Option } = Select;
 export default function Workflows(props) {
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [notebooksLight, setNotebooksLight] = useState([])
     const [total, setTotal] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+
     const [selectedWorkflow, setSelectedWorkflow] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [selectedNotebooks, setSelectedNotebooks] = useState([]);
+
     const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
     const [isWorkflowModalVisible, setIsWorkflowModalVisible] = useState(false);
 
-    const [newWorkflowName, setNewWorkflowName] = useState(false);
+    const [newWorkflowName, setNewWorkflowName] = useState('');
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
     const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState("always");
 
@@ -68,6 +73,7 @@ export default function Workflows(props) {
     }
     
     useEffect(() => {
+      getNotebooksLight()
       const refreshWorkflowsInterval = setInterval(() => {
         refreshWorkflows((currentPageRef.current - 1)*10)
       }, 3000);
@@ -90,14 +96,26 @@ export default function Workflows(props) {
       getWorkflows((event.current - 1)*10)
     }
 
+    const getNotebooksLight = async () => {
+      if (_.isEmpty(notebooksLight)){
+        const response = await notebookService.getNotebooksLight();
+        if(response){
+          setNotebooksLight(response);
+        }
+      }
+    }
+
     const addWorkflow = () => {
+      getNotebooksLight()
       setIsWorkflowModalVisible(true)
       setSelectedWorkflow('')
     }
 
     const editWorkflow = workflow => {
+      getNotebooksLight()
       setIsWorkflowModalVisible(true)
       setSelectedWorkflow(workflow)
+      setSelectedNotebooks(workflow.notebooks)
 
       if (workflow.schedule){
         setSelectedSchedule(workflow.schedule.id)
@@ -109,12 +127,13 @@ export default function Workflows(props) {
     }
 
     const saveWorkflow = async () => {
-      if(newWorkflowName){
+      if(!_.isEmpty(newWorkflowName)){
         const data = {
           id: selectedWorkflow.id,
           name: newWorkflowName,
+          notebookIds: selectedNotebooks,
           schedule: selectedSchedule,
-          triggerWorkflowId: triggerWorkflow.id,
+          triggerWorkflowId: triggerWorkflow ? triggerWorkflow.id : null,
           triggerWorkflowStatus: triggerWorkflowStatus
         }
         const response = await workflowsService.setWorkflows(data);
@@ -134,12 +153,17 @@ export default function Workflows(props) {
     }
 
     const settingIntialValues = () => {
-      console.log("setting initial values")
       setSelectedWorkflow("")
       setNewWorkflowName(false)
+      setSelectedNotebooks([])
       setSelectedSchedule(null)
       setTriggerWorkflow(false)
       setTriggerWorkflowStatus("always")
+    }
+
+    const showNotebooksOfWorkflow = workflow => {
+      const notebookNames = notebooksLight.filter(notebook => workflow.notebooks.find(x => x==notebook.id)).map(notebook => notebook.path.substring(1))
+      return <span>{notebookNames.join(", ")}</span>
     }
 
     const columns = [
@@ -250,6 +274,10 @@ export default function Workflows(props) {
         <Option value={status} key={status}> {status} </Option>
       )
 
+    const notebooksLightElement = notebooksLight && notebooksLight.map(notebook => 
+        <Option value={notebook.id} key={notebook.id} name={notebook.path.substring(1)}> {notebook.path.substring(1)} </Option>
+      )
+
     const editCreateWorkflowElement = <Modal 
               title={true ? "Add Workflow" : "EditWorkflow"}
               visible={true}
@@ -261,6 +289,22 @@ export default function Workflows(props) {
                   <Form.Item label="Name">
                     <Input onChange={(event) => setNewWorkflowName(event.target.value)} value={newWorkflowName} placeholder="Sample Workflow">
                     </Input>
+                  </Form.Item>
+                  <Form.Item label="Notebooks">
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      // style={{ width: '100%' }}
+                      filterOption={(input, option) => 
+                            option.props.name.toLowerCase().indexOf(input.toLowerCase()) >= 0 
+                            || option.props.value.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                          }
+                      placeholder="Please select notebooks"
+                      value = {selectedNotebooks}
+                      onChange={values=>setSelectedNotebooks(values)}
+                    >
+                      {notebooksLightElement}
+                    </Select>
                   </Form.Item>
                   <Form.Item label="TRIGGERS ON">
                     <Tabs defaultActiveKey="1">
@@ -283,7 +327,7 @@ export default function Workflows(props) {
                           key="2"
                         >
                           <Form.Item label="Workflow Name">
-                            <Select placeholder="Select Workflow" value={triggerWorkflow.id} onChange={(value, option) => setTriggerWorkflow(option.workflow)}>
+                            <Select placeholder="Select Workflow" value={triggerWorkflow ? triggerWorkflow.id : ""} onChange={(value, option) => setTriggerWorkflow(option.workflow)}>
                               {workflowOptionElements}
                             </Select>
                           </Form.Item>
@@ -315,11 +359,11 @@ export default function Workflows(props) {
                 // showHeader={false}
                 loading={loading}
                 size={"small"}
-                // expandable={{
-                //     expandedRowRender: notebookJobRun => parseNotebookLogs(notebookJobRun.logsJSON),
-                //     expandRowByClick: true,
-                //     expandIconColumnIndex: -1
-                // }}
+                expandable={{
+                    expandedRowRender: record => showNotebooksOfWorkflow(record),
+                    expandRowByClick: true,
+                    expandIconColumnIndex: -1
+                }}
                 pagination={{
                   current: currentPage,
                   pageSize: 10,

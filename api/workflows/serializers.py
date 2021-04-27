@@ -10,6 +10,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
     triggerWorkflow = serializers.SerializerMethodField()
     lastRun = serializers.SerializerMethodField()
     schedule = serializers.SerializerMethodField()
+    notebooks = serializers.SerializerMethodField()
 
     def get_triggerWorkflow(self, obj):
         """
@@ -35,9 +36,13 @@ class WorkflowSerializer(serializers.ModelSerializer):
             return None
         return {'id': obj.crontab.id, 'name': str(obj.crontab)}
 
+    def get_notebooks(self, obj):
+        """Gets notebooks in workflow"""
+        return list(NotebookJob.objects.filter(workflow=obj).values_list("notebookId", flat=True))
+
     class Meta:
         model = Workflow
-        fields = ["id", "name", "triggerWorkflow", "triggerWorkflowStatus", "lastRun", "schedule"]
+        fields = ["id", "name", "triggerWorkflow", "triggerWorkflowStatus", "lastRun", "schedule", "notebooks"]
 
 
 class WorkflowRunSerializer(serializers.ModelSerializer):

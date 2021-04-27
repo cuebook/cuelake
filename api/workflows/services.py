@@ -1,7 +1,9 @@
+from typing import List
 import asyncio
 import json
 import pytz
 import time
+from django.db import transaction
 from workflows.models import Workflow, WorkflowRun, NotebookJob
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
@@ -38,8 +40,9 @@ class WorkflowServices:
         return res
 
     @staticmethod
+    @transaction.atomic
     def createWorkflow(
-        name: str, schedule: int, triggerWorkflowId: int, triggerWorkflowStatus: str
+        name: str, schedule: int, triggerWorkflowId: int, triggerWorkflowStatus: str, notebookIds: List[int]
     ):
         """
         Creates workflow
@@ -48,6 +51,7 @@ class WorkflowServices:
         :param triggerWorkflowId: id of workflow which triggers this workflow
         :param triggerWorkflowStatus: ["success", "failure", "always"] required
                 status of triggerWorkflow to trigger this workflow
+        :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
         workflow = Workflow.objects.create(
@@ -56,16 +60,21 @@ class WorkflowServices:
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
+        notebookJobs = [ NotebookJob(workflow=workflow, notebookId=notebookId) for notebookId in notebookIds ]
+        NotebookJob.objects.bulk_create(notebookJobs)
+
         res.update(True, "Workflow created successfully", workflow.id)
         return res
 
     @staticmethod
+    @transaction.atomic
     def updateWorkflow(
         id: int,
         name: str,
         schedule: int,
         triggerWorkflowId: int,
         triggerWorkflowStatus: str,
+        notebookIds: List[int]
     ):
         """
         Updates workflow
@@ -74,6 +83,7 @@ class WorkflowServices:
         :param triggerWorkflowId: id of workflow which triggers this workflow
         :param triggerWorkflowStatus: ["success", "failure", "always"] required
                 status of triggerWorkflow to trigger this workflow
+        :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in updating workflow")
         workflow = Workflow.objects.filter(id=id).update(
@@ -82,6 +92,10 @@ class WorkflowServices:
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
+        NotebookJob.objects.filter(workflow_id=id).delete()
+        notebookJobs = [ NotebookJob(workflow_id=id, notebookId=notebookId) for notebookId in notebookIds ]
+        NotebookJob.objects.bulk_create(notebookJobs)
+
         try:
             if workflow:
                 res.update(True, "Workflow updated successfully", workflow)
@@ -123,6 +137,11 @@ class WorkflowServices:
             {"total": total, "workflowRunLogs": []},
         )
         return res
+
+    @staticmethod
+    def runWorkflow(id: int):
+        """ Runs workflow """
+        return None
 
     # @staticmethod
     # def addNotebook(payload):

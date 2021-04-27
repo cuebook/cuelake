@@ -10,6 +10,14 @@ class NotebookService {
             return null
     }
 
+    async getNotebooksLight(){
+        const response = await apiService.get("genie/notebooksLight")
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
+
     async getNotebookLogs(notebookJobId, offset){
         const response = await apiService.get("genie/notebookjob/" + notebookJobId + "?offset=" + offset)
         if(response.success == true)
