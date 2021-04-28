@@ -80,16 +80,18 @@ class NotebookJobServices:
         # Handling connection variables
         if payload.get("sourceConnection", False):
             connection = Connection.objects.get(id=payload["sourceConnection"])
+            context["sourceConnection_type"] = connection.connectionType.name
             connectionParams = connection.cpvc.all()
             for cp in connectionParams:
                 paramName = cp.connectionParam.name
                 context["sourceConnection_" + paramName] = cp.value
         if payload.get("targetConnection", False):
             connection = Connection.objects.get(id=payload["sourceConnection"])
+            context["targetConnection_type"] = connection.connectionType.name
             connectionParams = connection.cpvc.all()
             for cp in connectionParams:
                 paramName = cp.connectionParam.name
-                context["sourceConnection_" + paramName] = cp.value
+                context["targetConnection" + paramName] = cp.value
         # Handling S3 path - Splitting it to get the table name
         if payload.get("destinationTableS3Path", False):
             destinationTableName = payload["destinationTableS3Path"].rsplit('/', 1)[1]

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Input, message } from "antd";
+import { Button, Form, Input, Switch, message } from "antd";
 import { LeftOutlined } from '@ant-design/icons';
 
 import style from "./style.module.scss";
@@ -42,6 +42,45 @@ export default function AddConnection(props) {
         message.error(response.message);
     }
   };
+
+  const renderInputType = (field) => {
+    switch(field.properties.type) {
+      case 'text':
+        return <Form.Item 
+              key={field.name} 
+              label={field.label} 
+              rules={field.properties.rules}
+              name={field.name}
+            >
+          <Input
+            type={field.isEncrypted ? "password" : "text"}
+            className={style.inputArea}
+          />
+        </Form.Item>
+      case 'boolean':
+        return <Form.Item 
+              key={field.name} 
+              label={field.label} 
+              rules={field.properties.rules}
+              name={field.name}
+              valuePropName="checked"
+            >
+          <Switch />
+        </Form.Item>
+      default:
+        return <Form.Item 
+          key={field.name} 
+          label={field.label} 
+          rules={field.properties.rules}
+          name={field.name}
+        >
+      <Input
+        type={field.isEncrypted ? "password" : "text"}
+        className={style.inputArea}
+      />;
+      </Form.Item>
+    }
+  }
   
   let connectionParamElements = []
   if(selectedConnectionType.id){
@@ -52,17 +91,7 @@ export default function AddConnection(props) {
                   className={style.formItem}
                   key={item.id}
                 >
-                  <Form.Item 
-                    key={item.name} 
-                    label={item.label} 
-                    rules={item.properties.rules}
-                    name={item.name}
-                  >
-                      <Input
-                        type={item.isEncrypted ? "password" : "text"}
-                        className={style.inputArea}
-                      />
-                  </Form.Item>
+                  {renderInputType(item)}
                 </div>
             )
           }
