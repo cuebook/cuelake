@@ -2,7 +2,7 @@ from django.http import HttpRequest
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from workflows.services import WorkflowServices
+from workflows.services import WorkflowServices, WorkflowActions
 
 class Workflows(APIView):
     """
@@ -42,6 +42,30 @@ class WorkflowRun(APIView):
         :param workflowId: id of Workflows.Workflow
         """
         res = WorkflowServices.getWorkflowRuns(workflowId, offset)
+        return Response(res.json())
+
+
+class RunWorkflow(APIView):
+    """
+    Class to manually run workflows
+    """
+    def get(self, request, workflowId: int):
+        """Gets all workflows runs associated with given workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = WorkflowActions.runWorkflow(workflowId)
+        return Response(res.json())
+
+
+class StopWorkflow(APIView):
+    """
+    Class to manually stop workflows
+    """
+    def get(self, request, workflowId: int):
+        """Gets all workflows runs associated with given workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = WorkflowActions.stopWorkflow(workflowId)
         return Response(res.json())
 
 

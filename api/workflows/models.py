@@ -5,6 +5,7 @@ STATUS_SUCCESS = "success"
 STATUS_FAILURE = "failure"
 STATUS_ALWAYS = "always"
 STATUS_RUNNING = "running"
+STATUS_RECEIVED = "received" 		# just before triggering job
 
 
 class Workflow(PeriodicTask):

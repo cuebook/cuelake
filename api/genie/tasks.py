@@ -37,7 +37,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
             runStatus.message="Notebook already running"
             runStatus.save()
         else:
-            # Clear noteook results
+            # Clear notebook results
             Zeppelin.clearNotebookResults(notebookId)
             response = Zeppelin.runNotebookJob(notebookId)
             if response:

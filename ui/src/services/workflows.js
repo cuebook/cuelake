@@ -35,6 +35,24 @@ class WorkflowsService {
             message.error(response.message);
             return null
     }
+
+    async runWorkflow(workflowId){
+        const response = await apiService.get("workflows/runWorkflow/" + workflowId)
+        if(response.success == true)
+            return response.data
+        else
+            message.error(response.message);
+            return null
+    }
+
+    async stopWorkflow(workflowId){
+        const response = await apiService.get("workflows/stopWorkflow/" + workflowId)
+        if(response.success == true)
+            return response.data
+        else
+            message.error(response.message);
+            return null
+    }
 }
 let workflowsService = new WorkflowsService();
 export default workflowsService

@@ -166,6 +166,14 @@ export default function Workflows(props) {
       return <span>{notebookNames.join(", ")}</span>
     }
 
+    const runWorkflow = async workflow => {
+      const response = await workflowsService.runWorkflow(workflow.id);
+    }
+
+    const stopWorkflow = async workflow => {
+      const response = await workflowsService.stopWorkflow(workflow.id);
+    }
+
     const columns = [
       {
         title: "Workflow",
@@ -219,17 +227,17 @@ export default function Workflows(props) {
       {
         title: "Last run",
         dataIndex: "lastRun",
-        key: "lastRun",
+        key: "lastRunTime",
         sorter: (a, b) => {
           return Math.abs(
-            new Date(a.lastRun) - new Date(b.lastRun)
+            new Date(a.lastRun ? a.lastRun.startTimestamp : null) - new Date(b.lastRun ? b.lastRun.startTimestamp : null)
           );
         },
         defaultSortOrder: "descend",
-        render: text => {
+        render: lastRun => {
           return (
             <span>
-            {text ? <Moment format="DD-MM-YYYY hh:mm:ss">{text}</Moment> : null}
+            {lastRun ? <Moment format="DD-MM-YYYY hh:mm:ss">{lastRun.startTimestamp}</Moment> : null}
             </span>
           );
         }
@@ -239,25 +247,25 @@ export default function Workflows(props) {
         dataIndex: "",
         key: "",
         // width: "10%",
-        render: (text, record) => {
+        render: (text, workflow) => {
           return (
             <div className={style.actions}>
-              {/* { notebook.lastRun && (notebook.lastRun.status === "RUNNING" ||  notebook.lastRun.status === "PENDING")
+              { workflow.lastRun && (workflow.lastRun.status === "running" ||  workflow.lastRun.status === "received")
                 ?
-                <Tooltip title={"Stop Notebook"}> 
-                  <StopOutlined onClick={() => stopNotebook(notebook)} />
+                <Tooltip title={"Stop Workflow"}> 
+                  <StopOutlined onClick={() => stopWorkflow(workflow)} />
                 </Tooltip>
                 :
-                <Tooltip title={"Run Notebook"}> 
-                  <PlayCircleOutlined onClick={() => runNotebook(notebook)} />
+                <Tooltip title={"Run Workflow"}> 
+                  <PlayCircleOutlined onClick={() => runWorkflow(workflow)} />
                 </Tooltip>
               }
-              */}
+             
               <Tooltip title={"Edit Workflow"}>
-                <EditOutlined onClick={() => editWorkflow(record)} />
+                <EditOutlined onClick={() => editWorkflow(workflow)} />
               </Tooltip>
               <Tooltip title={"View Runs"}>
-                <UnorderedListOutlined onClick={() => openRunLogs(record)} />
+                <UnorderedListOutlined onClick={() => openRunLogs(workflow)} />
               </Tooltip>
             </div>
           );
@@ -279,7 +287,7 @@ export default function Workflows(props) {
       )
 
     const editCreateWorkflowElement = <Modal 
-              title={true ? "Add Workflow" : "EditWorkflow"}
+              title={true ? "New Workflow" : "EditWorkflow"}
               visible={true}
               onOk={saveWorkflow}
               onCancel={handleCancel}
@@ -343,13 +351,15 @@ export default function Workflows(props) {
             </Modal>
 
     return (
-        <div>
-            <Button 
-              onClick={()=>addWorkflow()}
-              type="primary"
-              >
-              Add Workflow
-            </Button>
+          <div>
+            <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
+              <Button 
+                onClick={()=>addWorkflow()}
+                type="primary"
+                >
+                New Workflow
+              </Button>
+            </div>
             { isWorkflowModalVisible ? editCreateWorkflowElement : null }
             <Table
                 rowKey={"id"}

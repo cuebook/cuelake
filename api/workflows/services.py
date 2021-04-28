@@ -5,12 +5,22 @@ import pytz
 import time
 from django.db import transaction
 import polling
-from workflows.models import Workflow, WorkflowRun, NotebookJob, STATUS_SUCCESS, STATUS_FAILURE, STATUS_ALWAYS, STATUS_RUNNING
+from workflows.models import (
+    Workflow,
+    WorkflowRun,
+    NotebookJob,
+    STATUS_SUCCESS,
+    STATUS_FAILURE,
+    STATUS_ALWAYS,
+    STATUS_RUNNING,
+    STATUS_RECEIVED,
+)
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
+from genie.models import RunStatus
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -43,7 +53,11 @@ class WorkflowServices:
     @staticmethod
     @transaction.atomic
     def createWorkflow(
-        name: str, schedule: int, triggerWorkflowId: int, triggerWorkflowStatus: str, notebookIds: List[int]
+        name: str,
+        schedule: int,
+        triggerWorkflowId: int,
+        triggerWorkflowStatus: str,
+        notebookIds: List[int],
     ):
         """
         Creates workflow
@@ -61,7 +75,10 @@ class WorkflowServices:
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
-        notebookJobs = [ NotebookJob(workflow=workflow, notebookId=notebookId) for notebookId in notebookIds ]
+        notebookJobs = [
+            NotebookJob(workflow=workflow, notebookId=notebookId)
+            for notebookId in notebookIds
+        ]
         NotebookJob.objects.bulk_create(notebookJobs)
 
         res.update(True, "Workflow created successfully", workflow.id)
@@ -75,7 +92,7 @@ class WorkflowServices:
         schedule: int,
         triggerWorkflowId: int,
         triggerWorkflowStatus: str,
-        notebookIds: List[int]
+        notebookIds: List[int],
     ):
         """
         Updates workflow
@@ -94,7 +111,10 @@ class WorkflowServices:
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
         NotebookJob.objects.filter(workflow_id=id).delete()
-        notebookJobs = [ NotebookJob(workflow_id=id, notebookId=notebookId) for notebookId in notebookIds ]
+        notebookJobs = [
+            NotebookJob(workflow_id=id, notebookId=notebookId)
+            for notebookId in notebookIds
+        ]
         NotebookJob.objects.bulk_create(notebookJobs)
 
         try:
@@ -140,42 +160,113 @@ class WorkflowServices:
         return res
 
     @staticmethod
-    def runWorkflow(workflowId: int):
-        """ 
+    def runWorkflow(workflowId: int, workflowRunId: int = None):
+        """
         Runs workflow
         """
-        notebookIds = list(NotebookJob.objects.filter(workflow_id=workflowId).values_list("notebookId", flat=True))
-        runStatusIds = []
-        workflowRun = WorkflowRun.objects.create(workflow_id=workflowId, status=STATUS_RUNNING)
-        for notebookId in noteookIds:
-            runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType="Scheduled")
-            runNotebookJobTask.delay(notebookId=notebookId, runStatus=runStatus)
-            runStatusIds.append(runStatus.id)
+        # TODO If workflow already
+        notebookIds = list(
+            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
+                "notebookId", flat=True
+            )
+        )
+        if workflowRunId:
+            workflowRun = WorkflowRun.objects.get(id=workflowRunId)
+            workflowRun.status = STATUS_RUNNING
+            workflowRun.save()
+        else:
+            workflowRun = WorkflowRun.objects.create(
+                workflow_id=workflowId, status=STATUS_RUNNING
+            )
+        notebookRunStatusIds = []
+        for notebookId in notebookIds:
+            runStatus = RunStatus.objects.create(
+                notebookId=notebookId, status="RUNNING", runType="Scheduled"
+            )
+            runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
+            notebookRunStatusIds.append(runStatus.id)
 
         workflowStatus = polling.poll(
-            lambda: WorkflowServices.__checkGivenRunStatuses(notebookId, runStatus) != "stillRunning", step=3, timeout=3600
+            lambda: WorkflowServices.__checkGivenRunStatuses(notebookRunStatusIds)
+            != "stillRunning",
+            step=3,
+            timeout=3600,
         )
 
         if workflowStatus:
             workflowRun.status = STATUS_SUCCESS
-            workflow.save()
+            workflowRun.save()
         else:
             workflowRun.status = STATUS_FAILURE
-            workflow.save()
-            
-        dependentWorkflowIds = list(Workflow.objects.filter(triggerWorkflow_id=workflowId, triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRun.status]).values_list("id", flat=True))
+            workflowRun.save()
+
+        dependentWorkflowIds = list(
+            Workflow.objects.filter(
+                triggerWorkflow_id=workflowId,
+                triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRun.status],
+            ).values_list("id", flat=True)
+        )
         return dependentWorkflowIds
 
-
     @staticmethod
-    def __checkGivenRunStatuses(runStatusIds: List[int]):
+    def __checkGivenRunStatuses(notebookRunStatusIds: List[int]):
         """Check if given runStatuses are status is SUCCESS"""
 
-        if len(runStatusIds) == RunStatus.objects.filter(id__in=runStatusIds).exclude(status="RUNNING").count():
-            return len(runStatusIds) == RunStatus.objects.filter(id__in=runStatusIds, status="SUCCESS").count()
+        if (
+            len(notebookRunStatusIds)
+            == RunStatus.objects.filter(id__in=notebookRunStatusIds)
+            .exclude(status="RUNNING")
+            .count()
+        ):
+            return (
+                len(notebookRunStatusIds)
+                == RunStatus.objects.filter(
+                    id__in=notebookRunStatusIds, status="SUCCESS"
+                ).count()
+            )
 
         return "stillRunning"
 
+
+class WorkflowActions:
+    @staticmethod
+    def runWorkflow(workflowId: int):
+        """
+        Runs given workflow
+        """
+        from workflows.tasks import runWorkflowJob
+
+        res = ApiResponse(message="Error in running workflow")
+
+        existingWorkflows = WorkflowRun.objects.filter(workflow_id=workflowId).order_by(
+            "-startTimestamp"
+        )
+        if existingWorkflows.count() and existingWorkflows[0].status in [
+            STATUS_RUNNING,
+            STATUS_RECEIVED,
+        ]:
+            res.update(False, "Can't run already running workflow")
+            return res
+
+        workflowRun = WorkflowRun.objects.create(
+            workflow_id=workflowId, status=STATUS_RECEIVED
+        )
+        runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
+        res.update(True, "Ran workflow successfully")
+        return res
+
+    @staticmethod
+    def stopWorkflow(workflowId: int):
+        """
+        Stops given workflow
+        """
+        res = ApiResponse(message="Error in stopping workflow")
+        workflowRuns = WorkflowRun.objects.filter(workflow_id=workflowId).order_by("-startTimestamp")
+        if workflowRuns.count():
+            status = workflowRuns[0].status
+            # implement celery stop
+        res.update(True, "Stopped workflow successfully")
+        return res
 
     # @staticmethod
     # def addNotebook(payload):
