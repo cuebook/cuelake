@@ -2,7 +2,7 @@ aiohttp==3.7.4.post0
 amqp==5.0.5
 anyjson==0.3.3
 appnope==0.1.2
-asgiref==3.3.1
+asgiref==3.3.2
 async-timeout==3.0.1
 attrs==20.3.0
 backcall==0.2.0
