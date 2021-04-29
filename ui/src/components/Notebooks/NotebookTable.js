@@ -429,7 +429,6 @@ export default function NotebookTable() {
   ];
 
   return (
-
     <>
       <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
           <Button

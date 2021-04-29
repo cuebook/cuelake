@@ -53,6 +53,25 @@ class WorkflowsService {
             message.error(response.message);
             return null
     }
+
+    async updateTriggerWorkflow(workflowId, data){
+        const response = await apiService.post("workflows/updateTriggerWorkflow/" + workflowId, data)
+        if(response.success == true)
+            return response.data
+        else
+            message.error(response.message);
+            return null
+    }
+
+    async updateWorkflowSchedule(workflowId, data){
+        const response = await apiService.post("workflows/updateSchedule/" + workflowId, data)
+        if(response.success == true)
+            return response.data
+        else
+            message.error(response.message);
+            return null
+    }
+
 }
 let workflowsService = new WorkflowsService();
 export default workflowsService

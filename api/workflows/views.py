@@ -17,15 +17,15 @@ class Workflows(APIView):
         data = request.data
 
         name = data.get("name", "")
-        schedule = data.get("schedule", "")
+        scheduleId = data.get("scheduleId", "")
         triggerWorkflowId = data.get("triggerWorkflowId", "")
         triggerWorkflowStatus = data.get("triggerWorkflowStatus", "")
         notebookIds = data.get("notebookIds", [])
 
         if 'id' in data and data['id']:
-            res = WorkflowServices.updateWorkflow(data['id'], name, schedule, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
+            res = WorkflowServices.updateWorkflow(data['id'], name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
         else:
-            res = WorkflowServices.createWorkflow(name, schedule, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
+            res = WorkflowServices.createWorkflow(name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
         return Response(res.json())
 
     # def delete(self, request, notebookId):
@@ -78,5 +78,34 @@ class WorkflowRunLog(APIView):
         :param workflowId: id of Workflows.Workflow
         """
         res = WorkflowServices.getWorkflowRunLogs(workflowId)
+        return Response(res.json())
+
+
+class UpdateTriggerWorkflow(APIView):
+    """
+    Class to update trigger workflow associated with workflow
+    """
+    def post(self, request, workflowId: int):
+        """
+        Updated trigger workflow
+        """
+        data = request.data
+        triggerWorkflowId = data.get("triggerWorkflowId", "")
+        triggerWorkflowStatus = data.get("triggerWorkflowStatus", "")
+        res = WorkflowServices.updateTriggerWorkflow(workflowId, triggerWorkflowId, triggerWorkflowStatus)
+        return Response(res.json())
+
+
+class UpdateSchedule(APIView):
+    """
+    Class to update schedule associated with workflow
+    """
+    def post(self, request, workflowId: int):
+        """
+        Updated trigger workflow
+        """
+        data = request.data
+        scheduleId = data.get("scheduleId", "")
+        res = WorkflowServices.updateSchedule(workflowId, scheduleId)
         return Response(res.json())
 

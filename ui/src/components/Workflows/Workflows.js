@@ -19,7 +19,7 @@ import {
     Switch,
     Tabs
   } from "antd";
-import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined} from '@ant-design/icons';
+import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined} from '@ant-design/icons';
 import { Badge } from "reactstrap";
 import WorkflowRuns from "./WorkflowRuns"
 import SelectSchedule from "components/Schedule/selectSchedule"
@@ -42,11 +42,16 @@ export default function Workflows(props) {
     const [selectedNotebooks, setSelectedNotebooks] = useState([]);
 
     const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
-    const [isWorkflowModalVisible, setIsWorkflowModalVisible] = useState(false);
+    const [isEditCreateWorkflow, setIsEditCreateWorkflow] = useState(false);
 
     const [newWorkflowName, setNewWorkflowName] = useState('');
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
     const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState("always");
+
+    const [assignTriggerWorkflow, setAssignTriggerWorkflow] = useState(false)         // stores id of parent workflow 
+    // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
+    const [assignSchedule, setAssignSchedule] = useState(false)
+    // const [showSelectSchedule, setShowSelectSchedule] = useState(false)
 
     const currentPageRef = useRef(currentPage);
     currentPageRef.current = currentPage;
@@ -107,13 +112,13 @@ export default function Workflows(props) {
 
     const addWorkflow = () => {
       getNotebooksLight()
-      setIsWorkflowModalVisible(true)
+      setIsEditCreateWorkflow(true)
       setSelectedWorkflow('')
     }
 
     const editWorkflow = workflow => {
       getNotebooksLight()
-      setIsWorkflowModalVisible(true)
+      setIsEditCreateWorkflow(true)
       setSelectedWorkflow(workflow)
       setSelectedNotebooks(workflow.notebooks)
 
@@ -132,14 +137,14 @@ export default function Workflows(props) {
           id: selectedWorkflow.id,
           name: newWorkflowName,
           notebookIds: selectedNotebooks,
-          schedule: selectedSchedule,
+          scheduleId: selectedSchedule,
           triggerWorkflowId: triggerWorkflow ? triggerWorkflow.id : null,
           triggerWorkflowStatus: triggerWorkflowStatus
         }
         const response = await workflowsService.setWorkflows(data);
         if(response){
-          setIsWorkflowModalVisible(false)
-          settingIntialValues()
+          setIsEditCreateWorkflow(false)
+          settingInitialValues()
         }
       }
       else{
@@ -148,22 +153,24 @@ export default function Workflows(props) {
     }
 
     const handleCancel = () => {
-      setIsWorkflowModalVisible(false)
-      settingIntialValues()
+      setIsEditCreateWorkflow(false)
+      settingInitialValues()
     }
 
-    const settingIntialValues = () => {
+    const settingInitialValues = () => {
       setSelectedWorkflow("")
-      setNewWorkflowName(false)
+      setNewWorkflowName('')
       setSelectedNotebooks([])
       setSelectedSchedule(null)
       setTriggerWorkflow(false)
       setTriggerWorkflowStatus("always")
+      setAssignSchedule(false)
+      setAssignTriggerWorkflow(false)
     }
 
     const showNotebooksOfWorkflow = workflow => {
       const notebookNames = notebooksLight.filter(notebook => workflow.notebooks.find(x => x==notebook.id)).map(notebook => notebook.path.substring(1))
-      return <span>{notebookNames.join(", ")}</span>
+      return <span><b>Notebooks: </b>{notebookNames.join(", ")}</span>
     }
 
     const runWorkflow = async workflow => {
@@ -188,41 +195,80 @@ export default function Workflows(props) {
         }
       },
       {
-        title: "Triggers On",
-        children: [
-          {
-            title: 'Workflow',
-            dataIndex: "triggerWorkflow",
-            key: "triggerWorkflow",
-            render: (text, record) => {
+        title: 'Trigger Workflow',
+        dataIndex: "triggerWorkflow",
+        key: "triggerWorkflow",
+        render: (text, workflow) => {
+          if (workflow.triggerWorkflow){
               return (
-                <span>
+                <span className={style.triggerWorkflow}>
                   {text ? text.name + " " : ""}
-                  {text ?         
+                  {text && workflow.triggerWorkflowStatus != "always" ?         
                     <Badge
                       color="primary"
                       className={`m-1 ${style.badge}`}
                       pill
-                      key={record.id}
-                    >{record.triggerWorkflowStatus}</Badge> : null
+                      key={workflow.id}
+                    >{workflow.triggerWorkflowStatus}</Badge> : null
                   }
+                  <Tooltip title={"Unassign Workflow"}> 
+                    <span className={style.icon} onClick={()=>updateAssignedTriggerWorkflow(workflow.id)}><CloseOutlined /></span>
+                  </Tooltip>
                 </span>
               );
-            }
-          },
-          {
-            title: 'Schedule',
-            dataIndex: "schedule",
-            key: "schedule",
-            render: (text, record) => {
-              return (
-                <span>
-                  {text ? text.name: ""}
-                </span>
-              );
+
+          }
+          else {
+            if (assignTriggerWorkflow && assignTriggerWorkflow == workflow.id){
+              return <Modal
+                        title={"Assign Trigger Workflow"}
+                        visible={true}
+                        onOk={()=>updateAssignedTriggerWorkflow(workflow.id)}
+                        onCancel={settingInitialValues}
+                        okText="Save"
+                        bodyStyle={{ paddingBottom: 80 }}
+                      >
+                        {selectTriggerWorkflowElement}
+                      </Modal>
+            } else {
+              return <a className={style.linkText} onClick={()=>setAssignTriggerWorkflow(workflow.id)}>Assign Workflow</a>
             }
           }
-        ],
+        }
+      },
+      {
+        title: 'Schedule',
+        dataIndex: "schedule",
+        key: "schedule",
+        render: (text, workflow) => {
+          if (workflow.schedule){
+              return (
+                <span className={style.scheduleText}>
+                  {text ? text.name + " " : ""}
+                  <Tooltip title={"Unassign Workflow"}> 
+                    <span className={style.icon} onClick={()=>updateAssignedSchedule(workflow.id)}><CloseOutlined /></span>
+                  </Tooltip>
+                </span>
+              );
+
+          }
+          else {
+            if (assignSchedule && assignSchedule == workflow.id){
+              return <Modal
+                        title={"Assign Schedule"}
+                        visible={true}
+                        onOk={()=>updateAssignedSchedule(workflow.id)}
+                        onCancel={settingInitialValues}
+                        okText="Save"
+                        bodyStyle={{ paddingBottom: 80 }}
+                      >
+                        <SelectSchedule onChange={(value)=>setSelectedSchedule(value)} />
+                      </Modal>
+            } else {
+              return <a className={style.linkText} onClick={()=>setAssignSchedule(workflow.id)}>Assign Schedule</a>
+            }
+          }          
+        }
       },
       {
         title: "Last run",
@@ -273,6 +319,24 @@ export default function Workflows(props) {
     }
     ]
 
+    const updateAssignedTriggerWorkflow = async (workflowId) => {
+      const data = {
+        triggerWorkflowId: triggerWorkflow ? triggerWorkflow.id : null,
+        triggerWorkflowStatus: triggerWorkflowStatus
+      }
+
+      const response = await workflowsService.updateTriggerWorkflow(workflowId, data);
+      if (response){settingInitialValues() }
+    }
+
+    const updateAssignedSchedule = async (workflowId) => {
+      const data = {
+          scheduleId: selectedSchedule
+      }
+      const response = await workflowsService.updateWorkflowSchedule(workflowId, data);
+      if (response){settingInitialValues() }
+    }
+
     const workflowOptionElements = workflows.map(workflow => 
       <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
     )
@@ -286,12 +350,40 @@ export default function Workflows(props) {
         <Option value={notebook.id} key={notebook.id} name={notebook.path.substring(1)}> {notebook.path.substring(1)} </Option>
       )
 
-    const editCreateWorkflowElement = <Modal 
+    const selectTriggerWorkflowElement = <><Form.Item label="Workflow Name">
+                            <Select placeholder="Select Workflow" value={triggerWorkflow ? triggerWorkflow.id : ""} onChange={(value, option) => setTriggerWorkflow(option.workflow)}>
+                              {workflowOptionElements}
+                            </Select>
+                          </Form.Item>
+                          <Form.Item label="Workflow Status">
+                            <Select onChange={(value) => setTriggerWorkflowStatus(value)} value={triggerWorkflowStatus}>
+                              {statusOptionElements}
+                            </Select>
+                          </Form.Item></>
+
+
+    const editCreateWorkflowElement = <Drawer 
               title={true ? "New Workflow" : "EditWorkflow"}
+              width={720}
               visible={true}
               onOk={saveWorkflow}
-              onCancel={handleCancel}
+              onClose={handleCancel}
               okText="Save"
+              bodyStyle={{ paddingBottom: 80 }}
+              footer={
+                          <div
+                            style={{
+                              textAlign: 'right',
+                            }}
+                          >
+                            <Button onClick={handleCancel} style={{ marginRight: 8 }}>
+                              Cancel
+                            </Button>
+                            <Button onClick={saveWorkflow} type="primary">
+                              Save
+                            </Button>
+                          </div>
+                        }
             >
                 <Form layout={"vertical"}>
                   <Form.Item label="Name">
@@ -334,21 +426,12 @@ export default function Workflows(props) {
                           }
                           key="2"
                         >
-                          <Form.Item label="Workflow Name">
-                            <Select placeholder="Select Workflow" value={triggerWorkflow ? triggerWorkflow.id : ""} onChange={(value, option) => setTriggerWorkflow(option.workflow)}>
-                              {workflowOptionElements}
-                            </Select>
-                          </Form.Item>
-                          <Form.Item label="Workflow Status">
-                            <Select onChange={(value) => setTriggerWorkflowStatus(value)} value={triggerWorkflowStatus} defaultValue="always">
-                              {statusOptionElements}
-                            </Select>
-                          </Form.Item>
+                          {selectTriggerWorkflowElement}
                         </TabPane>
                       </Tabs>
                   </Form.Item>
                 </Form>
-            </Modal>
+            </Drawer>
 
     return (
           <div>
@@ -360,7 +443,7 @@ export default function Workflows(props) {
                 New Workflow
               </Button>
             </div>
-            { isWorkflowModalVisible ? editCreateWorkflowElement : null }
+            { isEditCreateWorkflow ? editCreateWorkflowElement : null }
             <Table
                 rowKey={"id"}
                 scroll={{ x: "100%" }}
@@ -371,8 +454,6 @@ export default function Workflows(props) {
                 size={"small"}
                 expandable={{
                     expandedRowRender: record => showNotebooksOfWorkflow(record),
-                    expandRowByClick: true,
-                    expandIconColumnIndex: -1
                 }}
                 pagination={{
                   current: currentPage,

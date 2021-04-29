@@ -81,3 +81,21 @@
 .badge {
   text-transform: none;
 }
+
+.scheduleText, .triggerWorkflow{
+    display: inline-block;
+    margin-left: 10px;
+
+    .icon{
+        cursor: pointer;
+        display:none;
+        margin-left: 5px;
+    }
+    &:hover{
+        .icon{
+            color: #1890ff;
+            display: inline-block;
+        }
+    }
+}
+

@@ -54,7 +54,7 @@ class WorkflowServices:
     @transaction.atomic
     def createWorkflow(
         name: str,
-        schedule: int,
+        scheduleId: int,
         triggerWorkflowId: int,
         triggerWorkflowStatus: str,
         notebookIds: List[int],
@@ -62,7 +62,7 @@ class WorkflowServices:
         """
         Creates workflow
         :param name: name of new workflow
-        :param schedule: crontab id
+        :param scheduleId: crontab id
         :param triggerWorkflowId: id of workflow which triggers this workflow
         :param triggerWorkflowStatus: ["success", "failure", "always"] required
                 status of triggerWorkflow to trigger this workflow
@@ -71,7 +71,7 @@ class WorkflowServices:
         res = ApiResponse(message="Error in creating workflow")
         workflow = Workflow.objects.create(
             name=name,
-            crontab_id=schedule,
+            crontab_id=scheduleId,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
@@ -89,7 +89,7 @@ class WorkflowServices:
     def updateWorkflow(
         id: int,
         name: str,
-        schedule: int,
+        scheduleId: int,
         triggerWorkflowId: int,
         triggerWorkflowStatus: str,
         notebookIds: List[int],
@@ -97,7 +97,7 @@ class WorkflowServices:
         """
         Updates workflow
         :param name: name of new workflow
-        :param schedule: crontab id
+        :param scheduleId: crontab id
         :param triggerWorkflowId: id of workflow which triggers this workflow
         :param triggerWorkflowStatus: ["success", "failure", "always"] required
                 status of triggerWorkflow to trigger this workflow
@@ -106,7 +106,7 @@ class WorkflowServices:
         res = ApiResponse(message="Error in updating workflow")
         workflow = Workflow.objects.filter(id=id).update(
             name=name,
-            crontab_id=schedule,
+            crontab_id=scheduleId,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
@@ -157,6 +157,22 @@ class WorkflowServices:
             "WorkflowRuns retrieved successfully",
             {"total": total, "workflowRunLogs": []},
         )
+        return res
+
+    @staticmethod
+    def updateTriggerWorkflow(workflowId: int, triggerWorkflowId: int, triggerWorkflowStatus: int):
+        """Update given workflow's trigger workflow"""
+        res = ApiResponse(message="Error in updating trigger workflow")
+        updateStatus = Workflow.objects.filter(id=workflowId).update(triggerWorkflow_id=triggerWorkflowId, triggerWorkflowStatus=triggerWorkflowStatus)
+        res.update(True, "Trigger workflow updated successfully", updateStatus)
+        return res
+
+    @staticmethod
+    def updateSchedule(workflowId: int, scheduleId: int):
+        """Update given workflow's schedule"""
+        res = ApiResponse(message="Error in updating workflow schedule")
+        updateStatus = Workflow.objects.filter(id=workflowId).update(crontab_id=scheduleId)
+        res.update(True, "Workflow schedule updated successfully", True)
         return res
 
     @staticmethod
