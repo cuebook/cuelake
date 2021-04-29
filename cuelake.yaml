@@ -4,10 +4,10 @@ metadata:
   name: cuelake-conf-map
 data:
   # Change below properties to point to your production database
-  POSTGRES_DB_HOST: localhost
-  POSTGRES_DB_USERNAME: postgres
-  POSTGRES_DB_PASSWORD: postgres
-  POSTGRES_DB_SCHEMA: cuelake
+  # POSTGRES_DB_HOST: localhost
+  # POSTGRES_DB_USERNAME: postgres
+  # POSTGRES_DB_PASSWORD: postgres
+  # POSTGRES_DB_SCHEMA: cuelake
 ---
 apiVersion: v1
 kind: ConfigMap
