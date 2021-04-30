@@ -1,0 +1,101 @@
+.iframe{
+    height: calc(100vh - 28px);
+    width: 100%;
+    margin-top: -68px;
+}
+
+.actions{
+    text-align: right;
+    font-size: 18px;
+    &>span{
+        margin-right: 8px;
+        cursor: pointer;
+        &:hover{
+            color: skyblue;
+        }
+    }
+
+}
+
+.scheduleText{
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 10px;
+
+    .icon{
+        display:none;
+        margin-left: 5px;
+    }
+    &:hover{
+        color: #1890ff;
+        .icon{
+            display: inline-block;
+        }
+    }
+}
+
+.linkText{
+    font-size: 12px;
+}
+
+.runLogTable{
+    width: 100%;
+}
+
+.divider{
+    height: 2px;
+    width: 100%;
+    background: #eee;
+    margin-bottom: 10px;
+}
+
+.logsDiv{
+    height: 400px;
+    overflow: auto;
+}
+
+.selectedNotebookTemplate{
+    width: 100%;
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    margin-bottom: 30px;
+
+    .selectedNotebookTemplateName{
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .templateBackButton{
+        position: absolute;
+        top: 6px;
+        cursor: pointer;
+    }
+}
+
+.notebookTemplate{
+    margin-bottom: 10px;
+}
+
+
+.badge {
+  text-transform: none;
+}
+
+.scheduleText, .triggerWorkflow{
+    display: inline-block;
+    margin-left: 10px;
+
+    .icon{
+        cursor: pointer;
+        display:none;
+        margin-left: 5px;
+    }
+    &:hover{
+        .icon{
+            color: #1890ff;
+            display: inline-block;
+        }
+    }
+}
+

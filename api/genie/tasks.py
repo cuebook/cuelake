@@ -16,12 +16,19 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
+def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Scheduled"):
     """
     Celery task to run a zeppelin notebook
     :param notebookId: ID of the zeppelin notebook which to run
+    :param runStatusId: ID of genie.runStatus model
     """
-    runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType=runType)
+    if not runStatusId:
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status="RUNNING", runType=runType)
+    else:
+        runStatus = RunStatus.objects.get(id=runStatusId)
+        runStatus.startTimestamp = dt.datetime.now()
+        runStatus.save()
+
     try:
         # Check if notebook is already running
         isRunning, notebookName = checkIfNotebookRunning(notebookId)
@@ -30,7 +37,7 @@ def runNotebookJob(notebookId: str, runType: str = "Scheduled"):
             runStatus.message="Notebook already running"
             runStatus.save()
         else:
-            # Clear noteook results
+            # Clear notebook results
             Zeppelin.clearNotebookResults(notebookId)
             response = Zeppelin.runNotebookJob(notebookId)
             if response:

@@ -11,6 +11,7 @@
     "chart.js": "2.9.3",
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.8",
+    "lodash": "^4.17.21",
     "node-sass": "^4.14.1",
     "react": "16.13.1",
     "react-ace": "^9.4.0",
@@ -23,6 +24,7 @@
     "react-scripts": "3.4.3",
     "react-timeago": "^5.2.0",
     "react-tooltip": "^4.2.15",
+    "reactstrap": "^8.9.0",
     "tailwindcss": "1.8.10"
   },
   "scripts": {
