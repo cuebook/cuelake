@@ -233,7 +233,7 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
-        # Update runStatus that the task was aborted
+        # Updating runStatus that the task was aborted
         response = Zeppelin.stopNotebookJob(notebookId)
         if response:
             res.update(True, "Notebook stopped successfully", None)

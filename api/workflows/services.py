@@ -14,12 +14,14 @@ from workflows.models import (
     STATUS_ALWAYS,
     STATUS_RUNNING,
     STATUS_RECEIVED,
+    STATUS_ABORTED
 )
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
+from genie.services import NotebookJobServices
 from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
 
 # Name of the celery task which calls the zeppelin api
@@ -209,6 +211,9 @@ class WorkflowServices:
             timeout=3600,
         )
 
+        if WorkflowRun.objects.get(id=workflowRunId).status == STATUS_ABORTED:
+            return []
+
         if workflowStatus:
             workflowRun.status = STATUS_SUCCESS
             workflowRun.save()
@@ -282,11 +287,15 @@ class WorkflowActions:
                 "notebookId", flat=True
             )
         )
-
         workflowRuns = WorkflowRun.objects.filter(workflow_id=workflowId).order_by("-startTimestamp")
         if workflowRuns.count():
-            status = workflowRuns[0].status
-            # implement celery stop
+            workflowRun = workflowRuns[0]
+            workflowRun.status = STATUS_ABORTED
+            workflowRun.save()
+
+        notebookIds = Workflow.objects.get(id=workflowId).notebookjob_set.all().values_list("notebookId", flat=True)
+        responses = [ NotebookJobServices.stopNotebookJob(notebookId) for notebookId in notebookIds ]
+
         res.update(True, "Stopped workflow successfully")
         return res
 
