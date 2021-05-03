@@ -87,9 +87,10 @@ class ScheduleView(APIView):
         return Response(res.json())
 
     def post(self, request):
+        name = request.data["name"]
         cron = request.data["crontab"]
         timezone = request.data["timezone"]
-        res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone)
+        res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone, name=name)
         return Response(res.json())
     
 class TimzoneView(APIView):

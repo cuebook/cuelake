@@ -32,6 +32,7 @@ export default function NotebookTable() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
+  const [scheduleName, setScheduleName] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [cronTabSchedule, setCronTabSchedule] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
@@ -94,11 +95,12 @@ export default function NotebookTable() {
   }
 
   const saveSchedule = async (event) => {
-    if(cronTabSchedule, selectedTimezone){
-      const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone);
+    if(cronTabSchedule, selectedTimezone, scheduleName){
+      const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone, scheduleName);
       if(response.success){
         setCronTabSchedule("")
         setSelectedTimezone("")
+        setScheduleName("")
         setIsAddScheduleModalVisible(false)
         getSchedules()
       }
@@ -469,6 +471,9 @@ export default function NotebookTable() {
               <Select onChange={(value) => setSelectedTimezone(value)}>
                 {timezoneElements}
               </Select>
+            </Form.Item>
+            <Form.Item label="Schedule Name">
+              <Input placeholder="Scheduler Name" onChange={(event) => setScheduleName(event.target.value)} />
             </Form.Item>
           </Form>
       </Modal>

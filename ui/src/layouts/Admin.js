@@ -13,6 +13,7 @@ import Settings from "views/admin/Settings.js";
 import Notebooks from "views/admin/Notebooks.js";
 import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
+import SchedulesView from "views/admin/Schedules.js"
 
 export default function Admin() {
   return (
@@ -29,6 +30,8 @@ export default function Admin() {
             <Route path="/notebook/:notebookId" exact component={NotebookView} />
             <Route path="/settings" exact component={Settings} />
             <Route path="/connections" exact component={Connections} />
+            <Route path="/schedules" exact component={SchedulesView} />
+
             <Redirect from="/" to="/notebooks" />
           </Switch>
         </div>

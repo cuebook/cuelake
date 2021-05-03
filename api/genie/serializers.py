@@ -1,7 +1,7 @@
 import json
 from rest_framework import serializers
 from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate
+from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, Schedule
 
 class NotebookJobSerializer(serializers.ModelSerializer):
     """
@@ -27,12 +27,12 @@ class RunStatusSerializer(serializers.ModelSerializer):
         model = RunStatus
         fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType"]
 
-class CrontabScheduleSerializer(serializers.ModelSerializer):
+class ScheduleSerializer(serializers.ModelSerializer):
     """
     Serializer for the model CrontabSchedule
     """
     schedule = serializers.SerializerMethodField()
-
+    
     def get_schedule(self, obj):
         """
         Gets string form of the crontab
@@ -40,8 +40,8 @@ class CrontabScheduleSerializer(serializers.ModelSerializer):
         return str(obj)
     
     class Meta:
-        model = CrontabSchedule
-        fields = ["id", "schedule"]
+        model = Schedule
+        fields = ["id", "schedule","name"]
 
 
 # Connection Serializers

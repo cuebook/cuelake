@@ -39,8 +39,8 @@ class NotebookService {
             return null
     }
 
-    async addSchedule(cronTabSchedule, selectedTimezone){
-        const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
+    async addSchedule(cronTabSchedule, selectedTimezone, scheduleName){
+        const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone, "name": scheduleName})
         return response
     }
 
