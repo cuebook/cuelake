@@ -127,6 +127,17 @@ class WorkflowServices:
         return res
 
     @staticmethod
+    def deleteWorkflow(workflowId: int):
+        """
+        Delete workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = ApiResponse(message="Error in deleting workflow logs")
+        count = Workflow.objects.filter(id=workflowId).update(enabled=False)
+        res.update(True, "Workflow delete successfully")
+        return res
+
+    @staticmethod
     def getWorkflowRuns(workflowId: int, offset: int):
         """
         Service to fetch and serialize workflows runs
@@ -134,7 +145,7 @@ class WorkflowServices:
         """
         LIMIT = 10
         res = ApiResponse(message="Error in retrieving workflow logs")
-        workflowRuns = WorkflowRun.objects.filter(workflow=workflowId).order_by("-id")
+        workflowRuns = WorkflowRun.objects.filter(enabled=True, workflow=workflowId).order_by("-id")
         total = workflowRuns.count()
         data = WorkflowRunSerializer(workflowRuns[offset:LIMIT], many=True).data
 
