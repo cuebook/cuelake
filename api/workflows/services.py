@@ -20,7 +20,7 @@ from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
-from genie.models import RunStatus
+from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -197,7 +197,7 @@ class WorkflowServices:
         notebookRunStatusIds = []
         for notebookId in notebookIds:
             runStatus = RunStatus.objects.create(
-                notebookId=notebookId, status="RUNNING", runType="Scheduled"
+                notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType="Scheduled"
             )
             runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
             notebookRunStatusIds.append(runStatus.id)
@@ -231,13 +231,13 @@ class WorkflowServices:
         if (
             len(notebookRunStatusIds)
             == RunStatus.objects.filter(id__in=notebookRunStatusIds)
-            .exclude(status="RUNNING")
+            .exclude(status=NOTEBOOK_STATUS_RUNNING)
             .count()
         ):
             return (
                 len(notebookRunStatusIds)
                 == RunStatus.objects.filter(
-                    id__in=notebookRunStatusIds, status="SUCCESS"
+                    id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS
                 ).count()
             )
 
@@ -277,6 +277,12 @@ class WorkflowActions:
         Stops given workflow
         """
         res = ApiResponse(message="Error in stopping workflow")
+        notebookIds = list(
+            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
+                "notebookId", flat=True
+            )
+        )
+
         workflowRuns = WorkflowRun.objects.filter(workflow_id=workflowId).order_by("-startTimestamp")
         if workflowRuns.count():
             status = workflowRuns[0].status

@@ -23,7 +23,7 @@ import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, 
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
-
+import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
 
 const { Option } = Select;
 
@@ -268,10 +268,10 @@ export default function NotebookTable() {
           const paragraphPercent = 100/(paragraphs.length)
           paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
-            if(paragraph.status === "FINISHED") paragraphClassName = "bg-green-500";
-            else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
-            else if(paragraph.status === "RUNNING") paragraphClassName = "bg-blue-400";
-            else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";
+            if(paragraph.status === FINISHED) paragraphClassName = "bg-green-500";
+            else if(paragraph.status === ERROR) paragraphClassName = "bg-red-500";
+            else if(paragraph.status === RUNNING) paragraphClassName = "bg-blue-400";
+            else if(paragraph.status === ABORT) paragraphClassName = "bg-yellow-500";
             let content = 
               <div className={style.tooltip}>
                 {paragraph.title ? <p><b>{paragraph.title}</b></p> : null}
@@ -331,7 +331,7 @@ export default function NotebookTable() {
         )
         return (
           <div className={style.actions}>
-            { notebook.lastRun && (notebook.lastRun.status === "RUNNING" ||  notebook.lastRun.status === "PENDING")
+            { notebook.lastRun && (notebook.lastRun.status === RUNNING ||  notebook.lastRun.status === PENDING)
               ?
               <Tooltip title={"Stop Notebook"}> 
                 <StopOutlined onClick={() => stopNotebook(notebook)} />

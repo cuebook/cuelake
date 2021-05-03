@@ -2,13 +2,14 @@ import asyncio
 import json
 import pytz
 import time
+from typing import List
 from django.template import Template, Context
 from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
-from genie.tasks import runNotebookJob as runNotebookJobTask
+from genie.tasks import runNotebookJob as runNotebookJobTask, checkIfNotebookRunning
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -232,7 +233,6 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
-        # TODO
         # Update runStatus that the task was aborted
         response = Zeppelin.stopNotebookJob(notebookId)
         if response:
