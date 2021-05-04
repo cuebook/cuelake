@@ -24,6 +24,7 @@ from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.services import NotebookJobServices
 from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
 
+from django_celery_beat.models import CrontabSchedule
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
@@ -71,12 +72,22 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
+        
+        if not scheduleId:
+            # to avoid error: 'One of clocked, interval, crontab, or solar must be set.'
+            crontab = CrontabSchedule.objects.create()
         workflow = Workflow.objects.create(
             name=name,
-            crontab_id=scheduleId,
+            crontab_id=scheduleId if scheduleId else crontab.id,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
+        if not scheduleId:
+            # removing fake crontab id & deleting it
+            workflow.crontab_id = scheduleId
+            workflow.save()
+            crontab.delete()
+
         notebookJobs = [
             NotebookJob(workflow=workflow, notebookId=notebookId)
             for notebookId in notebookIds
