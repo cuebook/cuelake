@@ -89,7 +89,7 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-database mr-2 text-sm " +
+                      "fas fa-calendar mr-2 text-sm " +
                       (window.location.href.indexOf("/workflows") !== -1
                         ? "opacity-75"
                         : "text-gray-400")

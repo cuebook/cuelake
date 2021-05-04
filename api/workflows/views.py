@@ -28,9 +28,14 @@ class Workflows(APIView):
             res = WorkflowServices.createWorkflow(name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
         return Response(res.json())
 
-    # def delete(self, request, notebookId):
-    #     res = NotebookJobServices.deleteNotebook(notebookId)
-    #     return Response(res.json())
+
+class Workflow(APIView):
+    """
+    Class to get and post workflows 
+    """
+    def delete(self, request, workflowId: int):
+        res = WorkflowServices.deleteWorkflow(workflowId)
+        return Response(res.json())
 
 
 class WorkflowRun(APIView):

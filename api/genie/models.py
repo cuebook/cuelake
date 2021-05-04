@@ -4,6 +4,14 @@ from django_celery_beat.models import PeriodicTask
 from django_celery_beat.models import CrontabSchedule
 from workflows.models import WorkflowRun
 
+NOTEBOOK_STATUS_SUCCESS = "success"
+NOTEBOOK_STATUS_ERROR = "error"
+NOTEBOOK_STATUS_RUNNING = "running"
+NOTEBOOK_STATUS_FINISHED = "finished"
+NOTEBOOK_STATUS_ABORT = "abort"
+NOTEBOOK_STATUS_PENDING = "pending"
+
+
 class NotebookJob(PeriodicTask):
     """
     Model class for a single job to be run on a single notebook

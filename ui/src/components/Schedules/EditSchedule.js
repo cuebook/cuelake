@@ -104,7 +104,7 @@ const handleCancelClick = async () =>
                 {timezoneElements}
               </Select>
             </Form.Item>
-                <Form.Item hasFeedback name="name" label="Connection Name">
+                <Form.Item hasFeedback name="name" label="Schedule Name">
                     <Input  className={style.inputArea} onChange={(event) => setScheduleName(event.target.value)}/>
                 </Form.Item>
                 </div>
