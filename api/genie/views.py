@@ -33,6 +33,15 @@ class NotebookActionsView(APIView):
         res = NotebookJobServices.clearNotebookResults(notebookId)
         return Response(res.json())
 
+        
+class NotebooksLight(APIView):
+    """
+    Get concise notebook data
+    """
+    def get(self, request):
+        res = NotebookJobServices.getNotebooksLight()
+        return Response(res.json())
+
 
 class NotebookView(APIView):
     """

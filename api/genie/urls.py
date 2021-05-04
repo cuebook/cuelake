@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("notebooks/<int:offset>", views.NotebookView.as_view(), name="notebookView"),
+    path("notebooksLight", views.NotebooksLight.as_view(), name="notebookView"),
     path("notebook/<str:notebookId>", views.NotebookOperationsView.as_view(), name="notebookView"),
     path("notebook/actions/<str:notebookId>", views.NotebookActionsView.as_view(), name="notebookView"),
     path("notebook", views.NotebookView.as_view(), name="notebookView"),

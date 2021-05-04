@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models.fields import CharField
 from django_celery_beat.models import PeriodicTask
 from django_celery_beat.models import CrontabSchedule
+from workflows.models import WorkflowRun
+
 class NotebookJob(PeriodicTask):
     """
     Model class for a single job to be run on a single notebook
@@ -20,6 +22,7 @@ class RunStatus(models.Model):
     status = models.CharField(max_length=20)
     runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
+    worflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.CASCADE)
 
 
 # Connection Models

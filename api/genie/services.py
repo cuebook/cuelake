@@ -64,6 +64,15 @@ class NotebookJobServices:
         return res
 
     @staticmethod
+    def getNotebooksLight():
+        """ Gets concise notebook data"""
+        res = ApiResponse(message="Error retrieving notebooks")
+        notebooks = Zeppelin.getAllNotebooks()
+        res.update(True, "Notebooks retrieved successfully", notebooks)
+        return res
+
+
+    @staticmethod
     def addNotebook(payload):
         res = ApiResponse(message="Error adding notebook")
         notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))

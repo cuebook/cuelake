@@ -20,4 +20,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/genie/", include("genie.urls")),
     path("api/system/", include("system.urls")),
+    path("api/workflows/", include("workflows.urls")),
 ]

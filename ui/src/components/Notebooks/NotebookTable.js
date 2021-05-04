@@ -146,8 +146,11 @@ export default function NotebookTable() {
   }
 
   const navigateToNotebook = (record) => {
-    history.push("/notebook/" + record.id);
-  }
+    if(history.location.pathname.indexOf("api/redirect") !== -1)
+      history.push("/api/redirect/cuelake/notebook/" + record.id);
+    else
+      history.push("/notebook/" + record.id);
+  } 
 
   const openRunLogs = (notebook) => {
     setRunLogNotebook(notebook)
@@ -431,7 +434,6 @@ export default function NotebookTable() {
   ];
 
   return (
-
     <>
       <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
           <Button
