@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Table, Button, Popconfirm, Input, message, Tooltip, Drawer } from "antd";
 import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
-import ViewConnection from "components/Connections/ViewConnection.js"
+import EditSchedule from "components/Schedules/EditSchedule.js"
 import AddSchedule from "components/Schedules/AddSchedule.js"
 import { EyeOutlined, DeleteOutlined , EditOutlined} from '@ant-design/icons';
 
@@ -11,7 +11,7 @@ import { EyeOutlined, DeleteOutlined , EditOutlined} from '@ant-design/icons';
 export default function Schedule(){
 
 const [schedules, setSchedules] = useState([]);
-const [selectedConnection, setSelectedConnection] = useState('');
+const [selectedSchedule, setSelectedConnection] = useState('');
 const [isAddConnectionDrawerVisible, setIsAddConnectionDrawerVisible] = useState('');
 const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useState('');
 
@@ -26,8 +26,8 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
     setSchedules(response)
   }
 
-  const deleteConnection = async (connection) => {
-    const response = await notebookService.deleteSchedule(connection.id);
+  const deleteScheduleFunction = async (schedule) => {
+    const response = await notebookService.deleteSchedule(schedule.id);
     if(response.success){
         fetchSchedules()
     }
@@ -36,8 +36,8 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
     }
   }
 
-  const viewConnection = async (connection) => {
-    setSelectedConnection(connection)
+  const editSchedule = async (schedule) => {
+    setSelectedConnection(schedule)
     setIsViewConnectionDrawerVisible(true)
   }
 
@@ -53,8 +53,12 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
     setIsAddConnectionDrawerVisible(true)
   }
 
-  const onAddConnectionSuccess = async () => {
+  const onAddScheduleSuccess = async () => {
     closeAddConnectionDrawer();
+    fetchSchedules();
+  }
+  const onEditScheduleSuccess = async () => {
+    closeViewConnectionDrawer();
     fetchSchedules();
   }
 
@@ -85,12 +89,12 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
        <div className={style.actions}>
            
           <Tooltip title={"Edit Schedule"}>
-            <EditOutlined onClick={() => viewConnection(schedule)} />
+            <EditOutlined onClick={() => editSchedule(schedule)} />
           </Tooltip>
           
           <Popconfirm
               title={"Are you sure to delete "+ schedule.name +"?"}
-              onConfirm={() => deleteConnection(schedule)}
+              onConfirm={() => deleteScheduleFunction(schedule)}
               // onCancel={cancel}
               okText="Yes"
               cancelText="No"
@@ -132,20 +136,21 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
         >
           { isAddConnectionDrawerVisible 
             ? 
-            <AddSchedule onAddConnectionSuccess={onAddConnectionSuccess} />
+            <AddSchedule onAddScheduleSuccess={onAddScheduleSuccess} />
             :
             null
           }
         </Drawer> 
          <Drawer
-          title={selectedConnection.name}
+          title={selectedSchedule.name}
           width={720}
           onClose={closeViewConnectionDrawer}
           visible={isViewConnectionDrawerVisible}
         >
+        
           { isViewConnectionDrawerVisible 
             ? 
-            <ViewConnection connection={selectedConnection} />
+            <EditSchedule editSchedule={selectedSchedule}  onEditScheduleSuccess={onEditScheduleSuccess} />
             :
             null
           }

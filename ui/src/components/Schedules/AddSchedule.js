@@ -63,7 +63,7 @@ export default function AddSchedule(props) {
     };
     const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone, scheduleName)
     if(response.success){
-        props.onAddConnectionSuccess()
+        props.onAddScheduleSuccess()
     }
     else{
         message.error(response.message);

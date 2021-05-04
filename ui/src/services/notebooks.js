@@ -34,6 +34,26 @@ class NotebookService {
             return null
     }
 
+    async deleteSchedule(scheduleId){
+        const response = await apiService.delete("genie/schedules/" + scheduleId)
+        console.log('response to be deleted', response)
+        if(response.success == true)
+            return response
+        else    
+            return null
+    }
+    
+
+    async getSingleSchedule(scheduleId){
+        const response = await apiService.get("genie/schedules/" + scheduleId)
+        if(response.success == true)
+            return response.data
+        else    
+            return null
+    }
+    
+
+
     async addNotebookSchedule(notebookId, scheduleId){
         const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
         return response
@@ -49,6 +69,10 @@ class NotebookService {
 
     async addSchedule(cronTabSchedule, selectedTimezone, scheduleName){
         const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone, "name": scheduleName})
+        return response
+    }
+    async updateSchedule(selectedScheduleId,cronTabSchedule, selectedTimezone, scheduleName){
+        const response = await apiService.put("genie/schedules/", {"id":selectedScheduleId,"crontab": cronTabSchedule, "timezone": selectedTimezone, "name": scheduleName})
         return response
     }
 

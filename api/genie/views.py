@@ -102,6 +102,27 @@ class ScheduleView(APIView):
         res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone, name=name)
         return Response(res.json())
     
+    def put(self,request):
+        id = request.data["id"]
+        name = request.data["name"]
+        cron = request.data["crontab"]
+        timezone = request.data["timezone"]
+        res = NotebookJobServices.updateSchedule(id=id, cron=cron, timezone=timezone, name=name)
+        return Response(res.json())
+
+@api_view(["GET", "PUT", "DELETE"])
+def schedule(request: HttpRequest, scheduleId: int) -> Response:
+    """
+    Method for crud operations on a single connection
+    :param request: HttpRequest
+    :param connection_id: Connection Id
+    """
+    if request.method == "GET":
+        res = NotebookJobServices.getSingleSchedule(scheduleId)
+        return Response(res.json())
+    if request.method == "DELETE":
+        res = NotebookJobServices.deleteSchedule(scheduleId)
+        return Response(res.json())
 class TimzoneView(APIView):
     """
     Class to get standard pytz timezones
