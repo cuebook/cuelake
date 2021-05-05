@@ -4,63 +4,48 @@ class ApiService {
   host = "";
   base_url = "http://localhost:8000/api/" //this.host + "api/";
   zeppelin_base_url = "/zeppelin";
+  // host = "http://localhost:8000";
+  // base_url = this.host + "/api/";
+  // zeppelin_base_url = "http://localhost:8081";
   
   async get(endpoint) {
-    let token = this.getCsrfToken();
     let response = await fetch(this.base_url + endpoint, {
-      credentials: "include",
       method: "GET",
-      mode: "cors",
-      headers: { "content-type": "application/json", "X-CSRFToken": token }
+      headers: { "content-type": "application/json"}
     });
     let resBody = await response.json();
     return resBody;
   }
 
   async post(endpoint, data) {
-    let token = this.getCsrfToken();
     let response = await fetch(this.base_url + endpoint, {
-      credentials: "include",
       method: "POST",
-      mode: "cors",
       body: JSON.stringify(data),
-      headers: { "content-type": "application/json", "X-CSRFToken": token }
+      headers: { "content-type": "application/json"}
     });
     let resBody = await response.json();
     return resBody;
   }
 
   async put(endpoint, data) {
-    let token = this.getCsrfToken();
     let response = await fetch(this.base_url + endpoint, {
-      credentials: "include",
       method: "PUT",
-      mode: "cors",
       body: JSON.stringify(data),
-      headers: { "content-type": "application/json", "X-CSRFToken": token }
+      headers: { "content-type": "application/json"}
     });
     let resBody = await response.json();
     return resBody;
   }
 
   async delete(endpoint, data) {
-    let token = this.getCsrfToken();
     let response = await fetch(this.base_url + endpoint, {
-      credentials: "include",
       method: "DELETE",
-      mode: "cors",
       body: data,
-      headers: { "content-type": "application/json", "X-CSRFToken": token }
+      headers: { "content-type": "application/json"}
     });
     let resBody = await response.json();
     return resBody;
   }
-
-  getCsrfToken = () => {
-    let name = "csrftoken";
-    let token = getCookie(name);
-    return token ? token : "";
-  };
 }
 
 let apiService = new ApiService()

@@ -22,20 +22,17 @@ import {
 import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined } from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
+import SelectSchedule from "components/Schedule/selectSchedule"
+import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
 
 const { Option } = Select;
 
 export default function NotebookTable() {
   const [notebooks, setNotebooks] = useState([]);
-  const [schedules, setSchedules] = useState([]);
-  const [timezones, setTimezones] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
-  const [cronTabSchedule, setCronTabSchedule] = useState('');
-  const [selectedTimezone, setSelectedTimezone] = useState('');
-  const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState(false);
   const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
   const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
   const history = useHistory();
@@ -45,12 +42,6 @@ export default function NotebookTable() {
   useEffect(() => {
     if (!notebooks.length) {
         getNotebooks(0);
-    }
-    if (!schedules.length) {
-      getSchedules();
-    }
-    if (!timezones) {
-      getTimezones();
     }
 
     const refreshNotebookInterval = setInterval(() => {
@@ -79,36 +70,8 @@ export default function NotebookTable() {
     }
   };
 
-  const getSchedules = async () => {
-    const response = await notebookService.getSchedules();
-    setSchedules(response);
-  };
-
-  const getTimezones = async () => {
-    const response = await notebookService.getTimezones();
-    setTimezones(response);
-  }
-
   const showScheduleDropDown = (notebookId) => {
     setSelectedNotebook(notebookId)
-  }
-
-  const saveSchedule = async (event) => {
-    if(cronTabSchedule, selectedTimezone){
-      const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone);
-      if(response.success){
-        setCronTabSchedule("")
-        setSelectedTimezone("")
-        setIsAddScheduleModalVisible(false)
-        getSchedules()
-      }
-      else{
-        message.error(response.message);
-      }
-    }
-    else{
-      message.error('Please fill values');
-    }
   }
 
   const addNotebookSchedule = async (selectedSchedule) => {
@@ -128,24 +91,17 @@ export default function NotebookTable() {
     }
   }
 
-  const handleScheduleChange = (event) => {
-    if(event === "Add Schedule"){
-      setIsAddScheduleModalVisible(true)
-      setSelectedNotebook(false)
-    }
-    else{
-      addNotebookSchedule(event)
-    }
-  }
-
   const handleTableChange = (event) => {
     setCurrentPage(event.current)
     getNotebooks((event.current - 1)*10)
   }
 
   const navigateToNotebook = (record) => {
-    history.push("/notebook/" + record.id);
-  }
+    if(history.location.pathname.indexOf("api/redirect") !== -1)
+      history.push("/api/redirect/cuelake/notebook/" + record.id);
+    else
+      history.push("/notebook/" + record.id);
+  } 
 
   const openRunLogs = (notebook) => {
     setRunLogNotebook(notebook)
@@ -156,7 +112,7 @@ export default function NotebookTable() {
     setIsRunLogsDrawerVisible(false)
   }
 
-  const unassignSchedule = async(notebookId) => {
+  const unassignSchedule = async (notebookId) => {
     const response = await notebookService.unassignSchedule(notebookId);
     if(response.success){
       refreshNotebooks((currentPage - 1)*10)
@@ -216,10 +172,6 @@ export default function NotebookTable() {
     }
   }
 
-  const handleCancel = () => {
-    setIsAddScheduleModalVisible(false)
-  }
-
   const closeNewNotebookDrawer = () => {
     setIsNewNotebookDrawerVisible(false)
   }
@@ -231,21 +183,6 @@ export default function NotebookTable() {
   const onAddNotebookSuccess = () => {
     refreshNotebooks((currentPage - 1)*10)
     closeNewNotebookDrawer()
-  }
-
-  let scheduleOptionsElement = []
-  if(schedules){
-    scheduleOptionsElement.push(<Option value={"Add Schedule"} key={"0"}>Add Schedule</Option>)
-    schedules.forEach(schedule => {
-      scheduleOptionsElement.push(<Option value={schedule.id} key={schedule.id}>{schedule.schedule}</Option>)
-    })
-  }
-
-  let timezoneElements = []
-  if(timezones){
-    timezones.forEach(tz => {
-      timezoneElements.push(<Option value={tz} key={tz}>{tz}</Option>)
-    })
   }
 
   const columns = [
@@ -284,10 +221,9 @@ export default function NotebookTable() {
           return (
             <>
               { 
+
                 selectedNotebook == notebook.id ?
-                <Select defaultValue="Select Cron Schedule" style={{ width: 250 }} onChange={handleScheduleChange}>
-                  {scheduleOptionsElement}
-                </Select>
+                <SelectSchedule onChange={addNotebookSchedule} />
                 :
                 <a className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Assign Schedule</a>
               }
@@ -335,10 +271,10 @@ export default function NotebookTable() {
           const paragraphPercent = 100/(paragraphs.length)
           paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
-            if(paragraph.status === "FINISHED") paragraphClassName = "bg-green-500";
-            else if(paragraph.status === "ERROR") paragraphClassName = "bg-red-500";
-            else if(paragraph.status === "RUNNING") paragraphClassName = "bg-blue-400";
-            else if(paragraph.status === "ABORT") paragraphClassName = "bg-yellow-500";
+            if(paragraph.status === FINISHED) paragraphClassName = "bg-green-500";
+            else if(paragraph.status === ERROR) paragraphClassName = "bg-red-500";
+            else if(paragraph.status === RUNNING) paragraphClassName = "bg-blue-400";
+            else if(paragraph.status === ABORT) paragraphClassName = "bg-yellow-500";
             let content = 
               <div className={style.tooltip}>
                 {paragraph.title ? <p><b>{paragraph.title}</b></p> : null}
@@ -398,7 +334,7 @@ export default function NotebookTable() {
         )
         return (
           <div className={style.actions}>
-            { notebook.lastRun && (notebook.lastRun.status === "RUNNING" ||  notebook.lastRun.status === "PENDING")
+            { notebook.lastRun && (notebook.lastRun.status === RUNNING ||  notebook.lastRun.status === PENDING)
               ?
               <Tooltip title={"Stop Notebook"}> 
                 <StopOutlined onClick={() => stopNotebook(notebook)} />
@@ -453,24 +389,6 @@ export default function NotebookTable() {
         }}
         onChange={(event) => handleTableChange(event)}
       />
-      <Modal 
-        title="Add Schedule" 
-        visible={isAddScheduleModalVisible}
-        onOk={saveSchedule}
-        onCancel={handleCancel}
-        okText="Save"
-      >
-          <Form layout={"vertical"}>
-            <Form.Item label="Crontab Schedule (m/h/dM/MY/d)">
-              <Input placeholder="* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
-            </Form.Item>
-            <Form.Item label="Timezone">
-              <Select onChange={(value) => setSelectedTimezone(value)}>
-                {timezoneElements}
-              </Select>
-            </Form.Item>
-          </Form>
-      </Modal>
       <Drawer
           title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
           width={720}

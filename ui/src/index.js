@@ -9,14 +9,18 @@ import 'antd/dist/antd.css';
 
 // layouts
 import Admin from "layouts/Admin.js";
+import EmbedAdmin from "layouts/EmbedAdmin.js";
 
 ReactDOM.render(
-  <BrowserRouter>
+  <BrowserRouter  basename={'/'}>
     <Switch>
       {/* add routes with layouts */}
       {/* <Route path="/auth" component={Auth} /> */}
+      <Route path="/api/redirect/cuelake/" component={EmbedAdmin} />
       <Route path="/" component={Admin} />
+      
       {/* add redirect for first page */}
+      {/* <Redirect from="/api/redirect/*" to="/api/redirect/cuelake/" /> */}
       <Redirect from="*" to="/" />
     </Switch>
   </BrowserRouter>,
