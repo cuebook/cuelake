@@ -4,9 +4,9 @@ import pytz
 import time
 from typing import List
 from django.template import Template, Context
-from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate
-from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
+# from django_celery_beat.models import CrontabSchedule
+from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, Schedule
+from genie.serializers import NotebookJobSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
@@ -125,28 +125,28 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def addNotebookJob(notebookId: str, crontabScheduleId: int):
+    def addNotebookJob(notebookId: str, scheduleId: int):
         """
         Service to add a new NotebookJob
         :param notebookId: ID of the notebook for which to create job
-        :param crontabScheduleId: ID of CrontabSchedule
+        :param scheduleId: ID of schedule
         """
         res = ApiResponse()
-        crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
-        NotebookJob.objects.update_or_create(name=notebookId, notebookId=notebookId, defaults={"crontab":crontabScheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}"]'})
+        scheduleObj = Schedule.objects.get(crontabschedule_ptr_id=scheduleId)
+        NotebookJob.objects.update_or_create(name=notebookId, notebookId=notebookId, defaults={"crontab":scheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}"]'})
         res.update(True, "NotebookJob added successfully", None)
         return res
 
     @staticmethod
-    def updateNotebookJob(notebookJobId: int, crontabScheduleId: int):
+    def updateNotebookJob(notebookJobId: int, scheduleId: int):
         """
         Service to update crontab of an existing NotebookJob
         :param notebookId: ID of the NotebookJob for which to update crontab
-        :param crontabScheduleId: ID of CrontabSchedule
+        :param scheduleId: ID of schedule
         """
         res = ApiResponse()
-        crontabScheduleObj = CrontabSchedule.objects.get(id=crontabScheduleId)
-        NotebookJob.objects.filter(id=notebookJobId).update(crontab=crontabScheduleObj)
+        scheduleObj = Schedule.objects.get(crontabschedule_ptr_id=scheduleId)
+        NotebookJob.objects.filter(id=notebookJobId).update(crontab=scheduleObj)
         res.update(True, "NotebookJob updated successfully", None)
         return res
 
@@ -166,7 +166,7 @@ class NotebookJobServices:
         """
         Service to update crontab of an existing NotebookJob
         :param notebookId: ID of the NotebookJob for which to update crontab
-        :param crontabScheduleId: ID of CrontabSchedule
+        :param scheduleId: ID of schedule
         """
         res = ApiResponse()
         NotebookJob.objects.filter(notebookId=notebookId).update(enabled=enabled)
@@ -176,20 +176,21 @@ class NotebookJobServices:
     @staticmethod
     def getSchedules():
         """
-        Service to get all CrontabSchedule objects
+        Service to get all schedule objects
         """
         res = ApiResponse()
-        crontabSchedules = CrontabSchedule.objects.all()
-        data = CrontabScheduleSerializer(crontabSchedules, many=True).data
+        schedules = Schedule.objects.all()
+        data = ScheduleSerializer(schedules, many=True).data
         res.update(True, "Schedules fetched successfully", data)
         return res
     
     @staticmethod
-    def addSchedule(cron: str, timezone: str = None):
+    def addSchedule(cron: str, timezone: str = None, name: str = ""):
         """
-        Service to add CrontabSchedule
+        Service to add Schedule
         :param cron: Crontab in string format
-        :param timezone: Timezone string for which to configure CrontabSchedule
+        :param timezone: Timezone string for which to configure Schedule
+        :param name: Name of schedule provided by user
         """
         res = ApiResponse()
         cronElements = cron.split()
@@ -197,17 +198,57 @@ class NotebookJobServices:
             res.update(False, "Crontab must contain five elements")
             return res        
         timezone = timezone if timezone else "UTC"
-        CrontabSchedule.objects.create(
+        Schedule.objects.create(
             minute=cronElements[0],
             hour=cronElements[1],
             day_of_month=cronElements[2],
             month_of_year=cronElements[3],
             day_of_week=cronElements[4],
-            timezone=timezone
+            timezone=timezone,
+            name=name,
         )
         res.update(True, "Schedule added successfully", None)
         return res
-    
+        
+    @staticmethod
+    def getSingleSchedule(scheduleId: int):
+        """
+        Service to get singleSchedule
+        :param scheduleId: int
+        """
+
+        res = ApiResponse()
+        schedules = Schedule.objects.filter(crontabschedule_ptr_id=scheduleId)
+        data = ScheduleSerializer(schedules, many=True).data
+        res.update(True, "Schedules fetched successfully", data)
+        return res
+
+    @staticmethod
+    def updateSchedule(id, cron, timezone, name):
+        """
+        Service to update Schedule
+        param id: int
+        param cron: Crontab in string format
+        param timezone: Timezone in string format
+        param name: String
+        """
+
+        res = ApiResponse()
+        schedules = Schedule.objects.get(crontabschedule_ptr_id=id)
+        schedules.cron = cron
+        schedules.timezone = timezone
+        schedules.name = name
+        schedules.save()
+        res.update(True, "Schedules updated successfully", [])
+        return res
+    @staticmethod
+    def deleteSchedule(scheduleId: int):
+        """ Service to delete schedule of given scheduleId """
+        res = ApiResponse()
+        Schedule.objects.filter(crontabschedule_ptr_id=scheduleId).delete()
+        res.update(True, "Schedules deleted successfully", [])
+        return res
+
     @staticmethod
     def getTimezones():
         """
