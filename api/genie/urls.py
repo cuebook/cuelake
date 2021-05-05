@@ -12,6 +12,8 @@ urlpatterns = [
     path("notebookjob/", views.NotebookJobView.as_view(), name="notebookJobView"),
     path("notebookTemplates/", views.NotebookTemplateView.as_view(), name="notebookTemplateView"),
     path("schedules/", views.ScheduleView.as_view(), name="scheduleView"),
+    path("schedules/<int:scheduleId>", views.schedule, name="getSingleSchedule"),
+    
     path("timezones/", views.TimzoneView.as_view(), name="timezoneView"),
     # =====================================================================================================
     # Connections
@@ -19,4 +21,8 @@ urlpatterns = [
     path("connections", views.connections, name="connections"),
     path("connection/<int:connection_id>", views.connection, name="connection"),
     path("connectiontypes", views.connectionTypes, name="connectionTypes"),
+    # =====================================================================================================
+    # Connections
+    # =====================================================================================================
+    path("datasetDetails", views.datasetDetails, name="datasetDetails"),
 ]

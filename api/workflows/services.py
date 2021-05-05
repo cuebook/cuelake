@@ -14,14 +14,17 @@ from workflows.models import (
     STATUS_ALWAYS,
     STATUS_RUNNING,
     STATUS_RECEIVED,
+    STATUS_ABORTED
 )
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
-from genie.models import RunStatus
+from genie.services import NotebookJobServices
+from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
 
+from django_celery_beat.models import CrontabSchedule
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
@@ -69,12 +72,22 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
+        
+        if not scheduleId:
+            # to avoid error: 'One of clocked, interval, crontab, or solar must be set.'
+            crontab = CrontabSchedule.objects.create()
         workflow = Workflow.objects.create(
             name=name,
-            crontab_id=scheduleId,
+            crontab_id=scheduleId if scheduleId else crontab.id,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
+        if not scheduleId:
+            # removing fake crontab id & deleting it
+            workflow.crontab_id = scheduleId
+            workflow.save()
+            crontab.delete()
+
         notebookJobs = [
             NotebookJob(workflow=workflow, notebookId=notebookId)
             for notebookId in notebookIds
@@ -125,6 +138,17 @@ class WorkflowServices:
         return res
 
     @staticmethod
+    def deleteWorkflow(workflowId: int):
+        """
+        Delete workflow
+        :param workflowId: id of Workflows.Workflow
+        """
+        res = ApiResponse(message="Error in deleting workflow logs")
+        count = Workflow.objects.filter(id=workflowId).update(enabled=False)
+        res.update(True, "Workflow delete successfully")
+        return res
+
+    @staticmethod
     def getWorkflowRuns(workflowId: int, offset: int):
         """
         Service to fetch and serialize workflows runs
@@ -132,7 +156,7 @@ class WorkflowServices:
         """
         LIMIT = 10
         res = ApiResponse(message="Error in retrieving workflow logs")
-        workflowRuns = WorkflowRun.objects.filter(workflow=workflowId).order_by("-id")
+        workflowRuns = WorkflowRun.objects.filter(enabled=True, workflow=workflowId).order_by("-id")
         total = workflowRuns.count()
         data = WorkflowRunSerializer(workflowRuns[offset:LIMIT], many=True).data
 
@@ -197,7 +221,7 @@ class WorkflowServices:
         notebookRunStatusIds = []
         for notebookId in notebookIds:
             runStatus = RunStatus.objects.create(
-                notebookId=notebookId, status="RUNNING", runType="Scheduled"
+                notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType="Scheduled"
             )
             runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
             notebookRunStatusIds.append(runStatus.id)
@@ -208,6 +232,9 @@ class WorkflowServices:
             step=3,
             timeout=3600,
         )
+
+        if WorkflowRun.objects.get(id=workflowRunId).status == STATUS_ABORTED:
+            return []
 
         if workflowStatus:
             workflowRun.status = STATUS_SUCCESS
@@ -231,13 +258,13 @@ class WorkflowServices:
         if (
             len(notebookRunStatusIds)
             == RunStatus.objects.filter(id__in=notebookRunStatusIds)
-            .exclude(status="RUNNING")
+            .exclude(status=NOTEBOOK_STATUS_RUNNING)
             .count()
         ):
             return (
                 len(notebookRunStatusIds)
                 == RunStatus.objects.filter(
-                    id__in=notebookRunStatusIds, status="SUCCESS"
+                    id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS
                 ).count()
             )
 
@@ -277,10 +304,20 @@ class WorkflowActions:
         Stops given workflow
         """
         res = ApiResponse(message="Error in stopping workflow")
+        notebookIds = list(
+            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
+                "notebookId", flat=True
+            )
+        )
         workflowRuns = WorkflowRun.objects.filter(workflow_id=workflowId).order_by("-startTimestamp")
         if workflowRuns.count():
-            status = workflowRuns[0].status
-            # implement celery stop
+            workflowRun = workflowRuns[0]
+            workflowRun.status = STATUS_ABORTED
+            workflowRun.save()
+
+        notebookIds = Workflow.objects.get(id=workflowId).notebookjob_set.all().values_list("notebookId", flat=True)
+        responses = [ NotebookJobServices.stopNotebookJob(notebookId) for notebookId in notebookIds ]
+
         res.update(True, "Stopped workflow successfully")
         return res
 

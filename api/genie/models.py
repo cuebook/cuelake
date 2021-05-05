@@ -1,6 +1,16 @@
 from django.db import models
+from django.db.models.fields import CharField
 from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import CrontabSchedule
 from workflows.models import WorkflowRun
+
+NOTEBOOK_STATUS_SUCCESS = "success"
+NOTEBOOK_STATUS_ERROR = "error"
+NOTEBOOK_STATUS_RUNNING = "running"
+NOTEBOOK_STATUS_FINISHED = "finished"
+NOTEBOOK_STATUS_ABORT = "abort"
+NOTEBOOK_STATUS_PENDING = "pending"
+
 
 class NotebookJob(PeriodicTask):
     """
@@ -63,4 +73,7 @@ class ConnectionParamValue(models.Model):
 class NotebookTemplate(models.Model):
     template = models.JSONField(default={})
     formJson = models.JSONField(default={})
+    name = models.CharField(max_length=200, blank=True, null=True)
+
+class Schedule(CrontabSchedule):
     name = models.CharField(max_length=200, blank=True, null=True)

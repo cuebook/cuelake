@@ -17,9 +17,12 @@ import {
     Row,
     Col,
     Switch,
-    Tabs
+    Tabs,
+    Menu, 
+    Dropdown,
+    Popconfirm,
   } from "antd";
-import { EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined} from '@ant-design/icons';
+import { MoreOutlined, EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined} from '@ant-design/icons';
 import { Badge } from "reactstrap";
 import WorkflowRuns from "./WorkflowRuns"
 import SelectSchedule from "components/Schedule/selectSchedule"
@@ -86,7 +89,8 @@ export default function Workflows(props) {
       };
     }, []);
 
-    const refreshWorkflows = async (offset) => {
+    const refreshWorkflows = async () => {
+      const offset = (currentPageRef.current - 1)*10
       const response = await workflowsService.getWorkflows(offset);
       if(response){
         setWorkflows(response.workflows);
@@ -148,6 +152,7 @@ export default function Workflows(props) {
       else{
         message.error('Please fill values');
       }
+      refreshWorkflows()
     }
 
     const handleCancel = () => {
@@ -173,10 +178,17 @@ export default function Workflows(props) {
 
     const runWorkflow = async workflow => {
       const response = await workflowsService.runWorkflow(workflow.id);
+      refreshWorkflows()
     }
 
     const stopWorkflow = async workflow => {
       const response = await workflowsService.stopWorkflow(workflow.id);
+      refreshWorkflows()
+    }
+
+    const deleteNotebook = async workflow => {
+      const response = await workflowsService.deleteWorkflow(workflow.id);
+      refreshWorkflows()
     }
 
     const columns = [
@@ -292,6 +304,26 @@ export default function Workflows(props) {
         key: "",
         // width: "10%",
         render: (text, workflow) => {
+          const menu = (<Menu>
+              <Menu.Item key="1">
+                <Popconfirm
+                    title={"Are you sure to delete "+ workflow.name +"?"}
+                    onConfirm={() => deleteNotebook(workflow)}
+                    okText="Yes"
+                    cancelText="No"
+                >
+                <DeleteOutlined />
+                  Delete Notebook
+                </Popconfirm>
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item key="2" onClick={() => openRunLogs(workflow)} >
+                <UnorderedListOutlined />
+                View Runs
+              </Menu.Item>
+            </Menu>
+          )
+
           return (
             <div className={style.actions}>
               { workflow.lastRun && (workflow.lastRun.status === "running" ||  workflow.lastRun.status === "received")
@@ -308,8 +340,10 @@ export default function Workflows(props) {
               <Tooltip title={"Edit Workflow"}>
                 <EditOutlined onClick={() => editWorkflow(workflow)} />
               </Tooltip>
-              <Tooltip title={"View Runs"}>
-                <UnorderedListOutlined onClick={() => openRunLogs(workflow)} />
+              <Tooltip title={"More"}>
+                <Dropdown overlay={menu} trigger={['click']}>
+                  <MoreOutlined />
+                </Dropdown>
               </Tooltip>
             </div>
           );
@@ -325,6 +359,7 @@ export default function Workflows(props) {
 
       const response = await workflowsService.updateTriggerWorkflow(workflowId, data);
       if (response){settingInitialValues() }
+      refreshWorkflows()
     }
 
     const updateAssignedSchedule = async (workflowId) => {
@@ -333,6 +368,7 @@ export default function Workflows(props) {
       }
       const response = await workflowsService.updateWorkflowSchedule(workflowId, data);
       if (response){settingInitialValues() }
+      refreshWorkflows()
     }
 
     const workflowOptionElements = workflows.map(workflow => 
