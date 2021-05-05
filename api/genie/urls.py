@@ -19,4 +19,8 @@ urlpatterns = [
     path("connections", views.connections, name="connections"),
     path("connection/<int:connection_id>", views.connection, name="connection"),
     path("connectiontypes", views.connectionTypes, name="connectionTypes"),
+    # =====================================================================================================
+    # Connections
+    # =====================================================================================================
+    path("datasetDetails", views.datasetDetails, name="datasetDetails"),
 ]

@@ -22,6 +22,7 @@
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
     "react-scripts": "3.4.3",
+    "react-select": "^4.3.0",
     "react-timeago": "^5.2.0",
     "react-tooltip": "^4.2.15",
     "reactstrap": "^8.9.0",

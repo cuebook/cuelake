@@ -91,6 +91,11 @@ class NotebookService {
         const response = await apiService.delete("genie/notebookjob/" + notebookId)
         return response
     }
+
+    async getDatasetDetails(payload){
+        const response = await apiService.post("genie/datasetDetails", payload)
+        return response
+    }
 }
 let notebookService = new NotebookService();
 export default notebookService

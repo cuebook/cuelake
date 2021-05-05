@@ -155,6 +155,18 @@ def connectionTypes(request: HttpRequest) -> Response:
         return Response(res.json())
 
 
+@api_view(["POST"])
+def datasetDetails(request: HttpRequest) -> Response:
+    """
+    Method to get dataset details from s3 location
+    :param request: HttpRequest
+    """
+    datasetLocation = request.data.get("datasetLocation")
+    datasourceName = request.data.get("datasourceName")
+    res = NotebookTemplateService.getDatasetDetails(datasetLocation, datasourceName)
+    return Response(res.json())
+
+
 
 class NotebookTemplateView(APIView):
     def get(self, request):

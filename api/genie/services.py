@@ -8,6 +8,7 @@ from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, Con
 from genie.serializers import NotebookJobSerializer, CrontabScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
+from utils.druidSpecGenerator import DruidIngestionSpecGenerator
 from genie.tasks import runNotebookJob as runNotebookJobTask
 
 # Name of the celery task which calls the zeppelin api
@@ -352,4 +353,23 @@ class NotebookTemplateService:
         templates = NotebookTemplate.objects.all()
         serializer = NotebookTemplateSerializer(templates, many=True)
         res.update(True, "Connections retrieved successfully", serializer.data)
+        return res
+    
+    @staticmethod
+    def getDatasetDetails(datasetLocation, datasourceName):
+        """
+        Service to fetch S3 dataset details
+        :param datasetLocation: Location of the S3 bucket
+        """
+        res = ApiResponse()
+        schema = DruidIngestionSpecGenerator._getSchemaForDatasourceInS3(datasetLocation)
+        ingestionSpec = DruidIngestionSpecGenerator.getIngestionSpec(
+            datasetLocation=datasetLocation, datasourceName=datasourceName, datasetSchema=schema
+        )
+        s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": x.logical_type.type}, schema))
+        datasetDetails = {
+            "dremioSchema": s3DatasetSchema,
+            "druidIngestionSpec": ingestionSpec
+        } 
+        res.update(True, "Dataset schema retrieved successfully", datasetDetails)
         return res

@@ -10,6 +10,7 @@ import notebookService from "services/notebooks.js";
 import connectionService from "services/connection.js";
 import { Link } from "react-router-dom";
 import { LeftOutlined } from '@ant-design/icons';
+import DatasetSelector from "../DatasetSelector/DatasetSelector";
 
 const { Option } = Select;
 
@@ -79,6 +80,8 @@ export default function AddNotebook(props) {
             notFoundContent={<Link to="/connections"><div>Add Connection</div></Link>}>
             {getConnectionOptions(field)}
         </Select>
+      case 'datasetSelector':
+        return <DatasetSelector />
       case 'sql':
         return <AceEditor
             mode="mysql"
