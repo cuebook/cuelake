@@ -32,16 +32,51 @@ class ScheduleSerializer(serializers.ModelSerializer):
     Serializer for the model CrontabSchedule
     """
     schedule = serializers.SerializerMethodField()
-    
+    crontab = serializers.SerializerMethodField()
+    timezone = serializers.SerializerMethodField()
+    notebookCount = serializers.SerializerMethodField()
+    workflowCount = serializers.SerializerMethodField()
     def get_schedule(self, obj):
         """
         Gets string form of the crontab
         """
         return str(obj)
+
+    def get_timezone(self, obj):
+        """ Gets schedule timezone"""
+        return str(obj.timezone)
     
+    def get_crontab(self, obj):
+        """Gets schedule crontab """
+        return str(obj.crontab)
+    
+    def count(self, obj):
+        """Count number of workflow and notebook assinged with schedule  """
+        workflow= 0
+        notebook = 0
+        schedule = Schedule.objects.get(id= obj.id)
+        scheduleJob = list(schedule.periodictask_set.values())
+        for listItem in scheduleJob:
+            if "task" in listItem and listItem["task"]:
+                notebook+=1
+            if "task" in listItem and not listItem["task"]:
+                workflow +=1
+        return [notebook,workflow]
+
+    def get_notebookCount(self,obj):
+        """Gets assigned notebook count """
+        scheduleCount= self.count(obj)
+        return scheduleCount[0]
+
+    def get_workflowCount(self, obj):
+        """Gets assigned workflow count """
+        scheduleCount= self.count(obj)
+        return scheduleCount[1]
+            
+
     class Meta:
         model = Schedule
-        fields = ["id", "schedule","name"]
+        fields = ["id", "schedule","name","timezone","crontab","notebookCount","workflowCount"]
 
 
 # Connection Serializers

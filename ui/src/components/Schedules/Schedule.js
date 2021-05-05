@@ -77,10 +77,19 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
 
     {
         title: "Assigned Notebook",
-        dataIndex: "",
-        key: "",
-      
+        dataIndex: "notebookCount",
+        key: "notebookCount",
+      align:"center"
       },
+
+    {
+      title: "Assigned Workflow",
+      dataIndex: "workflowCount",
+      key: "workflowCount",
+      align:"center"
+
+    
+    },
     {
       title: "",
       dataIndex: "",
@@ -96,6 +105,7 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
               title={"Are you sure to delete "+ schedule.name +"?"}
               onConfirm={() => deleteScheduleFunction(schedule)}
               // onCancel={cancel}
+              disabled={(schedule.notebookCount > 0 || schedule.workflowCount > 0) ? true : false}
               okText="Yes"
               cancelText="No"
           >

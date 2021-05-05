@@ -36,7 +36,6 @@ class NotebookService {
 
     async deleteSchedule(scheduleId){
         const response = await apiService.delete("genie/schedules/" + scheduleId)
-        console.log('response to be deleted', response)
         if(response.success == true)
             return response
         else    
@@ -55,7 +54,7 @@ class NotebookService {
 
 
     async addNotebookSchedule(notebookId, scheduleId){
-        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
+        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId})
         return response
     }
 

@@ -69,15 +69,15 @@ class NotebookJobView(APIView):
     
     def post(self, request):
         notebookId = request.data["notebookId"]
-        crontabScheduleId = request.data["crontabScheduleId"]
-        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
+        scheduleId = request.data["scheduleId"]
+        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
         return Response(res.json())
     
     def put(self, request):
         notebookId = request.data["notebookId"]
-        if "crontabScheduleId" in request.data:
-            crontabScheduleId = request.data["crontabScheduleId"]
-            res = NotebookJobServices.updateNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
+        if "scheduleId" in request.data:
+            scheduleId = request.data["scheduleId"]
+            res = NotebookJobServices.updateNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
         elif "enabled" in request.data:
             enabled = request.data["enabled"]
             res = NotebookJobServices.toggleNotebookJob(notebookId=notebookId, enabled=enabled)

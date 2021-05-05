@@ -63,13 +63,16 @@ export default function EditSchedule(props) {
     const response = await notebookService.getSingleSchedule(props.editSchedule.id)
     setSelectedScheduleId(props.editSchedule.id)
     setSelectedSchedule(response)
-    // This parsing logic is temporary 
-    let parseSchedule = response[0].schedule.split(")")
-    setSelectedTimezone(parseSchedule[1].trim())
-    setCronTabSchedule(parseSchedule[0]+")")
-    //
+    let responseObj = response[0];
+    let resName = responseObj["name"]
+    let resTimezone = responseObj["timezone"]
+    let resCrontab = responseObj["crontab"]
+
+    setSelectedTimezone(resTimezone)
+    setCronTabSchedule(resCrontab)
     setScheduleName(response[0].name)
-    setInitialFormValues({name: response[0].name,...response})
+    setInitialFormValues({name: resName,crontab: resCrontab,timezone: resTimezone,...response})
+
   }
 
 const handleCancelClick = async () =>
@@ -96,10 +99,10 @@ const handleCancelClick = async () =>
             <div className={style.addConnectionForm}>
                 <div className={style.formItem} style={{ width: "100%" }}>
                     
-              <Form.Item label="Crontab Schedule (m/h/dM/MY/d)">
+              <Form.Item label="Crontab Schedule (m/h/dM/MY/d)" name="crontab">
               <Input placeholder="* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
             </Form.Item>
-            <Form.Item label="Timezone">
+            <Form.Item label="Timezone" name="timezone">
               <Select onChange={(value) => setSelectedTimezone(value)}>
                 {timezoneElements}
               </Select>

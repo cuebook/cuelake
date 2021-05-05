@@ -29,10 +29,6 @@ const { Option } = Select;
 
 export default function NotebookTable() {
 
-  const [schedules, setSchedules] = useState([]);
-  const [timezones, setTimezones] = useState('');
-  const [cronTabSchedule, setCronTabSchedule] = useState('');
-  const [selectedTimezone, setSelectedTimezone] = useState('');
   const [notebooks, setNotebooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
