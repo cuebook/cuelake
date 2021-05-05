@@ -79,9 +79,7 @@ export default function Workflows(props) {
     
     useEffect(() => {
       getNotebooksLight()
-      const refreshWorkflowsInterval = setInterval(() => {
-        refreshWorkflows((currentPageRef.current - 1)*10)
-      }, 3000);
+      const refreshWorkflowsInterval = setInterval(refreshWorkflows(), 3000);
 
       return () => {
         clearInterval(refreshWorkflowsInterval);

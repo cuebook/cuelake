@@ -21,4 +21,5 @@ urlpatterns = [
     path("api/genie/", include("genie.urls")),
     path("api/system/", include("system.urls")),
     path("api/workflows/", include("workflows.urls")),
+    path("api/files/", include("files.urls")),
 ]

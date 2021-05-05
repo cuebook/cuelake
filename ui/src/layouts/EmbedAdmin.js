@@ -13,6 +13,7 @@ import Settings from "views/admin/Settings.js";
 import Notebooks from "views/admin/Notebooks.js";
 import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
+import Files from "views/admin/Files.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
 
@@ -29,6 +30,7 @@ export default function Admin() {
             <Route path="/api/redirect/cuelake/connections" exact component={Connections} />
             <Route path="/api/redirect/cuelake/workflows" exact component={WorkflowsMain} />
             <Route path="/api/redirect/cuelake/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
+            <Route path="/api/redirect/cuelake/files" exact component={Files} />
             <Redirect from="/" to="/api/redirect/cuelake/notebooks" />
           </Switch>
         </div>
