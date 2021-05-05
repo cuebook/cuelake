@@ -56,13 +56,23 @@ class DatasetSelector extends React.Component {
     this.props.onChange(undefined)
   }
 
-  fetchSchema = () => {
+  fetchSchema = async () => {
+    if(!this.state.datasourceName)
+    {
+      notification.warning({
+        message: "Input a datasource name for Druid",
+        description:
+          "The Druid datasource name is a part of the ingestion spec."
+      });
+      return
+    }
+    this.clearSchema()
     let payload = {
         datasourceName: this.state.datasourceName,
         datasetLocation: this.state.datasetLocation
     } 
-    let newDatasetDetails = notebookService.getDatasetDetails(payload)
-    this.setState({datasetDetails: newDatasetDetails})
+    let datasetDetailsResponse = await notebookService.getDatasetDetails(payload)
+    this.setState({datasetDetails: datasetDetailsResponse.data})
   }
 
   clearSchema = () => {
@@ -179,7 +189,7 @@ class DatasetSelector extends React.Component {
       return;
     }
     this.setState({schemaVerified: true})
-    this.props.onChange({datasourceName: this.state.datasourceName, datasetLocation: this.state.datasetLocation})
+    this.props.onChange(druidSpec)
   };
 
   onChangeDruidDataType = (newValues, record, druidIngestionSpec) => {
@@ -686,7 +696,7 @@ class DatasetSelector extends React.Component {
         </div>
         <br />
         <div>
-        Datasource Name
+        Druid Datasource Name
         <Input type={"text"} value={this.state.datasourceName} onChange={e => {this.setState({datasourceName: e.target.value})}}/>
         </div>
         <br />

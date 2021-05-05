@@ -4,6 +4,7 @@ import os
 import logging
 from typing import List
 
+from urllib.parse import urlparse
 import boto3
 import pyarrow.parquet as pq
 import s3fs
@@ -215,15 +216,18 @@ class DruidIngestionSpecGenerator:
         """
         Gets schema for a datasource in S3 bucket at staging location
         """
+        parsedInfo = urlparse(datasetLocation)
+        bucket = parsedInfo.netloc
+        key = parsedInfo.path
         s3 = boto3.client("s3")
         files = s3.list_objects(
-            Bucket=datasetLocation
+            Bucket=bucket, Prefix=key.lstrip('/')
         )
         if len(files["Contents"]) > 0:
             try:
                 fileName = files["Contents"][-1]["Key"]
                 schema = pq.ParquetDataset(
-                    datasetLocation + "/" + fileName,
+                    bucket + "/" + fileName,
                     filesystem=s3fs.S3FileSystem(
                         anon=False
                     ),
