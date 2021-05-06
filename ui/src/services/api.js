@@ -1,12 +1,12 @@
 import { getCookie } from "./general.js";
 
 class ApiService {
-  host = "";
-  base_url = this.host + "api/";
-  zeppelin_base_url = "/zeppelin";
-  // host = "http://localhost:8000";
-  // base_url = this.host + "/api/";
-  // zeppelin_base_url = "http://localhost:8081";
+  // host = "";
+  // base_url = this.host + "api/";
+  // zeppelin_base_url = "/zeppelin";
+  host = "http://localhost:8000";
+  base_url = this.host + "/api/";
+  zeppelin_base_url = "http://localhost:8081";
   
   async get(endpoint) {
     let response = await fetch(this.base_url + endpoint, {

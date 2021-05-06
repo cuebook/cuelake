@@ -89,7 +89,7 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-calendar mr-2 text-sm " +
+                      "fas fa-tasks mr-2 text-sm " +
                       (window.location.href.indexOf("/workflows") !== -1
                         ? "opacity-75"
                         : "text-gray-400")
@@ -152,7 +152,7 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-tools mr-2 text-sm " +
+                      "fas fa-wrench mr-2 text-sm " +
                       (window.location.href.indexOf("/settings") !== -1
                         ? "opacity-75"
                         : "text-gray-400")

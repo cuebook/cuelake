@@ -54,7 +54,7 @@ export default function SelectSchedule(props) {
     if(schedules){
       scheduleOptionsElement.push(<Option value={"Add Schedule"} key={"0"}>Add Schedule</Option>)
       schedules.forEach(schedule => {
-        scheduleOptionsElement.push(<Option value={schedule.id} key={schedule.id}>{schedule.schedule}</Option>)
+        scheduleOptionsElement.push(<Option value={schedule.id} key={schedule.id}>{schedule.name}</Option>)
       })
     }
 

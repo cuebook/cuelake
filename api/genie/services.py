@@ -54,7 +54,7 @@ class NotebookJobServices:
                 notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.name == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True
-                    notebook["schedule"] = str(notebookJob.crontab)
+                    notebook["schedule"] = notebookJob.schedule.name
                     notebook["isActive"] = notebookJob.enabled
                     notebook["notebookJobId"] = notebookJob.id
                 else:

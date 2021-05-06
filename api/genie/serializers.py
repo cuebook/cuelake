@@ -45,10 +45,17 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def get_timezone(self, obj):
         """ Gets schedule timezone"""
         return str(obj.timezone)
+
+    def cronexp(self, field):
+        return field and str(field).replace(' ', '') or '*'
     
     def get_crontab(self, obj):
         """Gets schedule crontab """
-        return str(obj.crontab)
+        return '{0} {1} {2} {3} {4}'.format(
+            self.cronexp(obj.minute), self.cronexp(obj.hour),
+            self.cronexp(obj.day_of_month), self.cronexp(obj.month_of_year),
+            self.cronexp(obj.day_of_week)
+        )
     
     def count(self, obj):
         """Count number of workflow and notebook assinged with schedule  """
