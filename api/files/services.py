@@ -46,3 +46,14 @@ class FilesServices:
 
 		res.update(True, "Successfully uploaded file")
 		return res
+
+	@staticmethod
+	def deleteFile(fileKey: str):
+		"""
+		Service to delete file in s3
+		"""
+		res = ApiResponse(message="Error uploading file")
+		s3 = boto3.client("s3")
+		s3.delete_object(Bucket=BUCKET_NAME, Key=PREFIX+fileKey)
+		res.update(True, "Successfully uploaded file")
+		return res

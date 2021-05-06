@@ -9,7 +9,7 @@ class FilesService {
         const response = await apiService
         .get("files/files/" + offset)
         .catch(error => {});
-        if(response.success == true)
+        if(response && response.success == true)
             return response.data
         else
             return null
@@ -22,7 +22,10 @@ class FilesService {
       return response
     }
 
-
+    async deleteFile(key) {
+      const response = await apiService.delete("files/file/"+key)
+      return response
+    }
 }
 let filesService = new FilesService();
 export default filesService

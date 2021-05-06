@@ -24,10 +24,10 @@ class File(APIView):
 		res = FilesServices.uploadFile(file, fileName)
 		return Response(res.json())
 
-	def delete(self, request):
+	def delete(self, request, key: str):
 		"""
 		deletes file
 		"""
-		res = None
+		res = FilesServices.deleteFile(key)
 		return Response(res.json())
 

@@ -42,6 +42,11 @@ export default function FilesTable(props) {
         };
     }, []);
 
+    const deleteFile = async (file) => {
+        const response = await filesService.deleteFile(file.Key)
+        refreshFiles()
+    }
+
     const refreshFiles = async () => {
         setLoading(true)
         const response = await filesService.getFiles(0);
@@ -95,6 +100,27 @@ export default function FilesTable(props) {
           );
         }
       },
+      {
+        title: "Actions",
+        dataIndex: "Key",
+        key: "actions",
+        render: (text, file) => {
+          return (
+            <div className={style.actions}>
+              <Popconfirm
+                  title={"Are you sure to delete "+ file.Key +"?"}
+                  onConfirm={() => deleteFile(file)}
+                  okText="Yes"
+                  cancelText="No"
+              >
+              <Tooltip title={"Delete File"}>
+              <DeleteOutlined />
+              </Tooltip>
+              </Popconfirm>
+            </div>
+          );
+        }
+      }
     ]
 
     const uploadProps = {
