@@ -46,6 +46,22 @@ class ApiService {
     let resBody = await response.json();
     return resBody;
   }
+
+
+  async upload(endpoint, data, fileName) {
+    const formData = new FormData();
+    formData.append(fileName, data);
+    let response = await fetch(this.base_url + endpoint, {
+      credentials: "include",
+      method: "POST",
+      mode: "cors",
+      body: formData,
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    let resBody = await response.json();
+    return resBody;
+  }
+
 }
 
 let apiService = new ApiService()
