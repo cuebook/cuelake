@@ -320,35 +320,3 @@ class WorkflowActions:
 
         res.update(True, "Stopped workflow successfully")
         return res
-
-    # @staticmethod
-    # def addNotebook(payload):
-    #     res = ApiResponse(message="Error adding notebook")
-    #     notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))
-    #     context = payload # Storing payload in context variable so that it can be used for rendering
-    #     # Handling connection variables
-    #     if payload.get("sourceConnection", False):
-    #         connection = Connection.objects.get(id=payload["sourceConnection"])
-    #         connectionParams = connection.cpvc.all()
-    #         for cp in connectionParams:
-    #             paramName = cp.connectionParam.name
-    #             context["sourceConnection_" + paramName] = cp.value
-    #     if payload.get("targetConnection", False):
-    #         connection = Connection.objects.get(id=payload["sourceConnection"])
-    #         connectionParams = connection.cpvc.all()
-    #         for cp in connectionParams:
-    #             paramName = cp.connectionParam.name
-    #             context["sourceConnection_" + paramName] = cp.value
-    #     # Handling S3 path - Splitting it to get the table name
-    #     if payload.get("destinationTableS3Path", False):
-    #         destinationTableName = payload["destinationTableS3Path"].rsplit('/', 1)[1]
-    #         warehouseLocation = payload["destinationTableS3Path"].rsplit('/', 1)[0]
-    #         context["destinationTableName"] = destinationTableName
-    #         context["warehouseLocation"] = warehouseLocation
-    #     # Adding a temp table name to the context
-    #     context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
-    #     notebook = Template(notebookTemplate.template).render(Context(context))
-    #     response = Zeppelin.addNotebook(notebook)
-    #     if response:
-    #         res.update(True, "Notebook added successfully")
-    #     return res

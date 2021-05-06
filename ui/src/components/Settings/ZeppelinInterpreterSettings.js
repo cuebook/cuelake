@@ -6,13 +6,14 @@ import { useHistory } from "react-router-dom";
 export default function ZeppelinInterpreterSettings() {
   const history = useHistory();
   let iframeUrl = "";
-  if(history.location.pathname.indexOf("api/redirect") !== -1)
+  let isEmbedPage = (history.location.pathname.indexOf("api/redirect") !== -1);
+  if(isEmbedPage)
     iframeUrl = "/api/redirect/cuelake" + apiService.zeppelin_base_url + "/#/interpreter";
   else
     iframeUrl = apiService.zeppelin_base_url + "/#/interpreter";
   return (
     <>
-      <iframe className={style.iframe} src={iframeUrl}></iframe>
+      <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );
 }

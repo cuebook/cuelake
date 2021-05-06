@@ -53,20 +53,3 @@ class WorkflowRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkflowRun
         fields = ["id", "status", "workflow", "startTimestamp", "endTimestamp"]
-
-
-# class RunStatusSerializer(serializers.ModelSerializer):
-#     """
-#     Serializer for the model RunStatus
-#     """
-#     logsJSON = serializers.SerializerMethodField()
-    
-#     def get_logsJSON(self, obj):
-#         """
-#         Gets logs in JSON form
-#         """
-#         return json.loads(obj.logs)
-
-#     class Meta:
-#         model = RunStatus
-#         fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType"]
