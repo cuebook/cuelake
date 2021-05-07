@@ -155,7 +155,7 @@ class WorkflowServices:
         """
         LIMIT = 10
         res = ApiResponse(message="Error in retrieving workflow logs")
-        workflowRuns = WorkflowRun.objects.filter(enabled=True, workflow=workflowId).order_by("-id")
+        workflowRuns = WorkflowRun.objects.filter(workflow=workflowId).order_by("-id")
         total = workflowRuns.count()
         data = WorkflowRunSerializer(workflowRuns[offset:LIMIT], many=True).data
 
