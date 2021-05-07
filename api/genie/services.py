@@ -104,7 +104,7 @@ class NotebookJobServices:
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
         
         #Druid ingestion url
-        context["druidLocation"] = "http://cueapp-druid-router.customer-ssl.svc:8888/druid/indexer/v1/task"
+        context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
         
         notebook = Template(notebookTemplate.template).render(Context(context))
         response = Zeppelin.addNotebook(notebook)
