@@ -3,6 +3,7 @@ import asyncio
 import json
 import pytz
 import time
+import datetime as dt
 from django.db import transaction
 import polling
 from workflows.models import (
@@ -10,7 +11,7 @@ from workflows.models import (
     WorkflowRun,
     NotebookJob,
     STATUS_SUCCESS,
-    STATUS_FAILURE,
+    STATUS_ERROR,
     STATUS_ALWAYS,
     STATUS_RUNNING,
     STATUS_RECEIVED,
@@ -44,7 +45,7 @@ class WorkflowServices:
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
         total = workflows.count()
-        data = WorkflowSerializer(workflows[offset:LIMIT], many=True).data
+        data = WorkflowSerializer(workflows[offset:offset+LIMIT], many=True).data
 
         res.update(
             True,
@@ -157,7 +158,7 @@ class WorkflowServices:
         res = ApiResponse(message="Error in retrieving workflow logs")
         workflowRuns = WorkflowRun.objects.filter(workflow=workflowId).order_by("-id")
         total = workflowRuns.count()
-        data = WorkflowRunSerializer(workflowRuns[offset:LIMIT], many=True).data
+        data = WorkflowRunSerializer(workflowRuns[offset:offset+LIMIT], many=True).data
 
         res.update(
             True,
@@ -235,13 +236,13 @@ class WorkflowServices:
         if WorkflowRun.objects.get(id=workflowRunId).status == STATUS_ABORTED:
             return []
 
-        print(workflowStatus)
-
         if workflowStatus:
             workflowRun.status = STATUS_SUCCESS
+            workflowRun.endTimestamp = dt.datetime.now()
             workflowRun.save()
         else:
-            workflowRun.status = STATUS_FAILURE
+            workflowRun.status = STATUS_ERROR
+            workflowRun.endTimestamp = dt.datetime.now()
             workflowRun.save()
 
         dependentWorkflowIds = list(
@@ -314,6 +315,7 @@ class WorkflowActions:
         if workflowRuns.count():
             workflowRun = workflowRuns[0]
             workflowRun.status = STATUS_ABORTED
+            workflowRun.endTimestamp = dt.datetime.now()
             workflowRun.save()
 
         notebookIds = Workflow.objects.get(id=workflowId).notebookjob_set.all().values_list("notebookId", flat=True)

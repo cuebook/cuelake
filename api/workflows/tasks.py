@@ -8,7 +8,7 @@ from django.conf import settings
 
 from system.services import NotificationServices
 from workflows.services import WorkflowServices
-from workflows.models import WorkflowRun, STATUS_RECEIVED, STATUS_FAILURE
+from workflows.models import WorkflowRun, STATUS_RECEIVED, STATUS_ERROR
 
 import logging
 
@@ -27,4 +27,4 @@ def runWorkflowJob(workflowId: int, workflowRunId: int = None):
 			workflowRun = WorkflowRun.objects.create(workflow_id=workflowId, status=STATUS_RECEIVED)
 			runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
 	except Exception as ex:
-		WorkflowRun.objects.filter(id=workflowRunId).update(status=STATUS_FAILURE)
+		WorkflowRun.objects.filter(id=workflowRunId).update(status=STATUS_ERROR, endTimestamp=dt.datetime.now())
