@@ -105,9 +105,9 @@ class ScheduleView(APIView):
     def put(self,request):
         id = request.data["id"]
         name = request.data["name"]
-        cron = request.data["crontab"]
+        crontab = request.data["crontab"]
         timezone = request.data["timezone"]
-        res = NotebookJobServices.updateSchedule(id=id, cron=cron, timezone=timezone, name=name)
+        res = NotebookJobServices.updateSchedule(id=id, crontab=crontab, timezone=timezone, name=name)
         return Response(res.json())
 
 @api_view(["GET", "PUT", "DELETE"])

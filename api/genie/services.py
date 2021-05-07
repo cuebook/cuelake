@@ -224,7 +224,7 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def updateSchedule(id, cron, timezone, name):
+    def updateSchedule(id, crontab, timezone, name):
         """
         Service to update Schedule
         param id: int
@@ -234,14 +234,22 @@ class NotebookJobServices:
         """
 
         res = ApiResponse()
-        schedules = Schedule.objects.get(crontabschedule_ptr_id=id)
-        schedules.cron = cron
-        schedules.timezone = timezone
-        schedules.name = name
-        schedules.save()
+        cronElements = crontab.split(" ")
+        if len(cronElements) != 5:
+            res.update(False, "Crontab must contain five elements")
+            return res 
+        schedule = Schedule.objects.get(crontabschedule_ptr_id=id)
+        schedule.minute=cronElements[0]
+        schedule.hour=cronElements[1]
+        schedule.day_of_month=cronElements[2]
+        schedule.month_of_year=cronElements[3]
+        schedule.day_of_week=cronElements[4]
+        schedule.timezone = timezone
+        schedule.name = name
+        schedule.save()
         res.update(True, "Schedules updated successfully", [])
         return res
-    @staticmethod
+    
     def deleteSchedule(scheduleId: int):
         """ Service to delete schedule of given scheduleId """
         res = ApiResponse()
