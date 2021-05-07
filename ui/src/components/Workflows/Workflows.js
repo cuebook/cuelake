@@ -186,7 +186,7 @@ export default function Workflows(props) {
       refreshWorkflows()
     }
 
-    const deleteNotebook = async workflow => {
+    const deleteWorkflow = async workflow => {
       const response = await workflowsService.deleteWorkflow(workflow.id);
       refreshWorkflows()
     }
@@ -256,7 +256,7 @@ export default function Workflows(props) {
                 <span className={style.scheduleText}>
                   {text ? text.name + " " : ""}
                   <Tooltip title={"Unassign Workflow"}> 
-                    <span className={style.icon} onClick={()=>updateAssignedSchedule(workflow.id)}><CloseOutlined /></span>
+                    <span className={style.icon} onClick={()=>updateAssignedSchedule(workflow.id, null)}><CloseOutlined /></span>
                   </Tooltip>
                 </span>
               );
@@ -264,16 +264,7 @@ export default function Workflows(props) {
           }
           else {
             if (assignSchedule && assignSchedule == workflow.id){
-              return <Modal
-                        title={"Assign Schedule"}
-                        visible={true}
-                        onOk={()=>updateAssignedSchedule(workflow.id)}
-                        onCancel={settingInitialValues}
-                        okText="Save"
-                        bodyStyle={{ paddingBottom: 80 }}
-                      >
-                        <SelectSchedule onChange={(value)=>setSelectedSchedule(value)} />
-                      </Modal>
+              return <SelectSchedule onChange={(value)=>{updateAssignedSchedule(workflow.id, value)}} />
             } else {
               return <a className={style.linkText} onClick={()=>setAssignSchedule(workflow.id)}>Assign Schedule</a>
             }
@@ -308,12 +299,12 @@ export default function Workflows(props) {
               <Menu.Item key="1">
                 <Popconfirm
                     title={"Are you sure to delete "+ workflow.name +"?"}
-                    onConfirm={() => deleteNotebook(workflow)}
+                    onConfirm={() => deleteWorkflow(workflow)}
                     okText="Yes"
                     cancelText="No"
                 >
                 <DeleteOutlined />
-                  Delete Notebook
+                  Delete Workflow
                 </Popconfirm>
               </Menu.Item>
               <Menu.Divider />
@@ -362,9 +353,9 @@ export default function Workflows(props) {
       refreshWorkflows()
     }
 
-    const updateAssignedSchedule = async (workflowId) => {
+    const updateAssignedSchedule = async (workflowId, scheduleId) => {
       const data = {
-          scheduleId: selectedSchedule
+          scheduleId: scheduleId
       }
       const response = await workflowsService.updateWorkflowSchedule(workflowId, data);
       if (response){settingInitialValues() }

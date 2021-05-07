@@ -4,12 +4,12 @@ from django_celery_beat.models import PeriodicTask
 from django_celery_beat.models import CrontabSchedule
 from workflows.models import WorkflowRun
 
-NOTEBOOK_STATUS_SUCCESS = "success"
-NOTEBOOK_STATUS_ERROR = "error"
-NOTEBOOK_STATUS_RUNNING = "running"
-NOTEBOOK_STATUS_FINISHED = "finished"
-NOTEBOOK_STATUS_ABORT = "abort"
-NOTEBOOK_STATUS_PENDING = "pending"
+NOTEBOOK_STATUS_SUCCESS = "SUCCESS"
+NOTEBOOK_STATUS_ERROR = "ERROR"
+NOTEBOOK_STATUS_RUNNING = "RUNNING"
+NOTEBOOK_STATUS_FINISHED = "FINISHED"
+NOTEBOOK_STATUS_ABORT = "ABORT"
+NOTEBOOK_STATUS_PENDING = "PENDING"
 
 
 class NotebookJob(PeriodicTask):

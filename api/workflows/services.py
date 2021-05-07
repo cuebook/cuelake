@@ -72,7 +72,7 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
-        
+
         if not scheduleId:
             # to avoid error: 'One of clocked, interval, crontab, or solar must be set.'
             crontab = CrontabSchedule.objects.create()
@@ -84,12 +84,11 @@ class WorkflowServices:
         )
         if not scheduleId:
             # removing fake crontab id & deleting it
-            workflow.crontab_id = scheduleId
-            workflow.save()
+            Workflow.objects.filter(id=workflow.id).update(crontab_id=scheduleId)
             crontab.delete()
 
         notebookJobs = [
-            NotebookJob(workflow=workflow, notebookId=notebookId)
+            NotebookJob(workflow_id=workflow.id, notebookId=notebookId)
             for notebookId in notebookIds
         ]
         NotebookJob.objects.bulk_create(notebookJobs)
