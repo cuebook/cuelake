@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
+import TimeAgo from 'react-timeago';
 import {
     Table,
     Button,
@@ -73,7 +74,6 @@ export default function WorkflowRuns(props) {
       title: "Run Status",
       dataIndex: "status",
       key: "status",
-      width: "15%",
       render: text => {
         return (
           <span>
@@ -83,14 +83,13 @@ export default function WorkflowRuns(props) {
       }
     },
     {
-      title: "Start Time",
+      title: "Last Run",
       dataIndex: "startTimestamp",
       key: "startTimestamp",
-      width: "30%",
       render: text => {
         return (
           <span>
-            <Moment format="DD-MM-YYYY hh:mm:ss">{text}</Moment>
+            <TimeAgo date={text} />
           </span>
         );
       }
@@ -99,29 +98,31 @@ export default function WorkflowRuns(props) {
       title: "Duration",
       dataIndex: "endTimestamp",
       key: "duration",
-      width: "30%",
       render: (text, record) => {
         // const date = new Date(record.endTimestamp) - new Date(record.startTimestamp) 
         return (
           <span>
+            {record.startTimestamp && record.endTimestamp ?
             <Moment duration={record.startTimestamp}
                                 date={record.endTimestamp}
                         />
+            : null
+            }
           </span>
         );
       }
     },
-    {
-        title: "Actions",
-        dataIndex: "",
-        key: "",
-        width: "10%",
-        render: (text, record) => {
-          return (
-            <a href={"workflows/workflowRun/" + record.id}>Logs</a>
-          );
-        }
-    }
+    // {
+    //     title: "Actions",
+    //     dataIndex: "",
+    //     key: "",
+    //     width: "10%",
+    //     render: (text, record) => {
+    //       return (
+    //         <a href={"workflows/workflowRun/" + record.id}>Logs</a>
+    //       );
+    //     }
+    // }
   ]
 
 

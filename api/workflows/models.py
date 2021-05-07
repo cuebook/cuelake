@@ -1,12 +1,12 @@
 from django.db import models
 from django_celery_beat.models import PeriodicTask
 
-STATUS_SUCCESS = "success"
-STATUS_FAILURE = "failure"
-STATUS_ALWAYS = "always"
-STATUS_RUNNING = "running"
-STATUS_RECEIVED = "received" 		# just before triggering job
-STATUS_ABORTED = "aborted"
+STATUS_SUCCESS = "SUCCESS"
+STATUS_ERROR = "ERROR"
+STATUS_ALWAYS = "ALWAYS"
+STATUS_RUNNING = "RUNNING"
+STATUS_RECEIVED = "RECEIVED" 		# just before triggering job
+STATUS_ABORTED = "ABORTED"
 
 
 class Workflow(PeriodicTask):

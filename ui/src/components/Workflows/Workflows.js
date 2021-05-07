@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
-import Moment from 'react-moment';
+import TimeAgo from 'react-timeago';
 import _ from "lodash";
 import {
     Table,
@@ -29,6 +29,7 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
+import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS } from "./constants"
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -49,7 +50,7 @@ export default function Workflows(props) {
 
     const [newWorkflowName, setNewWorkflowName] = useState('');
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
-    const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState("always");
+    const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState(STATUS_ALWAYS);
 
     const [assignTriggerWorkflow, setAssignTriggerWorkflow] = useState(false)         // stores id of parent workflow 
     // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
@@ -168,7 +169,7 @@ export default function Workflows(props) {
       setSelectedNotebooks([])
       setSelectedSchedule(null)
       setTriggerWorkflow(false)
-      setTriggerWorkflowStatus("always")
+      setTriggerWorkflowStatus(STATUS_ALWAYS)
       setAssignSchedule(false)
       setAssignTriggerWorkflow(false)
     }
@@ -215,7 +216,7 @@ export default function Workflows(props) {
               return (
                 <span className={style.triggerWorkflow}>
                   {text ? text.name + " " : ""}
-                  {text && workflow.triggerWorkflowStatus != "always" ?         
+                  {text ?         
                     <Badge
                       color="primary"
                       className={`m-1 ${style.badge}`}
@@ -286,7 +287,19 @@ export default function Workflows(props) {
         render: lastRun => {
           return (
             <span>
-            {lastRun ? <Moment format="DD-MM-YYYY hh:mm:ss">{lastRun.startTimestamp}</Moment> : null}
+            {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
+            </span>
+          );
+        }
+      },
+      {
+        title: "Last run status",
+        dataIndex: "lastRun",
+        key: "lastRunStatus",
+        render: lastRun => {
+          return (
+            <span>
+              {lastRun ? lastRun.status : null}
             </span>
           );
         }
@@ -368,7 +381,7 @@ export default function Workflows(props) {
       <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
     )
 
-    const statuses = ["success", "failure", "always"]
+    const statuses = [STATUS_SUCCESS, STATUS_ERROR, STATUS_ALWAYS]
     const statusOptionElements = statuses.map(status => 
         <Option value={status} key={status}> {status} </Option>
       )
