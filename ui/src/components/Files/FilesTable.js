@@ -35,9 +35,12 @@ export default function FilesTable(props) {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [componentDidMount, setComponentDidMount] = useState(false)
+
 
     useEffect(() => {
-        const refreshFilesInterval = setInterval(refreshFiles(), 10000);
+        if (!componentDidMount){ refreshFiles(); setComponentDidMount(true)}
+        const refreshFilesInterval = setInterval(refreshFiles, 10000);
         return () => {
           clearInterval(refreshFilesInterval);
         };
