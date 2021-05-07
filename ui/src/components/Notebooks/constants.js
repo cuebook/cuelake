@@ -1,5 +1,5 @@
-export const RUNNING = "running";
-export const ABORT = "abort";
-export const FINISHED = "finished";
-export const ERROR = "error";
-export const PENDING = "pending";
+export const RUNNING = "RUNNING";
+export const ABORT = "ABORT";
+export const FINISHED = "FINISHED";
+export const ERROR = "ERROR";
+export const PENDING = "PENDING";

@@ -25,6 +25,7 @@ import {
 import { UploadOutlined, MoreOutlined, EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined} from '@ant-design/icons';
 import { Badge } from "reactstrap";
 import filesService from "services/files";
+import { formatBytes } from "utils";
 
 
 const { TabPane } = Tabs;
@@ -95,7 +96,7 @@ export default function FilesTable(props) {
         render: text => {
           return (
             <span>
-              {text}
+              {formatBytes(text,2)}
             </span>
           );
         }
