@@ -55,6 +55,7 @@ export default function Workflows(props) {
     // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
     const [assignSchedule, setAssignSchedule] = useState(false)
     // const [showSelectSchedule, setShowSelectSchedule] = useState(false)
+    const [componentDidMount, setComponentDidMount] = useState(false)
 
     const currentPageRef = useRef(currentPage);
     currentPageRef.current = currentPage;
@@ -82,7 +83,8 @@ export default function Workflows(props) {
     
     useEffect(() => {
       getNotebooksLight()
-      const refreshWorkflowsInterval = setInterval(refreshWorkflows(), 3000);
+      if (!componentDidMount){ refreshWorkflows(); setComponentDidMount(true)}
+      const refreshWorkflowsInterval = setInterval(refreshWorkflows, 3000);
 
       return () => {
         clearInterval(refreshWorkflowsInterval);
