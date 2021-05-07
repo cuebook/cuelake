@@ -184,8 +184,7 @@ def datasetDetails(request: HttpRequest) -> Response:
     :param request: HttpRequest
     """
     datasetLocation = request.data.get("datasetLocation")
-    datasourceName = request.data.get("datasourceName")
-    res = NotebookTemplateService.getDatasetDetails(datasetLocation, datasourceName)
+    res = NotebookTemplateService.getDatasetDetails(datasetLocation)
     return Response(res.json())
 
 

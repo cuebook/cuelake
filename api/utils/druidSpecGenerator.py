@@ -25,17 +25,19 @@ class DruidIngestionSpecGenerator:
     """
 
     @staticmethod
-    def getIngestionSpec(datasetLocation, datasourceName, datasetSchema):
+    def getIngestionSpec(datasetLocation, datasetSchema):
         """
         Method to generate Druid ingestion spec
         Method doesn't support complex druid data types right now.
         :param datasetLocation: S3 location of the dataset
-        :param datasourceName Name of the dataset
         :param datasetSchema The schema of the dataset
         :returns DruidSpec
         """
         logger.info("Generating Druid spec for dataset at: %s", datasetLocation)
         logger.info("Schema for dataset: %s", datasetSchema)
+
+        datasetLocationSplit = datasetLocation.split('/')
+        datasourceName = datasetLocationSplit[-1] if datasetLocationSplit[-1] else datasetLocationSplit[-2]
 
         return json.dumps(
             {

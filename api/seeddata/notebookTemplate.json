@@ -497,9 +497,46 @@
           {
             "id": "paragraph_1620194627902_821169804",
             "apps": [],
-            "text": "import requests\n\ndruidUrl = \"{{druidLocation}}\"\ningestionSpec = \"\"\"{{datasetLocation|safe}}\"\"\"\n\nrequests.post(druidUrl, data=ingestionSpec, headers={'content-type': 'application/json'})",
+            "text": "import time\nimport json\nimport requests\n\ndruidUrl = \"{{druidLocation}}\"\ningestionSpec = \"\"\"{{datasetLocation|safe}}\"\"\"\n\ndruidIngestionResponse = requests.post(druidUrl, data=ingestionSpec, headers={'content-type': 'application/json'})\n\nprint(druidIngestionResponse.content)",
             "user": "anonymous",
-            "title": "Druid Ingestion",
+            "title": "Druid Ingestion Task Initiation",
+            "config": {
+              "title": true,
+              "enabled": true,
+              "results": {},
+              "colWidth": 12,
+              "fontSize": 9,
+              "editorMode": "ace/mode/python",
+              "editorSetting": {
+                "language": "python",
+                "editOnDblClick": false,
+                "completionSupport": true
+              }
+            },
+            "status": "FINISHED",
+            "jobName": "paragraph_1620194627902_821169804",
+            "results": {
+              "msg": [],
+              "code": "SUCCESS"
+            },
+            "progress": 0,
+            "settings": {
+              "forms": {},
+              "params": {}
+            },
+            "dateCreated": "May 5, 2021 6:03:47 AM",
+            "dateStarted": "May 5, 2021 6:03:53 AM",
+            "dateUpdated": "May 5, 2021 6:24:49 AM",
+            "dateFinished": "May 5, 2021 6:04:48 AM",
+            "runtimeInfos": {},
+            "progressUpdateIntervalMs": 500
+          },
+          {
+            "id": "paragraph_1620194627902_821169804",
+            "apps": [],
+            "text": "\ningestionTaskID = json.loads(druidIngestionResponse.text)[\"task\"]\ntaskStatusUrl = druidUrl + \"/\" + ingestionTaskID + \"/status\"\n\n\npollingStartTime = int(time.time())\n\npolledSuccessfully = False\nstatusResponse = \"\"\n\nwhile time.time() - pollingStartTime < 600:\n    time.sleep(5)\n    statusResponse = requests.get(taskStatusUrl).text\n    if json.loads(statusResponse)[\"status\"][\"status\"] == \"SUCCESS\":\n        polledSuccessfully = True\n        break\n\nprint(statusResponse)\nassert polledSuccessfully",
+            "user": "anonymous",
+            "title": "Druid Ingestion Task Polling",
             "config": {
               "title": true,
               "enabled": true,
@@ -544,17 +581,6 @@
             "rules": [
               {
                 "message": "Dataset schema needs to be verified",
-                "required": true
-              }
-            ]
-          },
-          {
-            "name": "druidLocation",
-            "type": "text",
-            "label": "Druid Ingestion URL",
-            "rules": [
-              {
-                "message": "Druid URL is needed",
                 "required": true
               }
             ]

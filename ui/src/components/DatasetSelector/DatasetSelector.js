@@ -36,10 +36,10 @@ class DatasetSelector extends React.Component {
     this.state = {
       spec: null,
       datasetLocation: null,
-      datasourceName: null,
       datasetDetails: {},
       visible: false,
-      schemaVerified: false
+      schemaVerified: false,
+      fetchingSchema: false
     };
   }
 
@@ -53,26 +53,19 @@ class DatasetSelector extends React.Component {
 
   handleDatasetChange = e => {
     this.setState({datasetLocation: e.target.value, datasetDetails: {}, schemaVerified: false, spec: null})
-    this.props.onChange(undefined)
   }
 
   fetchSchema = async () => {
-    if(!this.state.datasourceName)
+    if(this.props.value || this.state.spec)
     {
-      notification.warning({
-        message: "Input a datasource name for Druid",
-        description:
-          "The Druid datasource name is a part of the ingestion spec."
-      });
-      return
+      this.clearSchema()
     }
-    this.clearSchema()
     let payload = {
-        datasourceName: this.state.datasourceName,
         datasetLocation: this.state.datasetLocation
-    } 
+    }
+    this.setState({fetchingSchema: true})
     let datasetDetailsResponse = await notebookService.getDatasetDetails(payload)
-    this.setState({datasetDetails: datasetDetailsResponse.data})
+    this.setState({datasetDetails: datasetDetailsResponse.data, fetchingSchema: false})
   }
 
   clearSchema = () => {
@@ -617,6 +610,14 @@ class DatasetSelector extends React.Component {
         <div>
           <Row>
             <Col span={24} style={{ padding: "10px" }}>
+              <Table
+                scroll={{ x: "100%" }}
+                columns={columns}
+                dataSource={updatedDatasetDetails}
+                pagination={false}
+                rowKey="columnName"
+              />
+              <br />
               <span>
                 <div
                   style={{
@@ -654,7 +655,7 @@ class DatasetSelector extends React.Component {
                     size="small"
                     onClick={this.clearSchema}
                   >
-                    Cancel
+                    Reset
                   </Button>{" "}
                   &nbsp;&nbsp;
                 </div>
@@ -676,14 +677,6 @@ class DatasetSelector extends React.Component {
                   />
                 </Modal>
               </span>
-              <br />
-              <Table
-                scroll={{ x: "100%" }}
-                columns={columns}
-                dataSource={updatedDatasetDetails}
-                pagination={false}
-                rowKey="columnName"
-              />
             </Col>
           </Row>
         </div>
@@ -695,16 +688,13 @@ class DatasetSelector extends React.Component {
         <Input type={"text"} value={this.state.datasetLocation} onChange={this.handleDatasetChange}/>
         </div>
         <br />
-        <div>
-        Druid Datasource Name
-        <Input type={"text"} value={this.state.datasourceName} onChange={e => {this.setState({datasourceName: e.target.value})}}/>
-        </div>
         <br />
         <div>       
         <Button
             type="primary"
             size="small"
             onClick={this.fetchSchema}
+            disabled={this.state.fetchingSchema}
             >
             Get schema
         </Button>

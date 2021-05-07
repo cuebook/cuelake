@@ -102,6 +102,10 @@ class NotebookJobServices:
             context["warehouseLocation"] = warehouseLocation
         # Adding a temp table name to the context
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
+        
+        #Druid ingestion url
+        context["druidLocation"] = "http://cueapp-druid-router.customer-ssl.svc:8888/druid/indexer/v1/task"
+        
         notebook = Template(notebookTemplate.template).render(Context(context))
         response = Zeppelin.addNotebook(notebook)
         if response:
@@ -405,7 +409,7 @@ class NotebookTemplateService:
         return res
     
     @staticmethod
-    def getDatasetDetails(datasetLocation, datasourceName):
+    def getDatasetDetails(datasetLocation):
         """
         Service to fetch S3 dataset details
         :param datasetLocation: Location of the S3 bucket
@@ -413,7 +417,7 @@ class NotebookTemplateService:
         res = ApiResponse()
         schema = DruidIngestionSpecGenerator._getSchemaForDatasourceInS3(datasetLocation)
         ingestionSpec = DruidIngestionSpecGenerator.getIngestionSpec(
-            datasetLocation=datasetLocation, datasourceName=datasourceName, datasetSchema=schema
+            datasetLocation=datasetLocation, datasetSchema=schema
         )
         s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": x.logical_type.type}, schema))
         datasetDetails = {
