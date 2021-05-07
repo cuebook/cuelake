@@ -228,12 +228,12 @@ class WorkflowServices:
 
         workflowStatus = polling.poll(
             lambda: WorkflowServices.__checkGivenRunStatuses(notebookRunStatusIds),
-            check_success= lambda: x != "stillRunning",
+            check_success= lambda x: x != "stillRunning",
             step=3,
             timeout=3600,
         )
 
-        if WorkflowRun.objects.get(id=workflowRunId).status == STATUS_ABORTED:
+        if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
             return []
 
         if workflowStatus:
