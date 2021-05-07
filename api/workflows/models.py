@@ -25,6 +25,3 @@ class WorkflowRun(models.Model):
 class NotebookJob(models.Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, db_index=True)
 	notebookId = models.CharField(max_length=20, default="000000000")
-	# dependsOn notebookId = models.CharField(max_length=20, default="000000000")
-	# dependsOn notebookStatus = 
-

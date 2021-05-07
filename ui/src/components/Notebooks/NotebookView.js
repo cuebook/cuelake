@@ -9,13 +9,23 @@ export default function NotebookView() {
   const history = useHistory();
   let notebookId = params.notebookId;
   let iframeUrl = "";
-  if(history.location.pathname.indexOf("api/redirect") !== -1)
+  let isEmbedPage = (history.location.pathname.indexOf("api/redirect") !== -1);
+  if(isEmbedPage){
     iframeUrl = "/api/redirect/cuelake" + apiService.zeppelin_base_url + "/#/notebook/" + notebookId;
-  else
+  }
+  else{
     iframeUrl = apiService.zeppelin_base_url + "/#/notebook/" + notebookId;
+  }
   return (
     <>
-      <iframe className={style.iframe} src={iframeUrl}></iframe>
+      {
+        isEmbedPage 
+        ?
+        <div className={style.iframeHeader}></div>
+        :
+        null
+      }
+      <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );
 }

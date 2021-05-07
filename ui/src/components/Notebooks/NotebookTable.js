@@ -28,10 +28,12 @@ import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
 const { Option } = Select;
 
 export default function NotebookTable() {
+
   const [notebooks, setNotebooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
+  const [scheduleName, setScheduleName] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
   const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
@@ -73,6 +75,7 @@ export default function NotebookTable() {
   const showScheduleDropDown = (notebookId) => {
     setSelectedNotebook(notebookId)
   }
+
 
   const addNotebookSchedule = async (selectedSchedule) => {
     if(selectedSchedule && selectedNotebook && selectedSchedule !== -1){
@@ -185,6 +188,7 @@ export default function NotebookTable() {
     closeNewNotebookDrawer()
   }
 
+  
   const columns = [
     {
       title: "Notebook",

@@ -34,8 +34,27 @@ class NotebookService {
             return null
     }
 
+    async deleteSchedule(scheduleId){
+        const response = await apiService.delete("genie/schedules/" + scheduleId)
+        if(response.success == true)
+            return response
+        else    
+            return null
+    }
+    
+
+    async getSingleSchedule(scheduleId){
+        const response = await apiService.get("genie/schedules/" + scheduleId)
+        if(response.success == true)
+            return response.data
+        else    
+            return null
+    }
+    
+
+
     async addNotebookSchedule(notebookId, scheduleId){
-        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId, crontabScheduleId: scheduleId})
+        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId})
         return response
     }
 
@@ -47,8 +66,12 @@ class NotebookService {
             return null
     }
 
-    async addSchedule(cronTabSchedule, selectedTimezone){
-        const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone})
+    async addSchedule(cronTabSchedule, selectedTimezone, scheduleName){
+        const response = await apiService.post("genie/schedules/", {"crontab": cronTabSchedule, "timezone": selectedTimezone, "name": scheduleName})
+        return response
+    }
+    async updateSchedule(selectedScheduleId,cronTabSchedule, selectedTimezone, scheduleName){
+        const response = await apiService.put("genie/schedules/", {"id":selectedScheduleId,"crontab": cronTabSchedule, "timezone": selectedTimezone, "name": scheduleName})
         return response
     }
 
@@ -89,6 +112,11 @@ class NotebookService {
 
     async unassignSchedule(notebookId){
         const response = await apiService.delete("genie/notebookjob/" + notebookId)
+        return response
+    }
+
+    async getDatasetDetails(payload){
+        const response = await apiService.post("genie/datasetDetails", payload)
         return response
     }
 }

@@ -19,6 +19,7 @@ export default function AddSchedule(props) {
     const [timezones, setTimezones] = useState('');
     const [cronTabSchedule, setCronTabSchedule] = useState('');
     const [selectedTimezone, setSelectedTimezone] = useState('');
+    const [scheduleName, setScheduleName] = useState('');
 
     useEffect(() => {
       if (!timezones) {
@@ -27,8 +28,8 @@ export default function AddSchedule(props) {
     }, []);
 
     const saveSchedule = async (event) => {
-      if(cronTabSchedule, selectedTimezone){
-        const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone);
+      if(cronTabSchedule, selectedTimezone,scheduleName){
+        const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone,scheduleName);
         if(response.success){
           setCronTabSchedule("")
           setSelectedTimezone("")
@@ -76,6 +77,9 @@ export default function AddSchedule(props) {
                 >
                   {timezoneElements}
                 </Select>
+              </Form.Item>
+              <Form.Item label="Schedule Name">
+                <Input placeholder="Schedule name"  onChange={(event) => setScheduleName(event.target.value)}/>
               </Form.Item>
             </Form>
         </Modal>

@@ -32,9 +32,9 @@ class WorkflowSerializer(serializers.ModelSerializer):
 
     def get_schedule(self, obj):
         """ Get schedule"""
-        if not obj.crontab:
+        if not obj.schedule:
             return None
-        return {'id': obj.crontab.id, 'name': str(obj.crontab)}
+        return {'id': obj.schedule.id, 'name': obj.schedule.name}
 
     def get_notebooks(self, obj):
         """Gets notebooks in workflow"""
@@ -53,20 +53,3 @@ class WorkflowRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkflowRun
         fields = ["id", "status", "workflow", "startTimestamp", "endTimestamp"]
-
-
-# class RunStatusSerializer(serializers.ModelSerializer):
-#     """
-#     Serializer for the model RunStatus
-#     """
-#     logsJSON = serializers.SerializerMethodField()
-    
-#     def get_logsJSON(self, obj):
-#         """
-#         Gets logs in JSON form
-#         """
-#         return json.loads(obj.logs)
-
-#     class Meta:
-#         model = RunStatus
-#         fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType"]

@@ -81,7 +81,7 @@ export default function Sidebar() {
                 <Link
                   className={
                     "text-xs uppercase py-3 font-bold block " +
-                    (window.location.href.indexOf("/settings") !== -1
+                    (window.location.href.indexOf("/workflows") !== -1
                       ? "text-blue-500 hover:text-blue-600"
                       : "text-gray-800 hover:text-gray-600")
                   }
@@ -89,13 +89,55 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-calendar mr-2 text-sm " +
+                      "fas fa-tasks mr-2 text-sm " +
                       (window.location.href.indexOf("/workflows") !== -1
                         ? "opacity-75"
                         : "text-gray-400")
                     }
                   ></i>{" "}
                   Workflows
+                </Link>
+              </li>
+              <li className="items-center">
+                <Link
+                  className={
+                    "text-xs uppercase py-3 font-bold block " +
+                    (window.location.href.indexOf("/files") !== -1
+                      ? "text-blue-500 hover:text-blue-600"
+                      : "text-gray-800 hover:text-gray-600")
+                  }
+                  to="/files"
+                >
+                  <i
+                    className={
+                      "fas fa-folder mr-2 text-sm " +
+                      (window.location.href.indexOf("/files") !== -1
+                        ? "opacity-75 fa-folder-open"
+                        : "text-gray-400")
+                    }
+                  ></i>{" "}
+                  Files
+                </Link>
+              </li>
+              <li className="items-center">
+                <Link
+                  className={
+                    "text-xs uppercase py-3 font-bold block " +
+                    (window.location.href.indexOf("/schedules") !== -1
+                      ? "text-blue-500 hover:text-blue-600"
+                      : "text-gray-800 hover:text-gray-600")
+                  }
+                  to="/schedules"
+                >
+                  <i
+                    className={
+                      "fas fa-calendar mr-2 text-sm " +
+                      (window.location.href.indexOf("/schedules") !== -1
+                        ? "opacity-75"
+                        : "text-gray-400")
+                    }
+                  ></i>{" "}
+                  Schedules
                 </Link>
               </li>
               <li className="items-center">
@@ -110,7 +152,7 @@ export default function Sidebar() {
                 >
                   <i
                     className={
-                      "fas fa-tools mr-2 text-sm " +
+                      "fas fa-wrench mr-2 text-sm " +
                       (window.location.href.indexOf("/settings") !== -1
                         ? "opacity-75"
                         : "text-gray-400")

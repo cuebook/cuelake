@@ -4,6 +4,20 @@
     margin-top: -68px;
 }
 
+.embedIframe{
+    height: calc(100vh + 18px);
+    width: 100%;
+    margin-top: -68px;
+}
+
+.iframeHeader{
+    width: 100%;
+    height: 32px;
+    position: absolute;
+    background: #ebf0f1;
+    top: 0;
+}
+
 .actions{
     text-align: right;
     font-size: 18px;
@@ -19,7 +33,6 @@
 
 .scheduleText{
     display: inline-block;
-    margin-left: 10px;
 
     .icon{
         cursor: pointer;

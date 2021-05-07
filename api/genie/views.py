@@ -69,15 +69,15 @@ class NotebookJobView(APIView):
     
     def post(self, request):
         notebookId = request.data["notebookId"]
-        crontabScheduleId = request.data["crontabScheduleId"]
-        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
+        scheduleId = request.data["scheduleId"]
+        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
         return Response(res.json())
     
     def put(self, request):
         notebookId = request.data["notebookId"]
-        if "crontabScheduleId" in request.data:
-            crontabScheduleId = request.data["crontabScheduleId"]
-            res = NotebookJobServices.updateNotebookJob(notebookId=notebookId, crontabScheduleId=crontabScheduleId)
+        if "scheduleId" in request.data:
+            scheduleId = request.data["scheduleId"]
+            res = NotebookJobServices.updateNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
         elif "enabled" in request.data:
             enabled = request.data["enabled"]
             res = NotebookJobServices.toggleNotebookJob(notebookId=notebookId, enabled=enabled)
@@ -96,11 +96,33 @@ class ScheduleView(APIView):
         return Response(res.json())
 
     def post(self, request):
+        name = request.data["name"]
         cron = request.data["crontab"]
         timezone = request.data["timezone"]
-        res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone)
+        res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone, name=name)
         return Response(res.json())
     
+    def put(self,request):
+        id = request.data["id"]
+        name = request.data["name"]
+        cron = request.data["crontab"]
+        timezone = request.data["timezone"]
+        res = NotebookJobServices.updateSchedule(id=id, cron=cron, timezone=timezone, name=name)
+        return Response(res.json())
+
+@api_view(["GET", "PUT", "DELETE"])
+def schedule(request: HttpRequest, scheduleId: int) -> Response:
+    """
+    Method for crud operations on a single connection
+    :param request: HttpRequest
+    :param connection_id: Connection Id
+    """
+    if request.method == "GET":
+        res = NotebookJobServices.getSingleSchedule(scheduleId)
+        return Response(res.json())
+    if request.method == "DELETE":
+        res = NotebookJobServices.deleteSchedule(scheduleId)
+        return Response(res.json())
 class TimzoneView(APIView):
     """
     Class to get standard pytz timezones
@@ -153,6 +175,18 @@ def connectionTypes(request: HttpRequest) -> Response:
     if request.method == "GET":
         res = Connections.getConnectionTypes()
         return Response(res.json())
+
+
+@api_view(["POST"])
+def datasetDetails(request: HttpRequest) -> Response:
+    """
+    Method to get dataset details from s3 location
+    :param request: HttpRequest
+    """
+    datasetLocation = request.data.get("datasetLocation")
+    datasourceName = request.data.get("datasourceName")
+    res = NotebookTemplateService.getDatasetDetails(datasetLocation, datasourceName)
+    return Response(res.json())
 
 
 
