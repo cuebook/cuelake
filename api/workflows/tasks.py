@@ -28,3 +28,4 @@ def runWorkflowJob(workflowId: int, workflowRunId: int = None):
 			runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
 	except Exception as ex:
 		WorkflowRun.objects.filter(id=workflowRunId).update(status=STATUS_ERROR, endTimestamp=dt.datetime.now())
+		print(str(ex))
