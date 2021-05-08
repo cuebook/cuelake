@@ -1,38 +1,78 @@
 [
-    {
-      "model": "django_celery_beat.crontabschedule",
-      "pk": 1,
-      "fields": {
-        "minute": "*/5",
-        "hour": "*",
-        "day_of_week": "*",
-        "day_of_month": "*",
-        "month_of_year": "*",
-        "timezone": "Asia/Kolkata"
-      }
-    },
-    {
-      "model": "django_celery_beat.crontabschedule",
-      "pk": 2,
-      "fields": {
-        "minute": "*/15",
-        "hour": "*",
-        "day_of_week": "*",
-        "day_of_month": "*",
-        "month_of_year": "*",
-        "timezone": "Asia/Kolkata"
-      }
-    },
-    {
-      "model": "django_celery_beat.crontabschedule",
-      "pk": 3,
-      "fields": {
-        "minute": "*/30",
-        "hour": "*",
-        "day_of_week": "*",
-        "day_of_month": "*",
-        "month_of_year": "*",
-        "timezone": "Asia/Kolkata"
-      }
+  {
+    "model": "django_celery_beat.crontabschedule",
+    "pk": 1,
+    "fields": {
+      "minute": "*",
+      "hour": "*",
+      "day_of_week": "*",
+      "day_of_month": "*/30",
+      "month_of_year": "*/2",
+      "timezone": "Asia/Kolkata"
     }
-  ]
+  },
+  {
+    "model": "django_celery_beat.crontabschedule",
+    "pk": 2,
+    "fields": {
+      "minute": "*/5",
+      "hour": "*",
+      "day_of_week": "*",
+      "day_of_month": "*",
+      "month_of_year": "*",
+      "timezone": "Asia/Kolkata"
+    }
+  },
+  {
+    "model": "django_celery_beat.crontabschedule",
+    "pk": 3,
+    "fields": {
+      "minute": "*/15",
+      "hour": "*",
+      "day_of_week": "*",
+      "day_of_month": "*",
+      "month_of_year": "*",
+      "timezone": "Asia/Kolkata"
+    }
+  },
+  {
+    "model": "django_celery_beat.crontabschedule",
+    "pk": 4,
+    "fields": {
+      "minute": "*/30",
+      "hour": "*",
+      "day_of_week": "*",
+      "day_of_month": "*",
+      "month_of_year": "*",
+      "timezone": "Asia/Kolkata"
+    }
+  },
+  {
+    "model": "genie.schedule",
+    "pk": 1,
+    "fields": {
+      "name": "No Schedule"
+    }
+  },
+  {
+    "model": "genie.schedule",
+    "pk": 2,
+    "fields": {
+      "name": "5th minute of hour"
+    }
+  },
+  {
+    "model": "genie.schedule",
+    "pk": 3,
+    "fields": {
+      "name": "15th minute of hour"
+    }
+  },
+  {
+    "model": "genie.schedule",
+    "pk": 4,
+    "fields": {
+      "name": "30th minute of hour"
+    }
+  }
+]

@@ -73,21 +73,15 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
+        # cronTab Id 1 is schedule that never runs
 
-        if not scheduleId:
-            # to avoid error: 'One of clocked, interval, crontab, or solar must be set.'
-            crontab = CrontabSchedule.objects.create()
         workflow = Workflow.objects.create(
             name=name,
-            crontab_id=scheduleId if scheduleId else crontab.id,
+            crontab_id=scheduleId if scheduleId else 1,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
-        if not scheduleId:
-            # removing fake crontab id & deleting it
-            Workflow.objects.filter(id=workflow.id).update(crontab_id=scheduleId)
-            crontab.delete()
-
+        
         notebookJobs = [
             NotebookJob(workflow_id=workflow.id, notebookId=notebookId)
             for notebookId in notebookIds
@@ -119,7 +113,7 @@ class WorkflowServices:
         res = ApiResponse(message="Error in updating workflow")
         workflow = Workflow.objects.filter(id=id).update(
             name=name,
-            crontab_id=scheduleId,
+            crontab_id=scheduleId if scheduleId else 1,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
         )
@@ -195,7 +189,7 @@ class WorkflowServices:
     def updateSchedule(workflowId: int, scheduleId: int):
         """Update given workflow's schedule"""
         res = ApiResponse(message="Error in updating workflow schedule")
-        updateStatus = Workflow.objects.filter(id=workflowId).update(crontab_id=scheduleId)
+        updateStatus = Workflow.objects.filter(id=workflowId).update(crontab_id=scheduleId if scheduleId else 1)
         res.update(True, "Workflow schedule updated successfully", True)
         return res
 

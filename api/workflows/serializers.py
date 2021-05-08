@@ -32,7 +32,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
 
     def get_schedule(self, obj):
         """ Get schedule"""
-        if not obj.schedule:
+        if obj.crontab.id == 1:
             return None
         return {'id': obj.schedule.id, 'name': obj.schedule.name}
 
