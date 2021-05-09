@@ -2597,6 +2597,10 @@ video {
     margin-top: 10rem;
   }
 
+  .md\:ml-48 {
+    margin-left: 12rem;
+  }
+
   .md\:mt-64 {
     margin-top: 16rem;
   }
@@ -2677,6 +2681,10 @@ video {
 
   .md\:text-left {
     text-align: left;
+  }
+
+  .md\:w-48 {
+    width: 12rem;
   }
 
   .md\:w-64 {
