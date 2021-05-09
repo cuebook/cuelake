@@ -181,7 +181,7 @@ class NotebookJobServices:
         Service to get all schedule objects
         """
         res = ApiResponse()
-        schedules = Schedule.objects.all()
+        schedules = Schedule.objects.exclude(id=1)
         data = ScheduleSerializer(schedules, many=True).data
         res.update(True, "Schedules fetched successfully", data)
         return res
