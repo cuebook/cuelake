@@ -48,31 +48,31 @@
     }
   },
   {
-    "model": "genie.schedule",
+    "model": "genie.customschedule",
     "pk": 1,
     "fields": {
       "name": "No Schedule"
     }
   },
   {
-    "model": "genie.schedule",
+    "model": "genie.customschedule",
     "pk": 2,
     "fields": {
-      "name": "5th minute of hour"
+      "name": "Every 5th minute"
     }
   },
   {
-    "model": "genie.schedule",
+    "model": "genie.customschedule",
     "pk": 3,
     "fields": {
-      "name": "15th minute of hour"
+      "name": "Every 15th minute"
     }
   },
   {
-    "model": "genie.schedule",
+    "model": "genie.customschedule",
     "pk": 4,
     "fields": {
-      "name": "30th minute of hour"
+      "name": "Every 30th minute"
     }
   }
 ]
