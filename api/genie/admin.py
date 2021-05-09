@@ -1,5 +1,5 @@
 from django.contrib import admin
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate
+from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule
 
 
 class RunStatusAdmin(admin.ModelAdmin):
@@ -14,3 +14,4 @@ admin.site.register(ConnectionType)
 admin.site.register(ConnectionParam)
 admin.site.register(ConnectionParamValue)
 admin.site.register(NotebookTemplate)
+admin.site.register(CustomSchedule)

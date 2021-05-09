@@ -103,7 +103,7 @@ const handleCancelClick = async () =>
               <Input placeholder="* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
             </Form.Item>
             <Form.Item label="Timezone" name="timezone">
-              <Select onChange={(value) => setSelectedTimezone(value)}>
+              <Select showSearch onChange={(value) => setSelectedTimezone(value)}>
                 {timezoneElements}
               </Select>
             </Form.Item>

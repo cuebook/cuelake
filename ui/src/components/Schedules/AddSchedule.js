@@ -92,12 +92,11 @@ export default function AddSchedule(props) {
         >
           <div className={style.addConnectionForm}>
             <div className={style.formItem} style={{ width: "100%" }}>
-              
               <Form.Item label="Crontab Schedule (m/h/dM/MY/d)">
-              <Input placeholder="* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
+              <Input placeholder="* * * * *" defaultValue = "* * * * *" onChange={(event) => setCronTabSchedule(event.target.value)}/>
             </Form.Item>
             <Form.Item label="Timezone">
-              <Select onChange={(value) => setSelectedTimezone(value)}>
+              <Select showSearch onChange={(value) => setSelectedTimezone(value)}>
                 {timezoneElements}
               </Select>
             </Form.Item>

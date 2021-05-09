@@ -34,7 +34,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
         """ Get schedule"""
         if obj.crontab.id == 1:
             return None
-        return {'id': obj.schedule.id, 'name': obj.schedule.name}
+        return {'id': obj.crontab.id, 'name': obj.crontab.customschedule.name}
 
     def get_notebooks(self, obj):
         """Gets notebooks in workflow"""

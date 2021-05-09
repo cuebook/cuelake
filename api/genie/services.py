@@ -5,7 +5,7 @@ import time
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, Schedule
+from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
@@ -54,7 +54,7 @@ class NotebookJobServices:
                 notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.name == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True
-                    notebook["schedule"] = notebookJob.schedule.name
+                    notebook["schedule"] = str(notebookJob.crontab.customschedule.name)
                     notebook["isActive"] = notebookJob.enabled
                     notebook["notebookJobId"] = notebookJob.id
                 else:
@@ -102,10 +102,6 @@ class NotebookJobServices:
             context["warehouseLocation"] = warehouseLocation
         # Adding a temp table name to the context
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
-        
-        #Druid ingestion url
-        context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
-        
         notebook = Template(notebookTemplate.template).render(Context(context))
         response = Zeppelin.addNotebook(notebook)
         if response:
@@ -236,7 +232,6 @@ class NotebookJobServices:
         param timezone: Timezone in string format
         param name: String
         """
-
         res = ApiResponse()
         cronElements = crontab.split(" ")
         if len(cronElements) != 5:
@@ -253,11 +248,12 @@ class NotebookJobServices:
         schedule.save()
         res.update(True, "Schedules updated successfully", [])
         return res
-    
+
+    @staticmethod
     def deleteSchedule(scheduleId: int):
         """ Service to delete schedule of given scheduleId """
         res = ApiResponse()
-        Schedule.objects.filter(crontabschedule_ptr_id=scheduleId).delete()
+        Schedule.objects.filter(id=scheduleId).delete()
         res.update(True, "Schedules deleted successfully", [])
         return res
 
@@ -409,7 +405,7 @@ class NotebookTemplateService:
         return res
     
     @staticmethod
-    def getDatasetDetails(datasetLocation):
+    def getDatasetDetails(datasetLocation, datasourceName):
         """
         Service to fetch S3 dataset details
         :param datasetLocation: Location of the S3 bucket
@@ -417,7 +413,7 @@ class NotebookTemplateService:
         res = ApiResponse()
         schema = DruidIngestionSpecGenerator._getSchemaForDatasourceInS3(datasetLocation)
         ingestionSpec = DruidIngestionSpecGenerator.getIngestionSpec(
-            datasetLocation=datasetLocation, datasetSchema=schema
+            datasetLocation=datasetLocation, datasourceName=datasourceName, datasetSchema=schema
         )
         s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": x.logical_type.type}, schema))
         datasetDetails = {

@@ -75,5 +75,5 @@ class NotebookTemplate(models.Model):
     formJson = models.JSONField(default={})
     name = models.CharField(max_length=200, blank=True, null=True)
 
-class Schedule(CrontabSchedule):
+class CustomSchedule(CrontabSchedule):
     name = models.CharField(max_length=200, blank=True, null=True)
