@@ -930,6 +930,10 @@ video {
   background-color: rgba(247, 250, 252, var(--bg-opacity));
 }
 
+.bg-gray-150{
+  background-color: #ebf0f147;
+}
+
 .bg-gray-200 {
   --bg-opacity: 1;
   /* background-color: #edf2f7; */

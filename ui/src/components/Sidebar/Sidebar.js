@@ -10,7 +10,12 @@ export default function Sidebar(props) {
   }
   return (
     <>
-      <nav className={`md:left-0 md:block md:fixed md:top-0 md:bottom-0 md:overflow-y-auto md:flex-row md:flex-no-wrap md:overflow-hidden shadow-xl bg-white flex flex-wrap items-center justify-between relative z-10 py-4 px-6 ${props.isEmbedPage ? "md:w-48" : "md:w-64"}`}>
+      <nav className={`md:left-0 
+            md:block md:fixed md:top-0 md:bottom-0 md:overflow-y-auto md:flex-row 
+            md:flex-no-wrap md:overflow-hidden shadow-xl bg-white flex flex-wrap items-center 
+            justify-between relative z-10 py-4 px-6 
+            ${props.isEmbedPage ? "md:w-48 bg-gray-150" : "md:w-64"}`
+        }>
         <div className="md:flex-col md:items-stretch md:min-h-full md:flex-no-wrap px-0 flex flex-wrap items-center justify-between w-full mx-auto">
           { 
           props.isEmbedPage 
@@ -61,7 +66,7 @@ export default function Sidebar(props) {
                 >
                   <i
                     className={
-                      "fas fa-tv mr-2 text-sm " +
+                      "fas fa-file mr-2 text-sm " +
                       (window.location.href.indexOf(urlPrefix + "/notebook") !== -1
                         ? "opacity-75"
                         : "text-gray-400")
