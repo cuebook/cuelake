@@ -13,7 +13,7 @@ urlpatterns = [
     path("notebookTemplates/", views.NotebookTemplateView.as_view(), name="notebookTemplateView"),
     path("schedules/", views.ScheduleView.as_view(), name="scheduleView"),
     path("schedules/<int:scheduleId>", views.schedule, name="getSingleSchedule"),
-    
+    path("driverAndExecutorStatus/", views.DriverAndExecutorStatus.as_view(), name="driverAndExecutorStatus"),
     path("timezones/", views.TimzoneView.as_view(), name="timezoneView"),
     # =====================================================================================================
     # Connections

@@ -9,6 +9,13 @@ class NotebookService {
         else
             return null
     }
+    async getDriverAndExecutorStatus(){
+        const response = await apiService.get("genie/driverAndExecutorStatus/" )
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
 
     async getNotebooksLight(){
         const response = await apiService.get("genie/notebooksLight")

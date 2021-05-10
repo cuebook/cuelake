@@ -32,7 +32,7 @@ CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ["*", "localhost"]
 CORS_ORIGIN_ALLOW_ALL = True
 HTTP_HTTPS = "http://"
-
+POD_NAMESPACE="cuelake"
 # Application definition
 
 INSTALLED_APPS = [

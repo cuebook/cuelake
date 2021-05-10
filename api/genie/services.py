@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import pytz
 import time
 from typing import List
@@ -11,6 +12,8 @@ from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
 from genie.tasks import runNotebookJob as runNotebookJobTask, checkIfNotebookRunning
+from kubernetes import config, client
+from django.conf import settings
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
@@ -423,4 +426,43 @@ class NotebookTemplateService:
             "druidIngestionSpec": ingestionSpec
         } 
         res.update(True, "Dataset schema retrieved successfully", datasetDetails)
+        return res
+
+class KubernetesServices:
+
+    @staticmethod
+    def getDriversCount():
+        """
+        Gets Driver and executors count
+        """
+        res = ApiResponse()
+        config.load_kube_config()
+        runningDrivers = 0
+        runningExecutors = 0
+        startingDrivers = 0
+        startingExecutors = 0
+        v1 = client.CoreV1Api()
+        ret = v1.list_namespaced_pod(settings.POD_NAMESPACE, watch=False)
+        pods = ret.items
+        pods_name = [pod.metadata.name for pod in pods]
+        podLabels = [[pod.metadata.labels, pod.status.phase] for pod in pods] # list
+        podStatus = [pod.status for pod in pods]
+
+        for label in podLabels:
+            if "interpreterSettingName" in label[0] and label[0]["interpreterSettingName"] == "spark" and label[1]=="Running":
+                runningDrivers += 1
+            
+            if "interpreterSettingName" in label[0] and label[0]["interpreterSettingName"] == "spark" and label[1]=="Pending":
+                startingDrivers += 1
+            if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Running":
+                runningExecutors += 1
+            
+            if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Pending":
+                startingExecutors += 1
+        data = {"runningDrivers":runningDrivers,
+                "pendingDrivers":startingDrivers,
+                "runningExecutors":runningExecutors,
+                "pendingExecutors":startingExecutors
+                    }
+        res.update(True, "Pods status retrieved successfully", data)
         return res

@@ -61,3 +61,4 @@ wcwidth==0.2.5
 wrapt==1.12.1
 yarl==1.6.3
 zipp==3.4.1
+kubernetes==12.0.1

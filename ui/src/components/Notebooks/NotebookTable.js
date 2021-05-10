@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import TimeAgo from 'react-timeago';
+import _ from "lodash";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import { useHistory } from "react-router-dom";
@@ -30,6 +31,7 @@ const { Option } = Select;
 export default function NotebookTable() {
 
   const [notebooks, setNotebooks] = useState([]);
+  const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
@@ -50,8 +52,12 @@ export default function NotebookTable() {
       refreshNotebooks((currentPageRef.current - 1)*10)
     }, 3000);
 
+    const refreshDriversStatus = setInterval(() => {
+      refreshPodStatus((currentPageRef.current - 1)*10)
+    }, 3000);
+
     return () => {
-      clearInterval(refreshNotebookInterval);
+      clearInterval(refreshNotebookInterval, refreshDriversStatus);
     };
   }, []);
 
@@ -72,6 +78,14 @@ export default function NotebookTable() {
     }
   };
 
+  const refreshPodStatus = async () => {
+    const response = await notebookService.getDriverAndExecutorStatus();
+    console.log('response', response)
+    if(response)
+    {
+      setpodsDriver(response)
+      }
+  };
   const showScheduleDropDown = (notebookId) => {
     setSelectedNotebook(notebookId)
   }
@@ -368,17 +382,44 @@ export default function NotebookTable() {
     }
   ];
 
+  let runningDrivers = podsDriver.runningDrivers
+  let pendingDrivers = podsDriver.pendingDrivers
+  let runningExecutors = podsDriver.runningExecutors
+  let pendingExecutors = podsDriver.pendingExecutors
+  let drivers = []
+  _.times(runningDrivers, (i) => {
+    drivers.push(<i className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}  key={i}></i>);
+  });
+  _.times(pendingDrivers, (i) => {
+    drivers.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
+  });
+
+  let executors = []
+
+  _.times(runningExecutors, (i) => {
+    executors.push(<i className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}} key={i}></i>);
+  });
+  _.times(pendingExecutors, (i) => {
+    executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
+  });
   return (
     <>
-      <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
-          <Button
-              key="createTag"
-              type="primary"
-              onClick={() => openNewNotebookDrawer()}
-          >
-              New Notebook
-          </Button>
+
+    <div className={style.flexContainer}  >
+
+      <Button
+          key="createTag"
+          type="primary"
+          onClick={() => openNewNotebookDrawer()}
+      >
+          New Notebook
+      </Button>
+
+      <div className={style.driversAndExecutoresStyle}>
+      <div className={style.podStyle}>Drivers : {drivers.length > 0 ? drivers : 0 }</div>
+      <div className={style.podStyle}>Executors : {executors.length > 0 ? executors : 0}</div>
       </div>
+    </div>
       <Table
         rowKey={"id"}
         scroll={{ x: "100%" }}

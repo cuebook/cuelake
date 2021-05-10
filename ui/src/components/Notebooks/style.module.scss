@@ -89,3 +89,26 @@
 .notebookTemplate{
     margin-bottom: 10px;
 }
+
+.driversAndExecutores{
+    display: flex;
+    
+}
+.flexContainer{
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: end;
+    text-align: start;
+    padding-bottom: 5px;
+}
+.driversAndExecutoresStyle{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    min-width: 250px;
+    padding: 10px;
+    color:#000000D9;
+}
+.podStyle{
+    margin-right:10px;
+}
