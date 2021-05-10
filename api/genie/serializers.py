@@ -64,9 +64,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
         schedule = Schedule.objects.get(id= obj.id)
         scheduleJob = list(schedule.periodictask_set.values())
         for listItem in scheduleJob:
-            if "task" in listItem and listItem["task"]:
+            if "task" in listItem and listItem["task"] == "genie.tasks.runNotebookJob":
                 notebook+=1
-            if "task" in listItem and not listItem["task"]:
+            if "task" in listItem and listItem["task"] == "workflows.tasks.runWorkflowJob":
                 workflow +=1
         return [notebook,workflow]
 

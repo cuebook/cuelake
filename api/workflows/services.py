@@ -80,7 +80,10 @@ class WorkflowServices:
             crontab_id=scheduleId if scheduleId else 1,
             triggerWorkflow_id=triggerWorkflowId,
             triggerWorkflowStatus=triggerWorkflowStatus,
+            task="workflows.tasks.runWorkflowJob"
         )
+        workflow.args = str([workflow.id])
+        workflow.save()
         
         notebookJobs = [
             NotebookJob(workflow_id=workflow.id, notebookId=notebookId)
