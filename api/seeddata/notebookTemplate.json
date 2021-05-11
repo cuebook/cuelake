@@ -55,7 +55,7 @@
           {
             "id": "paragraph_1615528549981_865522288",
             "apps": [],
-            "text": "%spark.sql\n-- Create table if not exist\nCREATE TABLE IF NOT EXISTS lakehouse.cuelake.{{destinationTableName}} USING iceberg \n  TBLPROPERTIES (\n        'write.metadata.delete-after-commit.enabled'= 'true',\n       'write.metadata.previous-versions-max' = 1,\n       'history.expire.max-snapshot-age-ms' = '60000',\n       'history.expire.min-snapshots-to-keep' = 1,\n       'write.spark.fanout.enabled' = 'true',\n        'write.metadata.metrics.default' = 'none'\n   )\n  AS SELECT /*+ COALESCE(1) */ * from {{tempTableName}}",
+            "text": "%spark.sql\n-- Create table if not exist\nCREATE TABLE IF NOT EXISTS cuelake.{{destinationTableName}} USING iceberg \n  TBLPROPERTIES (\n        'write.metadata.delete-after-commit.enabled'= 'true',\n       'write.metadata.previous-versions-max' = 2,\n       'history.expire.max-snapshot-age-ms' = '60000',\n       'history.expire.min-snapshots-to-keep' = 1,\n       'write.spark.fanout.enabled' = 'true',\n        'write.metadata.metrics.default' = 'none'\n   )\n  AS SELECT /*+ COALESCE(1) */ * from {{tempTableName}}",
             "user": "anonymous",
             "title": "Create Table If Not Exist",
             "config": {
@@ -89,7 +89,7 @@
           {
             "id": "paragraph_1616655403846_1323321554",
             "apps": [],
-            "text": "%spark\nval tableName = \"{{destinationTableName}}\"\nimport org.apache.iceberg.aws.glue.GlueCatalog;\nimport scala.collection.JavaConverters.mapAsJavaMapConverter\nimport org.apache.iceberg.actions.Actions;\n\nval properties = Map(\"warehouse\"-> sc.getConf.get(\"spark.sql.catalog.lakehouse.warehouse\")).asJava\n\nval catalog = new GlueCatalog();\ncatalog.initialize(\"lakehouse\", properties)\n\n\nimport org.apache.iceberg.Table;\nimport org.apache.iceberg.catalog.TableIdentifier;\n\nval name = TableIdentifier.of(\"cuelake\", tableName);\nval table = catalog.loadTable(name);\n\n// Expire older snapshots and commit\ntable.expireSnapshots().commit()\n\n// Run Compaction for table\nActions.forTable(table).rewriteDataFiles()\n    .targetSizeInBytes(500 * 1024 * 1024 * 10) // 5000 MB\n    .execute();",
+            "text": "%spark\nval tableName = \"{{destinationTableName}}\"\n\nimport org.apache.iceberg.actions.Actions;\nimport org.apache.iceberg.hadoop.HadoopCatalog;\nval catalog = new HadoopCatalog(sc.hadoopConfiguration, sc.getConf.get(\"spark.sql.catalog.cuelake.warehouse\"));\n\nimport org.apache.iceberg.Table;\nimport org.apache.iceberg.catalog.TableIdentifier;\n\nval name = TableIdentifier.of(tableName);\nval table = catalog.loadTable(name);\n\n// Expire older snapshots and commit\ntable.expireSnapshots().commit()\n\n// Run Compaction for table\nActions.forTable(table).rewriteDataFiles()\n    .targetSizeInBytes(500 * 1024 * 1024 * 10) // 5000 MB\n    .execute();",
             "user": "anonymous",
             "title": "Iceberg Table Optimizations",
             "config": {
@@ -122,7 +122,7 @@
           {
             "id": "paragraph_1615885036622_2137552499",
             "apps": [],
-            "text": "%spark.pyspark\nmaxVal=spark.sql(f\"SELECT MAX({{timestampColumn}}) FROM lakehouse.cuelake.{{destinationTableName}}\").collect()[0][0]\nz.put(\"{{tempTableName}}_val\", maxVal)\nprint(\"Timestamp value in target table: \" + str(maxVal))",
+            "text": "%spark.pyspark\nmaxVal=spark.sql(f\"SELECT MAX({{timestampColumn}}) FROM cuelake.{{destinationTableName}}\").collect()[0][0]\nz.put(\"{{tempTableName}}_val\", maxVal)\nprint(\"Timestamp value in target table: \" + str(maxVal))",
             "user": "anonymous",
             "title": "Get Timestamp From Destination Table",
             "config": {
@@ -155,7 +155,7 @@
           {
             "id": "paragraph_1616144051503_913231705",
             "apps": [],
-            "text": "%spark.sql\n-- SQL Query to configure sort order\nALTER TABLE lakehouse.cuelake.{{destinationTableName}} WRITE ORDERED BY {{primaryKeyColumn}};",
+            "text": "%spark.sql\n-- SQL Query to configure sort order\nALTER TABLE cuelake.{{destinationTableName}} WRITE ORDERED BY {{primaryKeyColumn}};",
             "user": "anonymous",
             "title": "Update Iceberg Table Properties",
             "config": {
@@ -188,7 +188,7 @@
           {
             "id": "paragraph_1616147422888_2080009648",
             "apps": [],
-            "text": "%spark.pyspark\nmergeSql = f\"MERGE INTO lakehouse.cuelake.{{destinationTableName}} t USING (SELECT * from {{tempTableName}} where {{timestampColumn}} > \\\"{z.get('{{tempTableName}}_val')}\\\") u ON t.{{primaryKeyColumn}} = u.{{primaryKeyColumn}} WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *\"\nprint(\"Executing SQL: \" + mergeSql)\nspark.sql(mergeSql)",
+            "text": "%spark.pyspark\nmergeSql = f\"MERGE INTO cuelake.{{destinationTableName}} t USING (SELECT * from {{tempTableName}} where {{timestampColumn}} > \\\"{z.get('{{tempTableName}}_val')}\\\") u ON t.{{primaryKeyColumn}} = u.{{primaryKeyColumn}} WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *\"\nprint(\"Executing SQL: \" + mergeSql)\nspark.sql(mergeSql)",
             "user": "anonymous",
             "title": "Merge New Data",
             "config": {
@@ -345,7 +345,7 @@
           {
             "id": "paragraph_1615528549981_865522288",
             "apps": [],
-            "text": "%spark.sql\nDROP TABLE IF EXISTS lakehouse.cuelake.{{destinationTableName}}; \nCREATE TABLE lakehouse.cuelake.{{destinationTableName}} USING iceberg AS SELECT /*+ COALESCE(1) */ * from {{tempTableName}}",
+            "text": "%spark.sql\nDROP TABLE IF EXISTS cuelake.{{destinationTableName}}; \nCREATE TABLE cuelake.{{destinationTableName}} USING iceberg AS SELECT /*+ COALESCE(1) */ * from {{tempTableName}}",
             "user": "anonymous",
             "title": "Refresh Destination Table",
             "config": {

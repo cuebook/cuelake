@@ -436,13 +436,17 @@ class KubernetesServices:
         Gets Driver and executors count
         """
         res = ApiResponse()
-        config.load_kube_config()
+        if os.environ.get("POSTGRES_DB_HOST","") == "localhost":
+            config.load_kube_config()
+        else:
+            config.load_incluster_config()
         runningDrivers = 0
         runningExecutors = 0
-        startingDrivers = 0
-        startingExecutors = 0
+        pendingDrivers = 0
+        pendingExecutors = 0
         v1 = client.CoreV1Api()
-        ret = v1.list_namespaced_pod(settings.POD_NAMESPACE, watch=False)
+        POD_NAMESPACE = os.environ.get("POD_NAMESPACE","cuelake")
+        ret = v1.list_namespaced_pod(POD_NAMESPACE, watch=False)
         pods = ret.items
         pods_name = [pod.metadata.name for pod in pods]
         podLabels = [[pod.metadata.labels, pod.status.phase] for pod in pods] # list
@@ -453,16 +457,16 @@ class KubernetesServices:
                 runningDrivers += 1
             
             if "interpreterSettingName" in label[0] and label[0]["interpreterSettingName"] == "spark" and label[1]=="Pending":
-                startingDrivers += 1
+                pendingDrivers += 1
             if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Running":
                 runningExecutors += 1
             
             if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Pending":
-                startingExecutors += 1
+                pendingExecutors += 1
         data = {"runningDrivers":runningDrivers,
-                "pendingDrivers":startingDrivers,
+                "pendingDrivers":pendingDrivers,
                 "runningExecutors":runningExecutors,
-                "pendingExecutors":startingExecutors
-                    }
+                "pendingExecutors":pendingExecutors
+                }
         res.update(True, "Pods status retrieved successfully", data)
         return res

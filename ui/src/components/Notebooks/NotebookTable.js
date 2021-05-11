@@ -52,12 +52,13 @@ export default function NotebookTable() {
       refreshNotebooks((currentPageRef.current - 1)*10)
     }, 3000);
 
-    const refreshDriversStatus = setInterval(() => {
-      refreshPodStatus((currentPageRef.current - 1)*10)
+    const refreshPodStatus = setInterval(() => {
+      refreshDriverStatus()
     }, 3000);
 
     return () => {
-      clearInterval(refreshNotebookInterval, refreshDriversStatus);
+      clearInterval(refreshNotebookInterval);
+      clearInterval(refreshPodStatus);
     };
   }, []);
 
@@ -78,13 +79,11 @@ export default function NotebookTable() {
     }
   };
 
-  const refreshPodStatus = async () => {
+  const refreshDriverStatus = async () => {
     const response = await notebookService.getDriverAndExecutorStatus();
-    console.log('response', response)
-    if(response)
-    {
+    if(response){
       setpodsDriver(response)
-      }
+    }
   };
   const showScheduleDropDown = (notebookId) => {
     setSelectedNotebook(notebookId)
