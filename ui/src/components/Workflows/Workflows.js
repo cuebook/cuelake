@@ -29,7 +29,7 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
-import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS } from "./constants"
+import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -332,7 +332,7 @@ export default function Workflows(props) {
 
           return (
             <div className={style.actions}>
-              { workflow.lastRun && (workflow.lastRun.status === "running" ||  workflow.lastRun.status === "received")
+              { workflow.lastRun && (workflow.lastRun.status === STATUS_RUNNING ||  workflow.lastRun.status === STATUS_RECEIVED)
                 ?
                 <Tooltip title={"Stop Workflow"}> 
                   <StopOutlined onClick={() => stopWorkflow(workflow)} />

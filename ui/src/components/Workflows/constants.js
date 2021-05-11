@@ -1,3 +1,6 @@
 export const STATUS_ALWAYS = "ALWAYS"
 export const STATUS_SUCCESS = "SUCCESS"
 export const STATUS_ERROR = "ERROR"
+export const STATUS_RUNNING = "RUNNING"
+export const STATUS_RECEIVED = "RECEIVED" 
+export const STATUS_ABORTED = "ABORTED"
