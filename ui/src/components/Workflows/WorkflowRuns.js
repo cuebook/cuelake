@@ -20,6 +20,7 @@ import {
   } from "antd";
 
 import workflowsService from "services/workflows.js";
+var moment = require("moment");
 
 export default function WorkflowRuns(props) {
 
@@ -100,12 +101,14 @@ export default function WorkflowRuns(props) {
       key: "duration",
       render: (text, record) => {
         // const date = new Date(record.endTimestamp) - new Date(record.startTimestamp) 
+        let timeDiff = Math.round((new Date(record.endTimestamp) - new Date(record.startTimestamp))/1000)
+        let diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
+            trim: "both"
+        });
         return (
           <span>
             {record.startTimestamp && record.endTimestamp ?
-            <Moment duration={record.startTimestamp}
-                                date={record.endTimestamp}
-                        />
+            diff
             : null
             }
           </span>
@@ -124,7 +127,6 @@ export default function WorkflowRuns(props) {
     //     }
     // }
   ]
-
 
   return (
     <div className={style.runLogTable}>

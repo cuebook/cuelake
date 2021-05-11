@@ -4,6 +4,7 @@ import _ from "lodash";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import { useHistory } from "react-router-dom";
+import {search} from "services/general.js"
 import {
   Table,
   Button,
@@ -25,11 +26,13 @@ import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
-
+var moment = require("moment");
 const { Option } = Select;
+const {Search} = Input
 
 export default function NotebookTable() {
 
+  const [searchText, setSearchText] = useState("");
   const [notebooks, setNotebooks] = useState([]);
   const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -254,10 +257,33 @@ export default function NotebookTable() {
       dataIndex: "lastRun",
       key: "lastRun",
       width: "10%",
-      render: (lastRun) => {
+      // align:"center",
+      render: lastRun => {
+        console.log('lastrun', lastRun)
+        let timeDiff;
+        if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
+          timeDiff = Math.round((new Date(lastRun.endTimestamp) - new Date(lastRun.startTimestamp))/1000)
+
+        }
+        let diff;
+        if (timeDiff){
+          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [m] s [s]", {
+            trim: "both"
+        });
+        }
+      
+
+        let item = (
+          <div> 
+          {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
+            <div> 
+            {diff}
+            </div>
+          </div>
+        )
         return (
           <span>
-            {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : ""}
+            {item} 
           </span>
         );
       }
@@ -401,6 +427,17 @@ export default function NotebookTable() {
   _.times(pendingExecutors, (i) => {
     executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
   });
+ const handleSearch = (val) => {
+    setSearchText(val)
+  };
+  let data = notebooks && notebooks.notebooks
+  let convertedData = data
+  // let convertedData = search(
+  //   data,
+  //   ["name", "schedule", "lastRun"],
+  //   searchText
+  // );
+  console.log('sdfad',searchText)
   return (
     <>
 
@@ -418,12 +455,24 @@ export default function NotebookTable() {
       <div className={style.podStyle}>Drivers : {drivers.length > 0 ? drivers : 0 }</div>
       <div className={style.podStyle}>Executors : {executors.length > 0 ? executors : 0}</div>
       </div>
+    <div className={style.actionBar}>
+
+      <Search
+            onChange={e => {
+              handleSearch({ searchText: e.target.value });
+            }}
+            placeholder="Search"
+            style={{ width: 250 }}
+            className="mr-2"
+          />
+      </div>
+
     </div>
       <Table
         rowKey={"id"}
         scroll={{ x: "100%" }}
         columns={columns}
-        dataSource={notebooks.notebooks}
+        dataSource={convertedData}
         loading={loading}
         size={"small"}
         pagination={{

@@ -30,6 +30,9 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
 import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
+import Moment from "react-moment";
+
+var moment = require("moment");
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -278,6 +281,7 @@ export default function Workflows(props) {
         title: "Last run",
         dataIndex: "lastRun",
         key: "lastRunTime",
+        align:"center",
         sorter: (a, b) => {
           return Math.abs(
             new Date(a.lastRun ? a.lastRun.startTimestamp : null) - new Date(b.lastRun ? b.lastRun.startTimestamp : null)
@@ -285,9 +289,30 @@ export default function Workflows(props) {
         },
         defaultSortOrder: "descend",
         render: lastRun => {
+
+        let timeDiff;
+        if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
+          timeDiff = Math.round((new Date(lastRun.endTimestamp) - new Date(lastRun.startTimestamp))/1000)
+
+        }
+        let diff;
+        if (timeDiff){
+          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
+            trim: "both"
+        });
+        }
+      
+          let item = (
+            <div> 
+            {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
+             <div style={{fontSize:"12px"}}> 
+             {diff}
+              </div>
+            </div>
+          )
           return (
             <span>
-            {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
+              {item} 
             </span>
           );
         }
@@ -472,7 +497,7 @@ export default function Workflows(props) {
                   </Form.Item>
                 </Form>
             </Drawer>
-
+console.log('workflows',workflows)
     return (
           <div>
             <div className={`d-flex flex-column justify-content-center text-right mb-2`}>

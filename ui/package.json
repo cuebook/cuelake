@@ -12,6 +12,7 @@
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.8",
     "lodash": "^4.17.21",
+    "moment-duration-format": "^2.3.2",
     "node-sass": "^4.14.1",
     "react": "16.13.1",
     "react-ace": "^9.4.0",
