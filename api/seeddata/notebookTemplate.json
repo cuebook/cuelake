@@ -638,7 +638,7 @@
           },
           {
             "apps": [],
-            "text": "%spark.sql\n-- CREATE TEMP TABLE\nDROP TABLE IF EXISTS temp_table;\nCREATE TEMP TABLE temp_table USING csv\n  OPTIONS (header 'true')\n  LOCATION \"s3a://cue-caratlane/files/{{fileName}};\"\n\n-- SELECT QUERY \nSELECT * FROM temp_table LIMIT 10;",
+            "text": "%spark.sql\n-- CREATE TEMP TABLE\nDROP TABLE IF EXISTS temp_table;\nCREATE TEMP TABLE temp_table USING csv\n  OPTIONS (header 'true')\n  LOCATION \"s3a://cue/files/{{fileName}}\";\n\n-- SELECT QUERY \nSELECT * FROM temp_table LIMIT 10;",
             "user": "anonymous",
             "focus": true,
             "title": "Query CSV File Using SQL",
