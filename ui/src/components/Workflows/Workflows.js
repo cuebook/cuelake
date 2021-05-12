@@ -497,7 +497,7 @@ export default function Workflows(props) {
                   </Form.Item>
                 </Form>
             </Drawer>
-console.log('workflows',workflows)
+
     return (
           <div>
             <div className={`d-flex flex-column justify-content-center text-right mb-2`}>

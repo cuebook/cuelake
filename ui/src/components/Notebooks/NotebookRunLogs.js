@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
+import TimeAgo from 'react-timeago';
+
 import {
     Table,
     Button,
@@ -20,6 +22,7 @@ import {
 
 import notebookService from "services/notebooks.js";
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
+var moment = require("moment");
 
 export default function NotebookRunLogs(props) {
 
@@ -93,6 +96,37 @@ export default function NotebookRunLogs(props) {
         return (
           <span>
             <Moment format="DD-MM-YYYY hh:mm:ss">{text}</Moment>
+          </span>
+        );
+      }
+    },
+
+    {
+      title: "Duration",
+      dataIndex: "",
+      key: "",
+      width: "10%",
+      // align:"center",
+      render: (text ,record) => {
+        let timeDiff;
+        if (record && record.startTimestamp && record.endTimestamp){
+          timeDiff = Math.round((new Date(record.endTimestamp) - new Date(record.startTimestamp))/1000)
+
+        }
+        let diff;
+        if (timeDiff){
+          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
+            trim: "both"
+        });
+        }
+        let item = (
+          <div> 
+            {diff}
+          </div>
+        )
+        return (
+          <span>
+            {item} 
           </span>
         );
       }

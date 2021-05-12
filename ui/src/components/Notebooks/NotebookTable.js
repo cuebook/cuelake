@@ -259,7 +259,6 @@ export default function NotebookTable() {
       width: "10%",
       // align:"center",
       render: lastRun => {
-        console.log('lastrun', lastRun)
         let timeDiff;
         if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
           timeDiff = Math.round((new Date(lastRun.endTimestamp) - new Date(lastRun.startTimestamp))/1000)
@@ -267,16 +266,16 @@ export default function NotebookTable() {
         }
         let diff;
         if (timeDiff){
-          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [m] s [s]", {
+          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
             trim: "both"
         });
         }
-      
+
 
         let item = (
           <div> 
           {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
-            <div> 
+            <div style={{fontSize:"12px"}}> 
             {diff}
             </div>
           </div>
@@ -430,14 +429,12 @@ export default function NotebookTable() {
  const handleSearch = (val) => {
     setSearchText(val)
   };
-  let data = notebooks && notebooks.notebooks
-  let convertedData = data
-  // let convertedData = search(
-  //   data,
-  //   ["name", "schedule", "lastRun"],
-  //   searchText
-  // );
-  console.log('sdfad',searchText)
+  let notebookData = notebooks && notebooks.notebooks
+  let convertedNotebookData = search(
+    notebookData,
+    ["name", "schedule", "lastRun", "notebookStatus"],
+    searchText
+  );
   return (
     <>
 
@@ -459,7 +456,7 @@ export default function NotebookTable() {
 
       <Search
             onChange={e => {
-              handleSearch({ searchText: e.target.value });
+              handleSearch( e.target.value );
             }}
             placeholder="Search"
             style={{ width: 250 }}
@@ -472,7 +469,7 @@ export default function NotebookTable() {
         rowKey={"id"}
         scroll={{ x: "100%" }}
         columns={columns}
-        dataSource={convertedData}
+        dataSource={convertedNotebookData}
         loading={loading}
         size={"small"}
         pagination={{
