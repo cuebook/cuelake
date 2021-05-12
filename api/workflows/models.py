@@ -1,5 +1,6 @@
 from django.db import models
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, PeriodicTasks
+from django.db.models import signals
 
 STATUS_SUCCESS = "SUCCESS"
 STATUS_ERROR = "ERROR"
@@ -25,3 +26,7 @@ class WorkflowRun(models.Model):
 class NotebookJob(models.Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, db_index=True)
 	notebookId = models.CharField(max_length=20, default="000000000")
+
+
+signals.pre_delete.connect(PeriodicTasks.changed, sender=Workflow)
+signals.pre_save.connect(PeriodicTasks.changed, sender=Workflow)

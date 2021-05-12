@@ -30,7 +30,7 @@ class RunStatus(models.Model):
     status = models.CharField(max_length=20)
     runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
-    worflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.CASCADE)
+    worflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.PROTECT)
 
 
 # Connection Models
