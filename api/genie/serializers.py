@@ -1,6 +1,7 @@
 import json
 from rest_framework import serializers
 from django_celery_beat.models import CrontabSchedule
+from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
 
 class NotebookJobSerializer(serializers.ModelSerializer):
@@ -15,7 +16,9 @@ class RunStatusSerializer(serializers.ModelSerializer):
     """
     Serializer for the model RunStatus
     """
+    from workflows.models import Workflow, WorkflowRun, NotebookJob
     logsJSON = serializers.SerializerMethodField()
+    assignedWorkflow = serializers.SerializerMethodField()
     
     def get_logsJSON(self, obj):
         """
@@ -23,9 +26,17 @@ class RunStatusSerializer(serializers.ModelSerializer):
         """
         return json.loads(obj.logs)
 
+    def get_assignedWorkflow(self, obj):
+        assignedWorkflowId = WorkflowNotebookJob.objects.filter(notebookId = obj.notebookId).values_list("workflow_id", flat=True)
+        names= Workflow.objects.filter(id__in = assignedWorkflowId).values_list('name', flat= True)
+        workflowName = []
+        for name in names:
+            workflowName.append(name)
+        return workflowName
+
     class Meta:
         model = RunStatus
-        fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType"]
+        fields = ["id", "notebookId", "startTimestamp", "status", "logsJSON", "runType","assignedWorkflow"]
 
 class ScheduleSerializer(serializers.ModelSerializer):
     """
