@@ -3,6 +3,7 @@ import json
 import os
 import pytz
 import time
+import datetime as dt
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
@@ -67,6 +68,7 @@ class NotebookJobServices:
                     notebook["isScheduled"] = False
                 notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
                 if notebookRunStatus:
+                    notebook["notebookStatus"] = notebookRunStatus.status if notebookRunStatus.status else None
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res

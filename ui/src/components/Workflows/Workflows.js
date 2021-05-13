@@ -29,7 +29,10 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
+import { timehumanize } from 'services/general';
 import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
+import Moment from "react-moment";
+var moment = require("moment");
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -279,6 +282,7 @@ export default function Workflows(props) {
         title: "Last run",
         dataIndex: "lastRun",
         key: "lastRunTime",
+        align:"center",
         sorter: (a, b) => {
           return Math.abs(
             new Date(a.lastRun ? a.lastRun.startTimestamp : null) - new Date(b.lastRun ? b.lastRun.startTimestamp : null)
@@ -286,10 +290,33 @@ export default function Workflows(props) {
         },
         defaultSortOrder: "descend",
         render: lastRun => {
-          return (
-            <span>
+
+        let timeDiff;
+        if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
+          timeDiff = Math.round((new Date(lastRun.endTimestamp) - new Date(lastRun.startTimestamp))/1000)
+
+        }
+        let diff;
+        if (timeDiff){
+          diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
+            trim: "both"
+        });
+        if(diff){
+          diff = timehumanize(diff.split(" "))
+        }
+        }
+          let item = (
+            <div> 
             {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
-            </span>
+             <div style={{fontSize:"12px"}}> 
+             {diff}
+              </div>
+            </div>
+          )
+          return (
+            <div>
+              {item} 
+           </div>
           );
         }
       },

@@ -26,7 +26,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
     	"""
     	workflowRuns = obj.workflowrun_set.order_by("-startTimestamp")
     	if workflowRuns.count():
-    		return {"status": workflowRuns[0].status, "startTimestamp": workflowRuns[0].startTimestamp}
+    		return {"status": workflowRuns[0].status, "startTimestamp": workflowRuns[0].startTimestamp,"endTimestamp": workflowRuns[0].endTimestamp}
     	else:
     		return None
 
