@@ -141,8 +141,8 @@ class WorkflowServices:
         :param workflowId: id of Workflows.Workflow
         """
         res = ApiResponse(message="Error in deleting workflow logs")
-        count = Workflow.objects.filter(id=workflowId).update(enabled=False)
-        res.update(True, "Workflow delete successfully")
+        count = Workflow.objects.filter(id=workflowId).delete()
+        res.update(True, "Workflow deleted successfully")
         return res
 
     @staticmethod
