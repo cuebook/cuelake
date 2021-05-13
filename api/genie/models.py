@@ -1,8 +1,10 @@
 from django.db import models
 from django.db.models.fields import CharField
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, PeriodicTasks
 from django_celery_beat.models import CrontabSchedule
 from workflows.models import WorkflowRun
+from django.db.models import signals
+
 
 NOTEBOOK_STATUS_SUCCESS = "SUCCESS"
 NOTEBOOK_STATUS_ERROR = "ERROR"
@@ -30,7 +32,7 @@ class RunStatus(models.Model):
     status = models.CharField(max_length=20)
     runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
-    worflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.CASCADE)
+    worflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.PROTECT)
 
 
 # Connection Models
@@ -83,3 +85,7 @@ class NotebookObject(models.Model):
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, blank=True, null=True)
     notebookTemplate = models.ForeignKey(NotebookTemplate, on_delete=models.CASCADE)
     defaultPayload = models.JSONField(default={})
+
+
+signals.pre_delete.connect(PeriodicTasks.changed, sender=NotebookJob)
+signals.pre_save.connect(PeriodicTasks.changed, sender=NotebookJob)

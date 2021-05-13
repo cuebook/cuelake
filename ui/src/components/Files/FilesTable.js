@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
-import Moment from 'react-moment';
+import TimeAgo from 'react-timeago';
 import _ from "lodash";
 import {
     Table,
@@ -87,7 +87,7 @@ export default function FilesTable(props) {
         render: text => {
           return (
             <span>
-              {text}
+              <TimeAgo date={text} />
             </span>
           );
         }
