@@ -249,6 +249,37 @@ export default function NotebookTable() {
         }
       }
     },
+
+    {
+      title: "Workflow",
+      dataIndex: "assignedWorkflow",
+      key: "assignedWorkflow",
+      assign:"left",
+      // width: "10%",
+      render: (text,record) => {
+        var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow.map(e => {
+          return (
+            <span
+              style={{
+                whiteSpace: "initial",
+                marginRight: "5px",
+                background: "#f4f5f6",
+                borderRadius: "4px",
+                padding: "1px 5px"
+              }}
+              key={e}
+            >
+              {e}
+            </span>
+          );
+        });
+        return (
+          <div>
+            {listIndividuals}
+          </div>
+        )
+      }
+    },
     {
       title: "Latest Run",
       dataIndex: "lastRun",
