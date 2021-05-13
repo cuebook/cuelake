@@ -15,13 +15,6 @@ class FilesService {
             return null
     }
 
-    async uploadFile(file, fileName) {
-      const response = await apiService
-      .upload("files/file", file, fileName)
-      .catch(error => {});
-      return response
-    }
-
     async deleteFile(key) {
       const response = await apiService.delete("files/file/"+key)
       return response

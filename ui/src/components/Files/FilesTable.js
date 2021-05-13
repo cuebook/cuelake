@@ -26,17 +26,16 @@ import { UploadOutlined, MoreOutlined, EditOutlined, PlayCircleOutlined, Unorder
 import { Badge } from "reactstrap";
 import filesService from "services/files";
 import { formatBytes } from "utils";
-
+import apiService from "services/api";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
 
 export default function FilesTable(props) {
     const [files, setFiles] = useState([]);
+    const [uploadFiles, setUploadFiles] = useState([])
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
     const [componentDidMount, setComponentDidMount] = useState(false)
-
 
     useEffect(() => {
         if (!componentDidMount){ refreshFiles(); setComponentDidMount(true)}
@@ -58,13 +57,6 @@ export default function FilesTable(props) {
           setFiles(response);
         }
         setLoading(false)
-    }
-
-    const uploadFile = async (file) => {
-        setUploading(true)
-        const response = await filesService.uploadFile(file, file.name)
-        setUploading(false)
-        refreshFiles()
     }
 
     const columns = [
@@ -128,38 +120,29 @@ export default function FilesTable(props) {
     ]
 
     const uploadProps = {
-      maxCount: 1,
-      beforeUpload: (file) => {
-        uploadFile(file)
-        return false;
+      name: 'file',
+      action: apiService.base_url + "files/file",
+      headers: {
+        authorization: 'authorization-text',
       },
-      fileList: [],
-      status: "uploading",
-      onChange: () => {
-        return {
-            file: {
-               uid: 'uid',      // unique identifier, negative is recommend, to prevent interference with internal generated id
-               name: 'xx.png',   // file name
-               status: 'uploading', // options：uploading, done, error, removed. Intercepted file by beforeUpload don't have status field.
-               response: '{"status": "success"}', // response from server
-               linkProps: '{"download": "image"}', // additional html props of file link
-               xhr: 'XMLHttpRequest{ ... }', // XMLHttpRequest Header
-            }
+      fileList: uploadFiles,
+      onChange(info, fileList) {
+        setUploadFiles(fileList)
+        if (info.file.status !== 'uploading') {
         }
-      }
+        if (info.file.status === 'done') {
+          message.success(`${info.file.name} file uploaded successfully`);
+          refreshFiles()
+        } else if (info.file.status === 'error') {
+          message.error(`${info.file.name} file upload failed.`);
+        }
+      },
     };
-
 
     return <div>
         <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
-            <Upload {...uploadProps} files>
-                <Button 
-                    icon={<UploadOutlined />}
-                    type="primary"
-                    loading={uploading}
-                >
-                    Upload File
-                </Button>
+            <Upload {...uploadProps}>
+              <Button type="primary" icon={<UploadOutlined />}>Upload File</Button>
             </Upload>
         </div>
         <Table

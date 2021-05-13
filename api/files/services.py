@@ -36,13 +36,13 @@ class FilesServices:
 		return res
 
 	@staticmethod
-	def uploadFile(file, fileName):
+	def uploadFile(file):
 		"""
 		Service to upload files to s3
 		"""
 		res = ApiResponse(message="Error uploading file")
 		s3 = boto3.client("s3")
-		s3.upload_fileobj(Fileobj=file, Bucket=BUCKET_NAME, Key=PREFIX+fileName)
+		s3.upload_fileobj(Fileobj=file, Bucket=BUCKET_NAME, Key=PREFIX+file.name)
 
 		res.update(True, "Successfully uploaded file")
 		return res

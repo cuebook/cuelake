@@ -55,7 +55,7 @@ export default function Workflows(props) {
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
     const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState(STATUS_ALWAYS);
 
-    const [assignTriggerWorkflow, setAssignTriggerWorkflow] = useState(false)         // stores id of parent workflow 
+    const [assignTriggerWorkflowForId, setAssignTriggerWorkflowForId] = useState(false)         // stores id of parent workflow 
     // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
     const [assignSchedule, setAssignSchedule] = useState(false)
     // const [showSelectSchedule, setShowSelectSchedule] = useState(false)
@@ -174,10 +174,11 @@ export default function Workflows(props) {
       setTriggerWorkflow(false)
       setTriggerWorkflowStatus(STATUS_ALWAYS)
       setAssignSchedule(false)
-      setAssignTriggerWorkflow(false)
+      setAssignTriggerWorkflowForId(false)
     }
 
     const showNotebooksOfWorkflow = workflow => {
+      // Parent workflow removed from assign Workflow
       const notebookNames = notebooksLight.filter(notebook => workflow.notebooks.find(x => x==notebook.id)).map(notebook => notebook.path.substring(1))
       return <span><b>Notebooks: </b>{notebookNames.join(", ")}</span>
     }
@@ -235,7 +236,7 @@ export default function Workflows(props) {
 
           }
           else {
-            if (assignTriggerWorkflow && assignTriggerWorkflow == workflow.id){
+            if (assignTriggerWorkflowForId && assignTriggerWorkflowForId == workflow.id){
               return <Modal
                         title={"Assign Trigger Workflow"}
                         visible={true}
@@ -247,7 +248,7 @@ export default function Workflows(props) {
                         {selectTriggerWorkflowElement}
                       </Modal>
             } else {
-              return <a className={style.linkText} onClick={()=>setAssignTriggerWorkflow(workflow.id)}>Assign Workflow</a>
+              return <a className={style.linkText} onClick={()=>setAssignTriggerWorkflowForId(workflow.id)}>Assign Workflow</a>
             }
           }
         }
@@ -404,7 +405,7 @@ export default function Workflows(props) {
       refreshWorkflows()
     }
 
-    const workflowOptionElements = workflows.map(workflow => 
+    const workflowOptionElements = workflows.filter(workflow=>!((selectedWorkflow && workflow.id == selectedWorkflow.id) || (workflow.id == assignTriggerWorkflowForId))).map(workflow => 
       <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
     )
 
