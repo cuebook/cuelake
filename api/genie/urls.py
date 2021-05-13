@@ -8,6 +8,7 @@ urlpatterns = [
     path("notebook/<str:notebookId>", views.NotebookOperationsView.as_view(), name="notebookView"),
     path("notebook/actions/<str:notebookId>", views.NotebookActionsView.as_view(), name="notebookView"),
     path("notebook", views.NotebookView.as_view(), name="notebookView"),
+    path("notebookObject/<int:notebookObjId>", views.getNotebookObject, name="notebookObject"),
     path("notebookjob/<str:notebookId>", views.NotebookJobView.as_view(), name="notebookJobView"),
     path("notebookjob/", views.NotebookJobView.as_view(), name="notebookJobView"),
     path("notebookTemplates/", views.NotebookTemplateView.as_view(), name="notebookTemplateView"),

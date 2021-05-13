@@ -2,6 +2,14 @@ import apiService from "./api";
 import { store } from 'react-notifications-component';
 
 class NotebookService {
+    async getNotebookObject(notebookObjId){
+        const response = await apiService.get("genie/notebookObject/" + notebookObjId)
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
+
     async getNotebooks(offset){
         const response = await apiService.get("genie/notebooks/" + offset)
         if(response.success == true)
@@ -104,6 +112,11 @@ class NotebookService {
 
     async addNotebook(payload){
         const response = await apiService.post("genie/notebook", payload)
+        return response
+    }
+
+    async editNotebook(payload){
+        const response = await apiService.put("genie/notebookObject/" + payload.notebookObjId, payload)
         return response
     }
 

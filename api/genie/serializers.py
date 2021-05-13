@@ -1,7 +1,7 @@
 import json
 from rest_framework import serializers
 from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
 
 class NotebookJobSerializer(serializers.ModelSerializer):
     """
@@ -165,3 +165,15 @@ class NotebookTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotebookTemplate
         fields = ["id", "name", "formJson"]
+
+
+class NotebookObjectSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the model NotebookObject
+    """
+    connection = ConnectionDetailSerializer()
+    notebookTemplate = NotebookTemplateSerializer()
+
+    class Meta:
+        model = NotebookObject
+        fields = ["id", "notebookZeppelinId", "defaultPayload", "connection", "notebookTemplate"]

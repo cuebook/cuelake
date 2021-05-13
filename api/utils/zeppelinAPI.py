@@ -1,4 +1,5 @@
 import asyncio
+import json
 import aiohttp
 import requests
 from django.conf import settings
@@ -85,6 +86,25 @@ class ZeppelinAPI:
         Clear all paragraph results from a notebook
         """
         response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
+        return self.__parseResponse(response)
+    
+    def updateNotebookParagraphs(self, notebookId: str, notebook: dict):
+        """
+        Updates zeppelin notebook paragraphs with new notebook
+        """
+        oldParagraphs = [para["id"] for para in self.getNotebookDetails(notebookId)["paragraphs"]]
+        for paraId in oldParagraphs:
+            requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph/{paraId}")
+        newParagraphs = json.loads(notebook)["paragraphs"]
+        for para in newParagraphs:
+            requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph", json.dumps(para))
+        return True
+    
+    def renameNotebook(self, notebookId: str, newName: str):
+        """
+        Renames zeppelin notebook
+        """
+        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/rename", json.dumps({"name": newName}))
         return self.__parseResponse(response)
 
     def __parseResponse(self, response):

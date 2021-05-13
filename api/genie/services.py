@@ -6,8 +6,8 @@ import time
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
-from genie.serializers import NotebookJobSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
+from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
+from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
@@ -18,7 +18,7 @@ from django.conf import settings
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
-GET_NOTEBOOKJOBS_LIMIT = 10
+GET_NOTEBOOKOJECTS_LIMIT = 10
 RUN_STATUS_LIMIT = 10
 
 class NotebookJobServices:
@@ -42,19 +42,22 @@ class NotebookJobServices:
     def getNotebooks(offset: int = 0):
         """
         Service to fetch and serialize NotebookJob objects
-        Number of NotebookJobs fetched is stored as the constant GET_NOTEBOOKJOBS_LIMIT
+        Number of NotebookObjects fetched is stored as the constant GET_NOTEBOOKOJECTS_LIMIT
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving notebooks")
         notebooks = Zeppelin.getAllNotebooks()
         if notebooks:
             notebookCount = len(notebooks)
-            notebooks = notebooks[offset: offset + GET_NOTEBOOKJOBS_LIMIT]
+            notebooks = notebooks[offset: offset + GET_NOTEBOOKOJECTS_LIMIT]
             notebookIds = [notebook["id"] for notebook in notebooks]
-            notebookJobs = NotebookJob.objects.filter(notebookId__in=notebookIds)
+            notebookObjects = NotebookObject.objects.filter(notebookZeppelinId__in=notebookIds)
             for notebook in notebooks:
                 notebook["name"] = notebook["path"]
-                notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.name == notebook["id"]), False)
+                notebookObj = next((notebookObj for notebookObj in notebookObjects if notebookObj.notebookZeppelinId == notebook["id"]), False)
+                if notebookObj:
+                    notebook["notebookObjId"] = notebookObj.id
+                notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
                 if notebookJob:
                     notebook["isScheduled"] = True
                     notebook["schedule"] = str(notebookJob.crontab.customschedule.name)
@@ -65,8 +68,21 @@ class NotebookJobServices:
                 notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
                 if notebookRunStatus:
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
-            res.update(True, "NotebookJobs retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
+            res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
+    
+    @staticmethod
+    def getNotebookObject(notebookObjId: int):
+        """
+        Service to fetch specified NotebookObject
+        :param notebookObjId: ID of the notebook object
+        """
+        res = ApiResponse(message="Error retrieving specified Notebook Object")
+        notebookObj = NotebookObject.objects.get(id=notebookObjId)
+        data = NotebookObjectSerializer(notebookObj).data
+        res.update(True, "NotebookObject retrieved successfully", data)
+        return res
+
 
     @staticmethod
     def getNotebooksLight():
@@ -75,13 +91,18 @@ class NotebookJobServices:
         notebooks = Zeppelin.getAllNotebooks()
         res.update(True, "Notebooks retrieved successfully", notebooks)
         return res
-
-
+    
     @staticmethod
-    def addNotebook(payload):
-        res = ApiResponse(message="Error adding notebook")
-        notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))
+    def _prepareNotebookJson(notebookTemplate: NotebookTemplate, payload: dict):
+        """
+        Utility function for preparing notebook json to be sent to zeppelin
+        Can be used to add a notebook or edit one
+        Returns tuple containing notebook json and notebook connection
+        :param notebookTemplate: NotebookTemplate object on which to base notebook
+        :param payload: Dict containing notebook template variables
+        """
         context = payload # Storing payload in context variable so that it can be used for rendering
+        connection = None
         # Handling connection variables
         if payload.get("sourceConnection", False):
             connection = Connection.objects.get(id=payload["sourceConnection"])
@@ -107,10 +128,47 @@ class NotebookJobServices:
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
         # Adding Druid Ingestion URL to the context
         context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
-        notebook = Template(notebookTemplate.template).render(Context(context))
-        response = Zeppelin.addNotebook(notebook)
-        if response:
+        notebook = Template(json.dumps(notebookTemplate.template)).render(Context(context))
+        return notebook, connection
+
+
+    @staticmethod
+    def addNotebook(payload: dict):
+        """
+        Service to create and add a template based notebook
+        :param payload: Dict containing notebook template info
+        """
+        res = ApiResponse(message="Error adding notebook")
+        defaultPayload = payload.copy()
+        notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))
+        notebook, connection = NotebookJobServices._prepareNotebookJson(notebookTemplate, payload)
+        notebookZeppelinId = Zeppelin.addNotebook(notebook)
+        if notebookZeppelinId:
+            NotebookObject.objects.create(notebookZeppelinId=notebookZeppelinId, connection=connection, notebookTemplate=notebookTemplate, defaultPayload=defaultPayload)
             res.update(True, "Notebook added successfully")
+        return res
+
+    @staticmethod
+    def editNotebook(notebookObjId: int, payload: dict):
+        """
+        Service to update a template based notebook
+        :param notebookObjId: ID of the NotebookObject to be edited
+        :param payload: Dict containing notebook template info
+        """
+        res = ApiResponse(message="Error updating notebook")
+        defaultPayload = payload.copy()
+        notebookObject = NotebookObject.objects.get(id=notebookObjId)
+        notebook, connection = NotebookJobServices._prepareNotebookJson(notebookObject.notebookTemplate, payload)
+
+        updateSuccess = Zeppelin.updateNotebookParagraphs(notebookObject.notebookZeppelinId, notebook)
+        if updateSuccess:
+            print(defaultPayload)
+            if defaultPayload.get("name"):
+                Zeppelin.renameNotebook(notebookObject.notebookZeppelinId, defaultPayload.get("name"))
+            notebookObject.defaultPayload = defaultPayload
+            notebookObject.connection = connection
+            notebookObject.save()
+            res.update(True, "Notebook updated successfully")
         return res
     
     @staticmethod
@@ -364,8 +422,12 @@ class Connections:
     @staticmethod
     def removeConnection(connection_id):
         res = ApiResponse()
-        Connection.objects.get(id=connection_id).delete()
-        res.update(True, "Connection deleted successfully")
+        connection = Connection.objects.get(id=connection_id)
+        if connection.notebookObject_set.count() == 0:
+            Connection.objects.get(id=connection_id).delete()
+            res.update(True, "Connection deleted successfully")
+        else:
+            res.update(False, "Cannot delete connection because of dependent notebook")
         return res
 
     @staticmethod

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from genie.models import NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule
+from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule
 
 
 class RunStatusAdmin(admin.ModelAdmin):
@@ -8,6 +8,7 @@ class RunStatusAdmin(admin.ModelAdmin):
     readonly_fields = ('startTimestamp',)
 
 admin.site.register(NotebookJob)
+admin.site.register(NotebookObject)
 admin.site.register(RunStatus, RunStatusAdmin)
 admin.site.register(Connection)
 admin.site.register(ConnectionType)
