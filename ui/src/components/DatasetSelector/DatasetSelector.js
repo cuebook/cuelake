@@ -31,11 +31,11 @@ class DatasetSelector extends React.Component {
     .set("double", "doubleSum")
     .set("long", "longSum");
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       spec: null,
-      datasetLocation: null,
+      datasetLocation: this.props.defaultLocation ? this.props.defaultLocation : null,
       datasetDetails: {},
       visible: false,
       schemaVerified: false,

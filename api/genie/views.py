@@ -187,6 +187,18 @@ def datasetDetails(request: HttpRequest) -> Response:
     res = NotebookTemplateService.getDatasetDetails(datasetLocation)
     return Response(res.json())
 
+@api_view(["GET", "PUT"])
+def getNotebookObject(request: HttpRequest, notebookObjId: int) -> Response:
+    """
+    Method to get details of Notebook Object with given id
+    :param notebookObjId: ID of the notebook object
+    """
+    if request.method == "GET":
+        res = NotebookJobServices.getNotebookObject(notebookObjId)
+        return Response(res.json())
+    if request.method == "PUT":
+        res = NotebookJobServices.editNotebook(notebookObjId, request.data)
+        return Response(res.json())
 
 
 class NotebookTemplateView(APIView):
