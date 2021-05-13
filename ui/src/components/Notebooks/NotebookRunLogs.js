@@ -22,6 +22,7 @@ import {
 
 import notebookService from "services/notebooks.js";
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
+import { timehumanize } from 'services/general';
 var moment = require("moment");
 
 export default function NotebookRunLogs(props) {
@@ -118,6 +119,9 @@ export default function NotebookRunLogs(props) {
           diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
             trim: "both"
         });
+        }
+        if(diff){
+          diff = timehumanize(diff.split(" "))
         }
         let item = (
           <div> 

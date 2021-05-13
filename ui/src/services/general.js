@@ -29,3 +29,17 @@ export function search(data, keys, text) {
     }
     return obj;
   }
+
+  // Below function is responsible for ["4","secs", "3",mins"] to ["4","sec","3","min"]
+  
+export function timehumanize(temps){
+  var obj = "";
+  for (var temp of temps) {
+    if(temp.slice(-1) == "s"){
+      
+      temp = temp.slice(0,-1)
+    } 
+    obj = obj+" "+temp
+  }
+  return obj;
+}

@@ -20,6 +20,7 @@ import {
   } from "antd";
 
 import workflowsService from "services/workflows.js";
+import { timehumanize } from 'services/general';
 var moment = require("moment");
 
 export default function WorkflowRuns(props) {
@@ -99,21 +100,39 @@ export default function WorkflowRuns(props) {
       title: "Duration",
       dataIndex: "endTimestamp",
       key: "duration",
-      render: (text, record) => {
-        // const date = new Date(record.endTimestamp) - new Date(record.startTimestamp) 
-        let timeDiff = Math.round((new Date(record.endTimestamp) - new Date(record.startTimestamp))/1000)
-        let diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
+      align:"center",
+      render:(text, record) => {
+
+        let timeDiff;
+        if (record && record.startTimestamp && record.endTimestamp){
+          timeDiff = Math.round((new Date(record.endTimestamp) - new Date(record.startTimestamp))/1000)
+
+        }
+        let diff;
+        if (timeDiff){
+          diff =  moment.duration(timeDiff, "second").format("h [h] m [min] s [sec]", {
             trim: "both"
         });
-        return (
-          <span>
-            {record.startTimestamp && record.endTimestamp ?
-            diff
-            : null
-            }
-          </span>
-        );
-      }
+        if(diff){
+          diff = timehumanize(diff.split(" "))
+        }
+        }
+      
+          let item = (
+            <div> 
+            {record ? <TimeAgo date={record.startTimestamp} /> : null}
+             <div style={{fontSize:"12px"}}> 
+             {diff}
+              </div>
+            </div>
+          )
+          return (
+            <div>
+              {item} 
+              </div>
+            
+          );
+        }
     },
     // {
     //     title: "Actions",

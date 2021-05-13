@@ -29,9 +29,9 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
+import { timehumanize } from 'services/general';
 import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
 import Moment from "react-moment";
-
 var moment = require("moment");
 
 const { TabPane } = Tabs;
@@ -300,8 +300,10 @@ export default function Workflows(props) {
           diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
             trim: "both"
         });
+        if(diff){
+          diff = timehumanize(diff.split(" "))
         }
-      
+        }
           let item = (
             <div> 
             {lastRun ? <TimeAgo date={lastRun.startTimestamp} /> : null}
@@ -311,9 +313,9 @@ export default function Workflows(props) {
             </div>
           )
           return (
-            <span>
+            <div>
               {item} 
-            </span>
+           </div>
           );
         }
       },

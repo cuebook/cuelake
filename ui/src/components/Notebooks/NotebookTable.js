@@ -26,6 +26,8 @@ import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
+import { timehumanize } from 'services/general';
+
 var moment = require("moment");
 const { Option } = Select;
 const {Search} = Input
@@ -269,6 +271,9 @@ export default function NotebookTable() {
           diff =  moment.duration(timeDiff, "second").format("h [hrs] m [min] s [sec]", {
             trim: "both"
         });
+        }
+        if(diff){
+          diff = timehumanize(diff.split(" "))
         }
 
 

@@ -48,15 +48,18 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 except Exception as ex:
                     runStatus.status = NOTEBOOK_STATUS_ERROR
                     runStatus.message = str(ex)
+                    runStatus.endTimestamp = dt.datetime.now()
                     runStatus.save()
                     NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
             else:
                 runStatus.status=NOTEBOOK_STATUS_ERROR
                 runStatus.message = "Failed running notebook"
+                runStatus.endTimestamp = dt.datetime.now()
                 runStatus.save()
     except Exception as ex:
         runStatus.status=NOTEBOOK_STATUS_ERROR
         runStatus.message = str(ex)
+        runStatus.endTimestamp = dt.datetime.now()
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
 
@@ -81,9 +84,11 @@ def setNotebookStatus(response: dict, runStatus: RunStatus):
     for paragraph in paragraphs:
         if paragraph.get("status") != "FINISHED":
             runStatus.status=NOTEBOOK_STATUS_ERROR
+            runStatus.endTimestamp = dt.datetime.now()
             runStatus.save()
             NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title") + " " + paragraph.get("id") + " failed")
             return
     runStatus.status=NOTEBOOK_STATUS_SUCCESS
+    runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()
     NotificationServices.notify(notebookName=notebookName, isSuccess=True, message="Run successful")
