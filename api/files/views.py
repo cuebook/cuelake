@@ -19,9 +19,9 @@ class File(APIView):
 	"""
 	def post(self, request):
 		"""Uploads file"""
-		fileName = list(request.data.keys())[0]
-		file = request.data[fileName]
-		res = FilesServices.uploadFile(file, fileName)
+		key = list(request.data.keys())[0]
+		file = request.data[key]
+		res = FilesServices.uploadFile(file)
 		return Response(res.json())
 
 	def delete(self, request, key: str):
