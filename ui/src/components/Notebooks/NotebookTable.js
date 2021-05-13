@@ -20,9 +20,10 @@ import {
   Menu, 
   Dropdown
 } from "antd";
-import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined } from '@ant-design/icons';
+import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
+import EditNotebook from "./EditNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
 
@@ -39,6 +40,7 @@ export default function NotebookTable() {
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
   const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
+  const [editNotebookDrawerId, setEditNotebookDrawer] = useState(null);
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
@@ -196,9 +198,18 @@ export default function NotebookTable() {
     setIsNewNotebookDrawerVisible(true)
   }
 
+  const closeEditNotebookDrawer = () => {
+    setEditNotebookDrawer(null)
+  }
+
+  const openEditNotebookDrawer = notebookObjId => {
+    setEditNotebookDrawer(notebookObjId)
+  }
+
   const onAddNotebookSuccess = () => {
     refreshNotebooks((currentPage - 1)*10)
     closeNewNotebookDrawer()
+    closeEditNotebookDrawer()
   }
 
   
@@ -351,6 +362,13 @@ export default function NotebookTable() {
         )
         return (
           <div className={style.actions}>
+            { notebook.notebookObjId ?
+            <Tooltip title={"Edit"}>
+                <EditOutlined onClick={() => openEditNotebookDrawer(notebook.notebookObjId)} />
+            </Tooltip>
+            :
+            null              
+            }
             { notebook.lastRun && (notebook.lastRun.status === RUNNING ||  notebook.lastRun.status === PENDING)
               ?
               <Tooltip title={"Stop Notebook"}> 
@@ -468,6 +486,20 @@ export default function NotebookTable() {
           { isNewNotebookDrawerVisible 
             ? 
             <AddNotebook onAddNotebookSuccess={onAddNotebookSuccess}></AddNotebook>
+            :
+            null
+          }
+      </Drawer>
+      <Drawer
+          title={"Edit Notebook"}
+          width={720}
+          onClose={closeEditNotebookDrawer}
+          visible={editNotebookDrawerId}
+          bodyStyle={{ paddingBottom: 80 }}
+        >
+          { editNotebookDrawerId 
+            ? 
+            <EditNotebook onAddNotebookSuccess={onAddNotebookSuccess} notebookObjId={editNotebookDrawerId}></EditNotebook>
             :
             null
           }
