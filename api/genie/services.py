@@ -345,7 +345,7 @@ class NotebookJobServices:
     @staticmethod
     def stopNotebookJob(notebookId: str):
         """
-        Service to run notebook job
+        Service to stop notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
         # Updating runStatus that the task was aborted
@@ -357,7 +357,7 @@ class NotebookJobServices:
     @staticmethod
     def clearNotebookResults(notebookId: str):
         """
-        Service to run notebook job
+        Service to clear notebook job
         """
         res = ApiResponse(message="Error in clearing notebook")
         response = Zeppelin.clearNotebookResults(notebookId)
@@ -368,7 +368,7 @@ class NotebookJobServices:
     @staticmethod
     def cloneNotebook(notebookId: str, payload: dict):
         """
-        Service to run notebook job
+        Service to clone notebook job
         """
         res = ApiResponse(message="Error in cloning notebook")
         response = Zeppelin.cloneNotebook(notebookId, json.dumps(payload))
@@ -381,7 +381,7 @@ class NotebookJobServices:
         """
         Service to run notebook job
         """
-        res = ApiResponse(message="Error in cloning notebook")
+        res = ApiResponse(message="Error in deleting notebook")
         response = Zeppelin.deleteNotebook(notebookId)
         if response:
             res.update(True, "Notebook deleted successfully", None)
