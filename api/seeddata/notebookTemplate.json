@@ -497,7 +497,7 @@
           {
             "id": "paragraph_1620194627902_821169804",
             "apps": [],
-            "text": "import time\nimport json\nimport requests\n\ndruidUrl = \"{{druidLocation}}\"\ningestionSpec = \"\"\"{{datasetLocation|safe}}\"\"\"\n\ndruidIngestionResponse = requests.post(druidUrl, data=ingestionSpec, headers={'content-type': 'application/json'})\n\nprint(druidIngestionResponse.content)",
+            "text": "import time\nimport json\nimport requests\n\ndruidUrl = \"{{druidLocation}}\"\ningestionSpec = {{datasetLocation|safe}}\ningestionSpec = json.dumps(ingestionSpec)\n\ndruidIngestionResponse = requests.post(druidUrl, data=ingestionSpec, headers={'content-type': 'application/json'})\n\nprint(druidIngestionResponse.content)",
             "user": "anonymous",
             "title": "Druid Ingestion Task Initiation",
             "config": {

@@ -103,6 +103,8 @@ class NotebookJobServices:
         :param notebookTemplate: NotebookTemplate object on which to base notebook
         :param payload: Dict containing notebook template variables
         """
+        if "datasetLocation" in payload:
+            payload["datasetLocation"] = json.loads(payload["datasetLocation"])
         context = payload # Storing payload in context variable so that it can be used for rendering
         connection = None
         # Handling connection variables
