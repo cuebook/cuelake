@@ -16,6 +16,13 @@ class NotebookOperationsView(APIView):
         res = NotebookJobServices.deleteNotebook(notebookId)
         return Response(res.json())
 
+class ArchivedNotebooksView(APIView):
+    """
+    Class to get archived notebooks
+    """
+    def get(self, request):
+        res = NotebookJobServices.archivedNotebooks()
+        return Response(res.json())
 
 class NotebookActionsView(APIView):
     """
@@ -33,8 +40,23 @@ class NotebookActionsView(APIView):
         res = NotebookJobServices.clearNotebookResults(notebookId)
         return Response(res.json())
 
-        
-class NotebooksLight(APIView):
+class ArchiveNotebookView(APIView):
+    """
+    Class to archive notebook
+    """
+    def get(self, request, notebookId, notebookName):
+        res = NotebookJobServices.archiveNotebook(notebookId, notebookName)
+        return Response(res.json())
+                
+class UnarchiveNotebookView(APIView):
+    """
+    Class to archive notebook
+    """
+    def get(self, request, notebookId, notebookName):
+        res = NotebookJobServices.unarchiveNotebook(notebookId, notebookName)
+        return Response(res.json())
+                
+class NotebooksLightView(APIView):
     """
     Get concise notebook data
     """
