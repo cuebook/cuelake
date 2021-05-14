@@ -12,12 +12,14 @@ class ZeppelinAPI:
     """
     Functionalities around zeppelin APIs
     """
-    def getAllNotebooks(self):
+    def getAllNotebooks(self, folder=""):
         """
         Return all notebooks from zeppelin
         """
         response = requests.get(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}")
-        return self.__parseResponse(response)
+        data = self.__parseResponse(response)
+        data = [ x for x in data if x['path'].split("/")[-2]==folder ]
+        return data
 
     async def getNotebookStatus(self, notebookId: str):
         """

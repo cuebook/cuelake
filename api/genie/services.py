@@ -72,7 +72,18 @@ class NotebookJobServices:
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
-    
+
+    @staticmethod
+    def archivedNotebooks():
+        """
+        Get archived notebooks
+        """
+        res = ApiResponse(message="Error retrieving archived notebooks")
+        notebooks = Zeppelin.getAllNotebooks("~Trash")
+        if notebooks:
+            res.update(True, "Archived notebooks retrieved successfully", notebooks)
+        return res
+
     @staticmethod
     def getNotebookObject(notebookObjId: int):
         """
@@ -376,6 +387,28 @@ class NotebookJobServices:
         response = Zeppelin.cloneNotebook(notebookId, json.dumps(payload))
         if response:
             res.update(True, "Notebook cloned successfully", None)
+        return res
+
+    @staticmethod
+    def archiveNotebook(notebookId: str, notebookName: str):
+        """ 
+        Service to run notebook 
+        """
+        res = ApiResponse(message="Error in archiving notebook")
+        response = Zeppelin.renameNotebook(notebookId, "~Trash/" + notebookName)
+        if response:
+            res.update(True, "Notebook archived successfully", None)
+        return res
+
+    @staticmethod
+    def unarchiveNotebook(notebookId: str, notebookName: str):
+        """
+        Service to unarchive notebook 
+        """
+        res = ApiResponse(message="Error in archiving notebook")
+        response = Zeppelin.renameNotebook(notebookId, notebookName)
+        if response:
+            res.update(True, "Notebook archived successfully", None)
         return res
 
     @staticmethod
