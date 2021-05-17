@@ -41,7 +41,7 @@ class WorkflowServices:
         Service to fetch and serialize Workflows
         :param offset: Offset for fetching NotebookJob objects
         """
-        LIMIT = 10
+        LIMIT = 25
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
         total = workflows.count()

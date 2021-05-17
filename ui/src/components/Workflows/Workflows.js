@@ -96,7 +96,7 @@ export default function Workflows(props) {
     }, []);
 
     const refreshWorkflows = async () => {
-      const offset = (currentPageRef.current - 1)*10
+      const offset = (currentPageRef.current - 1)*25
       const response = await workflowsService.getWorkflows(offset);
       if(response){
         setWorkflows(response.workflows);
@@ -106,7 +106,7 @@ export default function Workflows(props) {
 
     const handleTableChange = (event) => {
       setCurrentPage(event.current)
-      getWorkflows((event.current - 1)*10)
+      getWorkflows((event.current - 1)*25)
     }
 
     const getNotebooksLight = async () => {
@@ -525,7 +525,7 @@ export default function Workflows(props) {
                 }}
                 pagination={{
                   current: currentPage,
-                  pageSize: 10,
+                  pageSize: 25,
                   total: total ? total : 0
                 }}
                 onChange={(event) => handleTableChange(event)}

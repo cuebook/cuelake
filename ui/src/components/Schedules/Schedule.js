@@ -135,8 +135,11 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
             rowKey={"id"}
             scroll={{ x: "100%" }}
             columns={columns}
+            size={"small"}
             dataSource={schedules}
-            pagination={false}
+            pagination={{
+              pageSize: 25,
+            }}
         />
         <Drawer
           title={"Add Connection"}

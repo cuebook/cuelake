@@ -9,6 +9,7 @@ from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
 from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
+from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
@@ -19,7 +20,7 @@ from django.conf import settings
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
-GET_NOTEBOOKOJECTS_LIMIT = 10
+GET_NOTEBOOKOJECTS_LIMIT = 25
 RUN_STATUS_LIMIT = 10
 
 class NotebookJobServices:
@@ -40,7 +41,7 @@ class NotebookJobServices:
         return notebookStatuses
 
     @staticmethod
-    def getNotebooks(offset: int = 0):
+    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sortOn: str = None, isAsc: bool = False):
         """
         Service to fetch and serialize NotebookJob objects
         Number of NotebookObjects fetched is stored as the constant GET_NOTEBOOKOJECTS_LIMIT
@@ -48,6 +49,8 @@ class NotebookJobServices:
         """
         res = ApiResponse(message="Error retrieving notebooks")
         notebooks = Zeppelin.getAllNotebooks()
+        if searchQuery:
+            notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
         if notebooks:
             notebookCount = len(notebooks)
             notebooks = notebooks[offset: offset + GET_NOTEBOOKOJECTS_LIMIT]
@@ -387,6 +390,15 @@ class NotebookJobServices:
             res.update(True, "Notebook deleted successfully", None)
         return res
 
+    @staticmethod
+    def search(notebooks, keys, text):
+        """ utitlites function for search """
+        filterNotebooks = []
+        for notebook in notebooks:
+            if text.lower() in notebook["path"].lower():
+                filterNotebooks.append(notebook)
+
+        return filterNotebooks
 
 class Connections:
 

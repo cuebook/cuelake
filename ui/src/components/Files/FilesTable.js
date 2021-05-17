@@ -153,6 +153,9 @@ export default function FilesTable(props) {
             // showHeader={false}
             loading={loading}
             size={"small"}
+            pagination={{
+              pageSize: 25
+            }}
         />
     </div>
 }

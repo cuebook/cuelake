@@ -17,6 +17,13 @@ class NotebookService {
         else
             return null
     }
+    async getAllNotebooks(offset, limit, searchText, onSort, isAsc){
+        const response = await apiService.get("genie/notebooks/" + offset + "?arrays="+[limit, searchText, onSort, isAsc] )
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
     async getDriverAndExecutorStatus(){
         const response = await apiService.get("genie/driverAndExecutorStatus/" )
         if(response.success == true)

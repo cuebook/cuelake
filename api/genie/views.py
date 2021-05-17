@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices
@@ -47,8 +48,22 @@ class NotebookView(APIView):
     """
     Class to get notebooks from zeppelin server
     """
-    def get(self, request, offset: int):
-        res = NotebookJobServices.getNotebooks(offset)
+    def get(self, request, offset: int ):
+        arrays = request.GET.get('arrays',None)
+        payloadString = ''
+        payload = []
+        if arrays:
+            for i in arrays:
+                payloadString = payloadString+str(i)
+            payload = payloadString.split(',')
+        if len(payload)>0 :
+            limit = int(payload[0])
+            searchQuery = payload[1]
+            sortOn = payload[2]
+            isAsc = json.loads(payload[3].lower())
+            res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sortOn, isAsc)
+        else:
+            res = NotebookJobServices.getNotebooks(offset)
         return Response(res.json())
 
     def post(self, request):
