@@ -200,6 +200,17 @@ export default function NotebookTable() {
     }
   }
 
+  const archiveNotebook = async (notebook) => {
+    const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1))
+    if(response.success){
+      message.success("Notebook " + notebook.name.substring(1) + " moved to archive")
+      refreshNotebooks((currentPage - 1)*10)
+    }
+    else{
+      message.error(response.message)
+    }
+  }
+
   const deleteNotebook = async (notebook) => {
     const response = await notebookService.deleteNotebook(notebook.id)
     if(response.success){
@@ -447,7 +458,12 @@ export default function NotebookTable() {
               Clone Notebook
             </Menu.Item>
             <Menu.Divider />
-            <Menu.Item key="1">
+            <Menu.Item key="1" onClick={() => archiveNotebook(notebook)} >
+              <i className="fa fa-archive"></i>{"  "}
+              Archive Notebook
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="2">
               <Popconfirm
                   title={"Are you sure to delete "+ notebook.name.substring(1) +"?"}
                   onConfirm={() => deleteNotebook(notebook)}
@@ -459,7 +475,7 @@ export default function NotebookTable() {
               </Popconfirm>
             </Menu.Item>
             <Menu.Divider />
-            <Menu.Item key="2" onClick={() => openRunLogs(notebook)} >
+            <Menu.Item key="3" onClick={() => openRunLogs(notebook)} >
               <UnorderedListOutlined />
               View Run Logs
             </Menu.Item>

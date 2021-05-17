@@ -20,10 +20,19 @@ class NotebookService {
     async getAllNotebooks(offset, limit, searchText, onSort, isAsc){
         const response = await apiService.get("genie/notebooks/" + offset + "?arrays="+[limit, searchText, onSort, isAsc] )
         if(response.success == true)
+        return response.data
+    else
+        return null
+}
+
+    async getArchivedNotebooks(){
+        const response = await apiService.get("genie/notebooks/archive")
+        if(response.success == true)
             return response.data
         else
             return null
     }
+
     async getDriverAndExecutorStatus(){
         const response = await apiService.get("genie/driverAndExecutorStatus/" )
         if(response.success == true)
@@ -129,6 +138,16 @@ class NotebookService {
 
     async cloneNotebook(notebookId, newNotebookName){
         const response = await apiService.post("genie/notebook/" + notebookId, {name: newNotebookName})
+        return response
+    }
+
+    async archiveNotebook(notebookId, notebookName){
+        const response = await apiService.get("genie/notebook/" + notebookId + "/archive/" + notebookName)
+        return response
+    }
+
+    async unarchiveNotebook(notebookId, notebookName){
+        const response = await apiService.get("genie/notebook/" + notebookId + "/unarchive/" + notebookName)
         return response
     }
 
