@@ -64,6 +64,7 @@ export default function FilesTable(props) {
         title: "File",
         dataIndex: "Key",
         key: "Key",
+        sorter:(a,b)=>{return a.Key.localeCompare(b.Key)},
         render: text => {
           return (
             <span>
@@ -76,6 +77,7 @@ export default function FilesTable(props) {
         title: "Last Modified",
         dataIndex: "LastModified",
         key: "LastModified",
+        sorter:(a,b)=>{return a.LastModified.localeCompare(b.LastModified)},
         render: text => {
           return (
             <span>
@@ -88,6 +90,7 @@ export default function FilesTable(props) {
         title: "Size",
         dataIndex: "Size",
         key: "Size",
+        sorter:(a,b)=>a.Size - b.Size,
         render: text => {
           return (
             <span>

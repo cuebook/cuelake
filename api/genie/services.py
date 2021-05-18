@@ -41,16 +41,103 @@ class NotebookJobServices:
         return notebookStatuses
 
     @staticmethod
-    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sortOn: str = None, isAsc: bool = False):
+    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sortOn: str = None, isAsc: str = None):
         """
         Service to fetch and serialize NotebookJob objects
         Number of NotebookObjects fetched is stored as the constant GET_NOTEBOOKOJECTS_LIMIT
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving notebooks")
+        # breakpoint()
         notebooks = Zeppelin.getAllNotebooks()
         if searchQuery:
             notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
+        if sortOn:
+            sortedNotebookId= []
+            if sortOn == "schedule" and isAsc == 'ascend':
+               sortedNotebookId = NotebookJob.objects.all().order_by("crontab__customschedule__name").values_list("notebookId", flat=True)
+               for notebookId in sortedNotebookId[::-1]:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            toAddNotebook = notebook
+                            notebooks.remove(notebook)
+                            notebooks.insert(0, toAddNotebook)
+            if sortOn == "schedule" and isAsc == 'descend':
+               sortedNotebookId = NotebookJob.objects.all().order_by("-crontab__customschedule__name").values_list("notebookId", flat=True)
+               for notebookId in sortedNotebookId:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            toAddNotebook = notebook
+                            notebooks.remove(notebook)
+                            notebooks.append(toAddNotebook)
+
+            if sortOn == 'name' and isAsc == 'ascend':
+                notebooks = sorted(notebooks, key = lambda notebook: notebook["path"])
+            
+            if sortOn == 'name' and isAsc == 'descend':
+                notebooks = sorted(notebooks, key = lambda notebook: notebook["path"], reverse=True)
+
+            if sortOn == "assignedWorkflow"and isAsc == 'ascend':
+                workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
+                sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
+                notebookIds = WorkflowNotebookJob.objects.filter(workflow_id__in=sortedWorkflowIds).values_list("notebookId",flat=True)
+                reversedNotebookIds = notebookIds[::-1]
+                for notebookId in reversedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.insert(0, notebook)
+            if sortOn == "assignedWorkflow"and isAsc == 'descend':
+                workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
+                sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
+                notebookIds = WorkflowNotebookJob.objects.filter(workflow_id__in=sortedWorkflowIds).values_list("notebookId",flat=True)
+                reversedNotebookIds = notebookIds[::-1]
+                for notebookId in reversedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.append(notebook)
+
+            if sortOn == "lastRun1" and isAsc == "ascend":
+                notebookIds = [notebook["id"] for notebook in notebooks]
+                sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+                reversedNotebookIds = sortedNotebookIds[::-1]
+                for notebookId in reversedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.insert(0,notebook)
+            if sortOn == "lastRun1" and isAsc == "descend":
+                notebookIds = [notebook["id"] for notebook in notebooks]
+                sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+                reversedNotebookIds = sortedNotebookIds[::-1]
+                for notebookId in sortedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.append(notebook)
+            if sortOn == "lastRun2" and isAsc == "ascend":
+                notebookIds = [notebook["id"] for notebook in notebooks]
+                # breakpoint()
+                sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
+                reversedNotebookIds = sortedNotebookIds[::-1]
+                for notebookid in reversedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookid == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.insert(0,notebook)
+            if sortOn == "lastRun2" and isAsc == "descend":
+                notebookIds = [notebook["id"] for notebook in notebooks]
+                sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
+                reversedNotebookIds = sortedNotebookIds[::-1]
+                for notebookId in reversedNotebookIds:
+                    for notebook in notebooks:
+                        if notebookId == notebook["id"]:
+                            notebooks.remove(notebook)
+                            notebooks.append(notebook)
+
+
+        # breakpoint()
         if notebooks:
             notebookCount = len(notebooks)
             notebooks = notebooks[offset: offset + GET_NOTEBOOKOJECTS_LIMIT]

@@ -35,8 +35,9 @@ const {Search} = Input
 
 export default function NotebookTable() {
 
+  const [sortedInfo , setSortedInfo] = useState({});
   const [limit, setLimit] = useState(25);
-  const [isAsc, setAsc] = useState(false)
+  const [isAsc, setAsc] = useState()
   const [searchText, setSearchText] = useState('');
   const [onSort, setOnSort] = useState("");
   const [filterNotebook, setFilterNotebook] = useState([]);
@@ -54,7 +55,7 @@ export default function NotebookTable() {
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
-
+  
   useEffect(() => {
     if (!notebooks.length) {
         getNotebooks(0);
@@ -62,11 +63,11 @@ export default function NotebookTable() {
 
     const refreshNotebookInterval = setInterval(() => {
       refreshNotebooks((currentPageRef.current - 1)*25)
-    }, 3000);
+    }, 300000);
 
     const refreshPodStatus = setInterval(() => {
       refreshDriverStatus()
-    }, 3000);
+    }, 300000);
 
     return () => {
       clearInterval(refreshNotebookInterval);
@@ -87,16 +88,18 @@ export default function NotebookTable() {
   const getSearchText = (value) => {
     setSearchText(value)
   }
-  const getAllNotebook = async (offset, value) => {
-    if(_.isEmpty(searchText) && _.isEmpty(value)){
+  const getAllNotebook = async (offset, value, columnToSort , sortOrder) => {
+    if(_.isEmpty(searchText) && _.isEmpty(value) && _.isEmpty(columnToSort)){
       setSearchText(value)
+      setOnSort(columnToSort)
+      setAsc(sortOrder)
       return
     }
     setLoading(true)
-    const response = await notebookService.getAllNotebooks(offset, limit, value, onSort, isAsc );
+    const response = await notebookService.getAllNotebooks(offset, limit, value, columnToSort, sortOrder );
 
     if(response){
-      setFilterNotebook(response.notebooks);
+      setFilterNotebook(response);
     }
     else{
       setFilterNotebook(null)
@@ -139,11 +142,22 @@ export default function NotebookTable() {
     }
   }
 
-  const handleTableChange = (event) => {
+  const handleTableChange = (event, filter, sorter) => {
+    setSortedInfo(sorter)
+    setOnSort(sorter.columnKey)
+    setAsc(sorter.order)
+    console.log('sorter', sorter, "event", event)
+    // console.log('onsort',onSort, sortedInfo)
     setCurrentPage(event.current)
     setLimit(event.current*25)
-    getNotebooks((event.current - 1)*25)
+    if (sorter.column){
+
+      getAllNotebook((event.current - 1)*25, searchText, sorter.columnKey, sorter.order)
+    }
+    if(event){
+      getNotebooks((event.current - 1)*25)
   }
+}
 
   const navigateToNotebook = (record) => {
     if(history.location.pathname.indexOf("api/redirect") !== -1)
@@ -261,17 +275,8 @@ export default function NotebookTable() {
      setFilterNotebook([])
      return
    }
-    getAllNotebook(0, value)
+    getAllNotebook(0, value, onSort, isAsc)
   };
-
-  // const onsort = (val) => { 
-  //   setOnSort(val) 
-  //   setAsc(true)
-  // //  setSearchText(value)
-  // //  getSearchText(value)
-  //   getAllNotebook((currentPage - 1)*25)
-  // }
-  
 
   const columns = [
     {
@@ -279,6 +284,10 @@ export default function NotebookTable() {
       dataIndex: "name",
       key: "name",
       width: "20%",
+      sorter: ()=>{},
+      sortOrder: sortedInfo["columnKey"] === 'name' && sortedInfo.order,
+      ellipsis: true,
+
       render: text => {
         return (
           <span key={text}>
@@ -292,6 +301,9 @@ export default function NotebookTable() {
       dataIndex: "schedule",
       key: "schedule",
       width: "20%",
+      sorter: ()=>{},
+      sortOrder: sortedInfo["columnKey"] === 'schedule' && sortedInfo.order,
+      ellipsis: true,
       render: (schedule, notebook) => {
         if(schedule && selectedNotebook != notebook.id){
           return (
@@ -326,6 +338,10 @@ export default function NotebookTable() {
       dataIndex: "assignedWorkflow",
       key: "assignedWorkflow",
       assign:"left",
+
+      sorter: ()=>{},
+      sortOrder: sortedInfo["columnKey"] === 'assignedWorkflow' && sortedInfo.order,
+      ellipsis: true,
       // width: "10%",
       render: (text,record) => {
         var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow && record.lastRun.assignedWorkflow.map(e => {
@@ -354,9 +370,11 @@ export default function NotebookTable() {
     {
       title: "Latest Run",
       dataIndex: "lastRun",
-      key: "lastRun",
+      key: "lastRun1",
       width: "10%",
-      // align:"center",
+      sorter: ()=>{},
+      sortOrder: sortedInfo["columnKey"] === 'lastRun' && sortedInfo.order,
+      ellipsis: true,
       render: lastRun => {
         let timeDiff;
         if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
@@ -392,8 +410,12 @@ export default function NotebookTable() {
     {
       title: "Latest Run Status",
       dataIndex: "lastRun",
-      key: "lastRun",
+      key: "lastRun2",
       width: "10%",
+
+      sorter: ()=>{},
+      sortOrder: sortedInfo["columnKey"] === 'lastRun2' && sortedInfo.order,
+      ellipsis: true,
       render: (lastRun) => {
         return (
           <span>
@@ -574,15 +596,15 @@ export default function NotebookTable() {
         rowKey={"id"}
         scroll={{ x: "100%" }}
         columns={columns}
-        dataSource={filterNotebook != null &&  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook}
+        onChange={handleTableChange}
+        dataSource={filterNotebook != null &&  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
         loading={loading}
         size={"small"}
         pagination={{
           current: currentPage,
           pageSize:25,
-          total: filterNotebook != null && filterNotebook.length !=0 ? filterNotebook.length :(notebooks ? notebooks.count : 0) 
+          total: filterNotebook != null && filterNotebook.length !=0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
         }}
-        onChange={(event) => handleTableChange(event)}
       />
       <Drawer
           title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
