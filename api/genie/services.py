@@ -519,7 +519,7 @@ class NotebookTemplateService:
         ingestionSpec = DruidIngestionSpecGenerator.getIngestionSpec(
             datasetLocation=datasetLocation, datasetSchema=schema
         )
-        s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": x.logical_type.type}, schema))
+        s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": "TIMESTAMP" if x.physical_type == "INT96" else x.logical_type.type}, schema))
         datasetDetails = {
             "dremioSchema": s3DatasetSchema,
             "druidIngestionSpec": ingestionSpec
