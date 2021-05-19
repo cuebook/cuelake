@@ -38,10 +38,14 @@ const { TabPane } = Tabs;
 const { Option } = Select;
 
 export default function Workflows(props) {
+    const [sortedInfo, setSortedInfo] = useState({})
+    const [isAsc, setAsc] = useState()
+    const [onSort, setOnSort] = useState("");
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [notebooksLight, setNotebooksLight] = useState([])
     const [total, setTotal] = useState('');
+    const [filterWorkflows, setFitlerWorkflows] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
     const [selectedWorkflow, setSelectedWorkflow] = useState('');
@@ -75,6 +79,20 @@ export default function Workflows(props) {
       if(!offset) setCurrentPage(1)
     };
 
+    const getAllWorkflow = async (offset, columnToSort, order) => {
+      if(_.isEmpty(columnToSort)){
+        return 
+      }
+      setLoading(true)
+      const response = await workflowsService.getAllWorkflows(offset, columnToSort, order);
+      console.log('response', response)
+      if(response){
+        setFitlerWorkflows(response);
+        setTotal(response.Total)
+      }
+      setLoading(false)
+    };
+
     const openRunLogs = workflow => {
         setSelectedWorkflow(workflow)
         setIsRunLogsDrawerVisible(true)
@@ -88,7 +106,7 @@ export default function Workflows(props) {
     useEffect(() => {
       getNotebooksLight()
       if (!componentDidMount){ refreshWorkflows(); setComponentDidMount(true)}
-      const refreshWorkflowsInterval = setInterval(refreshWorkflows, 3000);
+      const refreshWorkflowsInterval = setInterval(refreshWorkflows, 300000);
 
       return () => {
         clearInterval(refreshWorkflowsInterval);
@@ -104,9 +122,19 @@ export default function Workflows(props) {
       }
     };
 
-    const handleTableChange = (event) => {
+    const handleTableChange = (event, filter, sorter) => {
+      setSortedInfo(sorter)
       setCurrentPage(event.current)
+      setOnSort(sorter.columnKey)
+      setAsc(sorter.order)
+      if(sorter.column)
+      {
+        getAllWorkflow((event.current - 1)*25, sorter.columnKey, sorter.order)
+      }
+      if(event)
+      {
       getWorkflows((event.current - 1)*25)
+      }
     }
 
     const getNotebooksLight = async () => {
@@ -202,7 +230,10 @@ export default function Workflows(props) {
       {
         title: "Workflow",
         dataIndex: "name",
-        key: "workflow",
+        key: "name",
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
+      ellipsis: true,
         render: text => {
           return (
             <span>
@@ -215,6 +246,9 @@ export default function Workflows(props) {
         title: 'Trigger Workflow',
         dataIndex: "triggerWorkflow",
         key: "triggerWorkflow",
+        sorter: ()=>{},
+        sortOrder: sortedInfo.columnKey === 'triggerWorkflow' && sortedInfo.order,
+        ellipsis: true,
         render: (text, workflow) => {
           if (workflow.triggerWorkflow){
               return (
@@ -257,6 +291,9 @@ export default function Workflows(props) {
         title: 'Schedule',
         dataIndex: "schedule",
         key: "schedule",
+        sorter: ()=>{},
+        sortOrder: sortedInfo.columnKey === 'schedule' && sortedInfo.order,
+        ellipsis: true,
         render: (text, workflow) => {
           if (workflow.schedule){
               return (
@@ -283,6 +320,9 @@ export default function Workflows(props) {
         dataIndex: "lastRun",
         key: "lastRunTime",
         align:"center",
+        sorter: ()=>{},
+        sortOrder: sortedInfo.columnKey === 'lastRunTime' && sortedInfo.order,
+        ellipsis: true,
         sorter: (a, b) => {
           return Math.abs(
             new Date(a.lastRun ? a.lastRun.startTimestamp : null) - new Date(b.lastRun ? b.lastRun.startTimestamp : null)
@@ -324,6 +364,9 @@ export default function Workflows(props) {
         title: "Last run status",
         dataIndex: "lastRun",
         key: "lastRunStatus",
+        // sorter: ()=>{},
+        sortOrder: sortedInfo.columnKey === 'lastRunStatus' && sortedInfo.order,
+        ellipsis: true,
         render: lastRun => {
           return (
             <span>
@@ -516,7 +559,8 @@ export default function Workflows(props) {
                 rowKey={"id"}
                 scroll={{ x: "100%" }}
                 columns={columns}
-                dataSource={workflows}
+                onChange={handleTableChange}
+                dataSource={filterWorkflows ? filterWorkflows.workflows:workflows}
                 // showHeader={false}
                 loading={loading}
                 size={"small"}
@@ -526,9 +570,8 @@ export default function Workflows(props) {
                 pagination={{
                   current: currentPage,
                   pageSize: 25,
-                  total: total ? total : 0
+                  total: filterWorkflows ? filterWorkflows.total : total ? total : 0
                 }}
-                onChange={(event) => handleTableChange(event)}
             />
             <Drawer
                 title={(selectedWorkflow ? selectedWorkflow.name : "")}

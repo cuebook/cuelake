@@ -63,11 +63,11 @@ export default function NotebookTable() {
 
     const refreshNotebookInterval = setInterval(() => {
       refreshNotebooks((currentPageRef.current - 1)*25)
-    }, 300000);
+    }, 3000);
 
     const refreshPodStatus = setInterval(() => {
       refreshDriverStatus()
-    }, 300000);
+    }, 3000);
 
     return () => {
       clearInterval(refreshNotebookInterval);
@@ -97,12 +97,11 @@ export default function NotebookTable() {
     }
     setLoading(true)
     const response = await notebookService.getAllNotebooks(offset, limit, value, columnToSort, sortOrder );
-
     if(response){
       setFilterNotebook(response);
     }
     else{
-      setFilterNotebook(null)
+      setFilterNotebook([0])
     }
     setLoading(false)
   };
@@ -146,8 +145,6 @@ export default function NotebookTable() {
     setSortedInfo(sorter)
     setOnSort(sorter.columnKey)
     setAsc(sorter.order)
-    console.log('sorter', sorter, "event", event)
-    // console.log('onsort',onSort, sortedInfo)
     setCurrentPage(event.current)
     setLimit(event.current*25)
     if (sorter.column){
@@ -285,7 +282,7 @@ export default function NotebookTable() {
       key: "name",
       width: "20%",
       sorter: ()=>{},
-      sortOrder: sortedInfo["columnKey"] === 'name' && sortedInfo.order,
+      sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
       ellipsis: true,
 
       render: text => {
@@ -302,7 +299,7 @@ export default function NotebookTable() {
       key: "schedule",
       width: "20%",
       sorter: ()=>{},
-      sortOrder: sortedInfo["columnKey"] === 'schedule' && sortedInfo.order,
+      sortOrder: sortedInfo.columnKey === 'schedule' && sortedInfo.order,
       ellipsis: true,
       render: (schedule, notebook) => {
         if(schedule && selectedNotebook != notebook.id){
@@ -340,7 +337,7 @@ export default function NotebookTable() {
       assign:"left",
 
       sorter: ()=>{},
-      sortOrder: sortedInfo["columnKey"] === 'assignedWorkflow' && sortedInfo.order,
+      sortOrder: sortedInfo.columnKey === 'assignedWorkflow' && sortedInfo.order,
       ellipsis: true,
       // width: "10%",
       render: (text,record) => {
@@ -373,7 +370,7 @@ export default function NotebookTable() {
       key: "lastRun1",
       width: "10%",
       sorter: ()=>{},
-      sortOrder: sortedInfo["columnKey"] === 'lastRun' && sortedInfo.order,
+      sortOrder: sortedInfo.columnKey === 'lastRun1' && sortedInfo.order,
       ellipsis: true,
       render: lastRun => {
         let timeDiff;
@@ -411,10 +408,10 @@ export default function NotebookTable() {
       title: "Latest Run Status",
       dataIndex: "lastRun",
       key: "lastRun2",
-      width: "10%",
+      width: "15%",
 
       sorter: ()=>{},
-      sortOrder: sortedInfo["columnKey"] === 'lastRun2' && sortedInfo.order,
+      sortOrder: sortedInfo.columnKey === 'lastRun2' && sortedInfo.order,
       ellipsis: true,
       render: (lastRun) => {
         return (
@@ -597,13 +594,13 @@ export default function NotebookTable() {
         scroll={{ x: "100%" }}
         columns={columns}
         onChange={handleTableChange}
-        dataSource={filterNotebook != null &&  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
+        dataSource={  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
         loading={loading}
         size={"small"}
         pagination={{
           current: currentPage,
           pageSize:25,
-          total: filterNotebook != null && filterNotebook.length !=0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
+          total:  filterNotebook.length != 0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
         }}
       />
       <Drawer

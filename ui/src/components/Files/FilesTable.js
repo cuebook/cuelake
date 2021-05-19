@@ -77,7 +77,7 @@ export default function FilesTable(props) {
         title: "Last Modified",
         dataIndex: "LastModified",
         key: "LastModified",
-        sorter:(a,b)=>{return a.LastModified.localeCompare(b.LastModified)},
+        sorter: (a, b) => new Date(a.LastModified) - new Date(b.LastModified),
         render: text => {
           return (
             <span>
