@@ -7,13 +7,13 @@ import datetime as dt
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
-from genie.tasks import runNotebookJob as runNotebookJobTask, checkIfNotebookRunning
+from genie.tasks import runNotebookJob as runNotebookJobTask
 from kubernetes import config, client
 from django.conf import settings
 
@@ -443,7 +443,8 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        runNotebookJobTask.delay(notebookId=notebookId, runType="Manual")
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id, runType="Manual")
         res.update(True, "Notebook triggered successfully", None)
         return res
 

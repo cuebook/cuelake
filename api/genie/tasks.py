@@ -14,6 +14,7 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+ZEPPELIN_API_RETRY_COUNT = 3
 
 @shared_task
 def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Scheduled"):
@@ -22,17 +23,13 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     :param notebookId: ID of the zeppelin notebook which to run
     :param runStatusId: ID of genie.runStatus model
     """
-    if not runStatusId:
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType)
-    else:
-        runStatus = RunStatus.objects.get(id=runStatusId)
-        runStatus.startTimestamp = dt.datetime.now()
-        runStatus.save()
+    logger.info(f"Starting notebook job for: {notebookId}")
+    runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType)
 
     try:
         # Check if notebook is already running
-        isRunning, notebookName = checkIfNotebookRunning(notebookId)
-        if(isRunning):
+        isRunning, notebookName = __checkIfNotebookRunning(notebookId)
+        if isRunning:
             runStatus.status=NOTEBOOK_STATUS_ERROR
             runStatus.message="Notebook already running"
             runStatus.save()
@@ -43,52 +40,99 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
             if response:
                 try:
                     polling.poll(
-                        lambda: checkIfNotebookRunningAndStoreLogs(notebookId, runStatus) != True, step=3, timeout=3600
+                        lambda: __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus) != True, step=3, timeout=3600*6
                     )
                 except Exception as ex:
+                    logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
                     runStatus.status = NOTEBOOK_STATUS_ERROR
                     runStatus.message = str(ex)
                     runStatus.endTimestamp = dt.datetime.now()
                     runStatus.save()
                     NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
             else:
+                logger.error(f"Error occured in notebook {notebookId}. Error: Failed to trigger notebook job")
                 runStatus.status=NOTEBOOK_STATUS_ERROR
                 runStatus.message = "Failed running notebook"
                 runStatus.endTimestamp = dt.datetime.now()
                 runStatus.save()
     except Exception as ex:
+        logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
         runStatus.status=NOTEBOOK_STATUS_ERROR
         runStatus.message = str(ex)
         runStatus.endTimestamp = dt.datetime.now()
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
 
-def checkIfNotebookRunning(notebookId: str):
+def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str):
+    """
+    Gets or creates a notebook run status object
+    """
+    if not runStatusId:
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType)
+    else:
+        runStatus = RunStatus.objects.get(id=runStatusId)
+        runStatus.startTimestamp = dt.datetime.now()
+        runStatus.status = NOTEBOOK_STATUS_RUNNING
+        runStatus.save()
+    return runStatus
+
+def __checkIfNotebookRunning(notebookId: str):
+    """
+    Checks if notebook is running and returns tuple of isNotebookRunning, notebookName
+    """
     response = Zeppelin.getNotebookDetails(notebookId)
-    isNotebookRunning = response.get("info", {}).get("isRunning", False)
-    notebookName = response.get("name", "Undefined")
+    isNotebookRunning = False
+    notebookName = ""
+    if response:
+        isNotebookRunning = response.get("info", {}).get("isRunning", False)
+        notebookName = response.get("name", "")
     return isNotebookRunning, notebookName
 
-def checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
-    response = Zeppelin.getNotebookDetails(notebookId)
-    runStatus.logs = json.dumps(response)
-    runStatus.save()
-    isNotebookRunning = response.get("info", {}).get("isRunning", False)
-    if not isNotebookRunning:
-        setNotebookStatus(response, runStatus)
-    return isNotebookRunning
+def __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
+    """
+    Checks if notebook is running and stores logs
+    """
+    response = __getNotebookDetails(notebookId)
+    if response:
+        runStatus.logs = json.dumps(response)
+        runStatus.save()
+        isNotebookRunning = response.get("info", {}).get("isRunning", False)
+        if not isNotebookRunning:
+            __setNotebookStatus(response, runStatus)
+        return isNotebookRunning
+    else:
+        __setNotebookStatus(response, runStatus)
+        return False
 
-def setNotebookStatus(response: dict, runStatus: RunStatus):
-    paragraphs = response.get("paragraphs", [])
-    notebookName = response.get("name", "Undefined")
-    for paragraph in paragraphs:
-        if paragraph.get("status") != "FINISHED":
-            runStatus.status=NOTEBOOK_STATUS_ERROR
-            runStatus.endTimestamp = dt.datetime.now()
-            runStatus.save()
-            NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title") + " " + paragraph.get("id") + " failed")
-            return
-    runStatus.status=NOTEBOOK_STATUS_SUCCESS
+
+def __getNotebookDetails(notebookId: str, retryCount: int = 0):
+    """
+    Gets notebook details with a retry mechanism
+    """
+    response = Zeppelin.getNotebookDetails(notebookId)
+    if response:
+        return response
+    else:
+        if retryCount < ZEPPELIN_API_RETRY_COUNT:
+            return __getNotebookDetails(notebookId, retryCount + 1)
+        else:
+            return False
+
+def __setNotebookStatus(response, runStatus: RunStatus):
+    """
+    Sets notebook run status based on the response
+    """
+    if response:
+        paragraphs = response.get("paragraphs", [])
+        notebookName = response.get("name", "")
+        for paragraph in paragraphs:
+            if paragraph.get("status") != "FINISHED":
+                runStatus.status=NOTEBOOK_STATUS_ERROR
+                runStatus.endTimestamp = dt.datetime.now()
+                runStatus.save()
+                NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title") + " " + paragraph.get("id") + " failed")
+                return
+    runStatus.status=NOTEBOOK_STATUS_SUCCESS if response else NOTEBOOK_STATUS_ERROR 
     runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()
     NotificationServices.notify(notebookName=notebookName, isSuccess=True, message="Run successful")
