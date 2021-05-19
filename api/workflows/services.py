@@ -36,14 +36,16 @@ class WorkflowServices:
     """
 
     @staticmethod
-    def getWorkflows(offset: int = 0):
+    def getWorkflows(offset: int = 0, sortOn : str = None, isAsc : str = None):
         """
         Service to fetch and serialize Workflows
         :param offset: Offset for fetching NotebookJob objects
         """
-        LIMIT = 10
+        LIMIT = 25
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
+        if(sortOn):
+            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortOn, isAsc)
         total = workflows.count()
         data = WorkflowSerializer(workflows[offset:offset+LIMIT], many=True).data
 
@@ -53,6 +55,41 @@ class WorkflowServices:
             {"total": total, "workflows": data},
         )
         return res
+
+    @staticmethod
+    def sortingOnWorkflows(workflows, sortOn, isAsc):
+        if sortOn == 'name' and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("name")
+
+        if sortOn == 'name' and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-name")
+
+        if sortOn == 'triggerWorkflow' and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("triggerWorkflow__name")
+
+        if sortOn == 'triggerWorkflow' and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-triggerWorkflow__name")
+
+        if sortOn == "schedule" and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("crontab__customschedule__name")
+
+        if sortOn == "schedule" and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-crontab__customschedule__name")
+
+        if sortOn == "lastRunTime" and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("last_run_at")
+        if sortOn == "lastRunTime" and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-last_run_at")
+
+        # if sortOn == "lastRunStatus" and isAsc == "ascend":
+        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
+
+        # if sortOn == "lastRunStatus" and isAsc == "descend":
+        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
+
+        return workflows
+
+
 
     @staticmethod
     @transaction.atomic

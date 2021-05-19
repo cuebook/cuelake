@@ -11,6 +11,14 @@ class WorkflowsService {
             return null
     }
 
+    async getAllWorkflows(offset, sortOn , order ){
+        const response = await apiService.get("workflows/workflows/" + offset +"?sortOn=" + sortOn + "&isAsc=" + order)
+        if(response.success == true)
+            return response.data
+        else
+            return null
+    }
+
     async getWorkflowRuns(workflowId, offset){
         const response = await apiService.get("workflows/workflowRuns/" + workflowId +"/"+ offset)
         if(response.success == true)
