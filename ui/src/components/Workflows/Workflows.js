@@ -106,7 +106,7 @@ export default function Workflows(props) {
     useEffect(() => {
       getNotebooksLight()
       if (!componentDidMount){ refreshWorkflows(); setComponentDidMount(true)}
-      const refreshWorkflowsInterval = setInterval(refreshWorkflows, 300000);
+      const refreshWorkflowsInterval = setInterval(refreshWorkflows, 3000);
 
       return () => {
         clearInterval(refreshWorkflowsInterval);
