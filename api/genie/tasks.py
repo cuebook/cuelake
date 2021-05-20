@@ -127,10 +127,10 @@ def __setNotebookStatus(response, runStatus: RunStatus):
         notebookName = response.get("name", "")
         for paragraph in paragraphs:
             if paragraph.get("status") != "FINISHED":
-                runStatus.status=NOTEBOOK_STATUS_ERROR
+                runStatus.status=NOTEBOOK_STATUS_ABORT if paragraph.get("status") == "ABORT" else NOTEBOOK_STATUS_ERROR
                 runStatus.endTimestamp = dt.datetime.now()
                 runStatus.save()
-                NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title") + " " + paragraph.get("id") + " failed")
+                NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title", "") + " " + paragraph.get("id","") + " failed")
                 return
     runStatus.status=NOTEBOOK_STATUS_SUCCESS if response else NOTEBOOK_STATUS_ERROR 
     runStatus.endTimestamp = dt.datetime.now()
