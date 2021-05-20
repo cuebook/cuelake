@@ -235,6 +235,8 @@ class NotebookJobServices:
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
         # Adding Druid Ingestion URL to the context
         context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
+        # Adding S3 files directory in template
+        context["s3FilesDirectory"] = "s3a://" + settings.BUCKET_NAME + "/" + settings.PREFIX
         notebook = Template(json.dumps(notebookTemplate.template)).render(Context(context))
         return notebook, connection
 
