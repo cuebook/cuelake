@@ -9,7 +9,7 @@ const { TabPane } = Tabs
 export default function NotebookTableFunction() {
   return (
     <>
-      <div className="flex flex-wrap mt-4 mh-full">
+      <div className="flex flex-wrap mh-full">
         <div className="w-full mb-12 px-4">
 		    <Tabs defaultActiveKey="1">
 		      <TabPane tab="Notebooks" key="1">
