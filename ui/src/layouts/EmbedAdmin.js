@@ -19,7 +19,7 @@ export default function Admin() {
       <Sidebar isEmbedPage={true} />
       <ReactNotification />
       <div className="relative md:ml-48 bg-gray-200" >
-        <div className="px-0 md:px-0 py-2 mx-auto w-full" style={{height: "calc(100vh - 0px)", padding: "2rem 3rem 0 3rem"}}>
+        <div className="px-0 md:px-0 py-2 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "2rem 0rem 0 0rem"}}>
           <Switch>
             <Route path="/api/redirect/cuelake/notebooks"  exact component={Notebooks} />
             <Route path="/api/redirect/cuelake/notebook/:notebookId" exact component={NotebookView} />
