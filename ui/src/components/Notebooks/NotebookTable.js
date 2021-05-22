@@ -85,9 +85,6 @@ export default function NotebookTable() {
     if(!offset) setCurrentPage(1)
   };
 
-  const getSearchText = (value) => {
-    setSearchText(value)
-  }
   const getAllNotebook = async (offset, value, columnToSort , sortOrder) => {
     if(_.isEmpty(searchText) && _.isEmpty(value) && _.isEmpty(columnToSort)){
       setSearchText(value)

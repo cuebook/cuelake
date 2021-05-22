@@ -165,6 +165,11 @@ class NotebookService {
         const response = await apiService.post("genie/datasetDetails", payload)
         return response
     }
+
+    async getSchemas(){
+        const response = await apiService.get("genie/schemas")
+        return response
+    }
 }
 let notebookService = new NotebookService();
 export default notebookService

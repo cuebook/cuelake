@@ -32,6 +32,7 @@ import notebookService from "services/notebooks";
 import { timehumanize } from 'services/general';
 import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
 import Moment from "react-moment";
+
 var moment = require("moment");
 
 const { TabPane } = Tabs;

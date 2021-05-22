@@ -158,3 +158,4 @@ REDIS_BROKER_URL = os.environ.get("REDIS_BROKER_URL", "redis://redis:6379/0")
 # s3 file settings
 BUCKET_NAME = os.environ.get("BUCKET_NAME", None)
 PREFIX = os.environ.get("PREFIX", "")
+

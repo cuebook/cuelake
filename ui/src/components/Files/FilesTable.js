@@ -38,7 +38,12 @@ export default function FilesTable(props) {
     const [componentDidMount, setComponentDidMount] = useState(false)
 
     useEffect(() => {
-        if (!componentDidMount){ refreshFiles(); setComponentDidMount(true)}
+        if (!componentDidMount){ 
+          setLoading(true)
+          refreshFiles(); 
+          setLoading(false)
+          setComponentDidMount(true)
+        }
         const refreshFilesInterval = setInterval(refreshFiles, 10000);
         return () => {
           clearInterval(refreshFilesInterval);
@@ -51,12 +56,10 @@ export default function FilesTable(props) {
     }
 
     const refreshFiles = async () => {
-        setLoading(true)
         const response = await filesService.getFiles(0);
         if(response){
           setFiles(response);
         }
-        setLoading(false)
     }
 
     const columns = [
