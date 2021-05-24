@@ -21,11 +21,12 @@ import {
   Menu, 
   Dropdown
 } from "antd";
-import { UndoOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UndoOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
 
 export default function NotebookTable() {
   const [notebooks, setNotebooks] = useState([]);
   const [loading, setLoading] = useState([]);
+  const [unarchivingNotebook, setUnarchivingNotebook] = useState(false);
 
   useEffect(() => {
     if (!notebooks.length) {
@@ -58,6 +59,7 @@ export default function NotebookTable() {
   };
 
   const unarchiveNotebook = async (notebook) => {
+    setUnarchivingNotebook(notebook.id)
     const response = await notebookService.unarchiveNotebook(notebook.id, notebook.path.split("/")[2])
     if(response.success){
       message.success("Notebook " + notebook.path.split("/")[2] + " removed from archive")
@@ -65,6 +67,7 @@ export default function NotebookTable() {
     }
     else{
       message.error(response.message)
+    setUnarchivingNotebook(false)
     }
   }
 
@@ -101,9 +104,13 @@ export default function NotebookTable() {
       render: (text, notebook) => {
         return (
           <div className={style.actions}>
+            {unarchivingNotebook && unarchivingNotebook == notebook.id ? 
+            <LoadingOutlined />
+            : 
             <Tooltip title={"Unarchive Notebook"}>
               <UndoOutlined onClick={() => unarchiveNotebook(notebook)} />
             </Tooltip>
+              }
             <Tooltip title={"Delete Notebook"}>
               <DeleteOutlined onClick={() => deleteNotebook(notebook)} />
             </Tooltip>

@@ -1,16 +1,11 @@
-from django.conf import settings
+import boto3
 import psycopg2 as pg
 import pandas as pd
+from django.conf import settings
 from utils.apiResponse import ApiResponse
 
+
 SQL_ROWS_LIMIT = 50
-
-# HOST = settings.HOST
-# PORT = settings.PORT
-# USERNAME = settings.USERNAME
-# PASSWORD = settings.PASSWORD
-# METASTORE_DATABASE = settings.METASTORE_DATABASE
-
 
 class Postgres():
     """
@@ -127,11 +122,11 @@ class Schemas:
         """ Gets schemas"""
         res = ApiResponse(message="Error retrieving schemas")
         connectionParams = {
-            "host": "localhost",
-            "port": 5432,
-            "username": "postgres",
-            "password": "postgres",
-            "database": "cuelake_metastore_customer_ssl"}
+            "host": settings.METASTORE_POSTGRES_HOST,
+            "port": settings.METASORE_POSTGRES_PORT,
+            "username": settings.METASORE_POSTGRES_USERNAME,
+            "password": settings.METASORE_POSTGRES_PASSWORD,
+            "database": settings.METASORE_POSTGRES_DATABASE}
 
         tableParamsQuery = 'SELECT * FROM public."TABLE_PARAMS" WHERE "PARAM_KEY" = \'transient_lastDdlTime\' OR "PARAM_KEY" = \'totalSize\' ORDER BY "TBL_ID" ASC, "PARAM_KEY" ASC '
         tableParamsDf = Postgres(connectionParams).fetchCompleteData(tableParamsQuery)
@@ -155,5 +150,24 @@ class Schemas:
         res.update(True, "Schemas retrieved successfully", data)
         return res
 
+
+    def getS3FileNames():
+        """ S3 file names"""
+
+        s3 = boto3.client("s3")
+        response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
+        contents: list = response['Contents']
+
+        for content in contents:
+            if 'ETag' in content:
+                del content['ETag']
+            if 'StorageClass' in content:
+                del content['StorageClass']
+            if 'Owner' in content:
+                del content['Owner']
+
+            content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
+
+    return contents
 
 

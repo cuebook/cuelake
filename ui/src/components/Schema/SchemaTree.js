@@ -41,10 +41,6 @@ export default function SchemaTree(props) {
         }
     }, []);
 
-    const onSelect = (selectedKeys, info) => {
-        console.log('selected', selectedKeys, info);
-    };
-
     const getTreeData = () => {
         return databases.map(database=>{
             return {
@@ -92,7 +88,7 @@ export default function SchemaTree(props) {
                         children: database.tables.filter(table=>table.TBL_TYPE==="VIRTUAL_VIEW").map(table=>{
                             const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
                             return {
-                                title: table.TBL_NAME, 
+                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
                                 key: table.TBL_ID,
                                 icon: <BorderlessTableOutlined />,
                                 children: [
@@ -129,7 +125,6 @@ export default function SchemaTree(props) {
       <Tree
         showLine={{showLeafIcon: true}}
         showIcon={true}
-        onSelect={onSelect}
         treeData={getTreeData()}
         multiple
         defaultExpandedKeys={['default']}

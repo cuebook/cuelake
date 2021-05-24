@@ -10,7 +10,6 @@ import connectionService from "services/connection.js";
 import { Link } from "react-router-dom";
 import { LeftOutlined } from '@ant-design/icons';
 import DatasetSelector from "../DatasetSelector/DatasetSelector";
-import SchemaTree from "components/Schema/SchemaTree";
 
 const { Option } = Select;
 
@@ -169,7 +168,6 @@ export default function EditNotebook(props) {
 
     return (
       <div>
-        <SchemaTree/>
         <div className="row">
             <div className="col-md-8 card offset-md-2 shadow-sm bg-white p-5 mb-5 rounded">
               {selectedNotebook ? editNotebookFormElement : null}

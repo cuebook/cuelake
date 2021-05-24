@@ -108,7 +108,8 @@ class ZeppelinAPI:
         Renames zeppelin notebook
         """
         response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/rename", json.dumps({"name": newName}))
-        return self.__parseResponse(response)
+        x = self.__parseResponse(response)
+        return x
 
     def restartInterpreter(self, interpreterName: str):
         """

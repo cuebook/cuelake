@@ -86,7 +86,6 @@ export default function Workflows(props) {
       }
       setLoading(true)
       const response = await workflowsService.getAllWorkflows(offset, columnToSort, order);
-      console.log('response', response)
       if(response){
         setFitlerWorkflows(response);
         setTotal(response.Total)

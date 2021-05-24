@@ -156,6 +156,15 @@ ZEPPELIN_PORT = os.environ.get("ZEPPELIN_PORT", "80")
 REDIS_BROKER_URL = os.environ.get("REDIS_BROKER_URL", "redis://redis:6379/0")
 
 # s3 file settings
-BUCKET_NAME = os.environ.get("BUCKET_NAME", None)
-PREFIX = os.environ.get("PREFIX", "")
+S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", None)
+S3_FILES_PREFIX = os.environ.get("S3_FILES_PREFIX", "files/")
+
+# Postgres configuration for Schema Browser
+METASTORE_POSTGRES_HOST = os.environ.get("METASTORE_POSTGRES_HOST", "localhost")
+METASORE_POSTGRES_PORT = os.environ.get("METASORE_POSTGRES_PORT", 5432)
+METASORE_POSTGRES_USERNAME = os.environ.get("METASORE_POSTGRES_USERNAME", "postgres")
+METASORE_POSTGRES_PASSWORD = os.environ.get("METASORE_POSTGRES_PASSWORD", "postgres")
+METASORE_POSTGRES_DATABASE = os.environ.get("METASORE_POSTGRES_DATABASE", "cuelake_metastore")
+
+HADOOP_S3_PREFIX = os.environ.get("HADOOP_S3_PREFIX", "cuelake/")
 
