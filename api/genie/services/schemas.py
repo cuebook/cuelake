@@ -168,6 +168,6 @@ class Schemas:
 
             content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
 
-    return contents
+        return contents
 
 
