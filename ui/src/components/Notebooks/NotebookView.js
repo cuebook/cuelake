@@ -18,13 +18,6 @@ export default function NotebookView() {
   }
   return (
     <>
-      {
-        isEmbedPage 
-        ?
-        <div className={style.iframeHeader}></div>
-        :
-        null
-      }
       <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );

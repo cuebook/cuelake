@@ -5,7 +5,6 @@
       "fields": {
         "key": "notifyOnSuccess",
         "label": "Notify on Success",
-        "value": "false",
         "type": "bool"
       }
     },
@@ -15,7 +14,6 @@
       "fields": {
         "key": "notifyOnFailure",
         "label": "Notify on Failure",
-        "value": "false",
         "type": "bool"
       }
     },
@@ -25,7 +23,6 @@
       "fields": {
         "key": "slackWebhookUrl",
         "label": "Slack Webhook URL",
-        "value": "",
         "type": "text"
       }
     }

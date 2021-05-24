@@ -2601,6 +2601,10 @@ video {
     margin-top: 10rem;
   }
 
+  .md\:ml-12 {
+    margin-left: 4rem;
+  }
+
   .md\:ml-48 {
     margin-left: 12rem;
   }

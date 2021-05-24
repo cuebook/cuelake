@@ -31,7 +31,7 @@ export default function Admin() {
           <AdminNavbar />
           {/* Header */}
           <HeaderStats />
-          <div className="px-0 md:px-0 mx-auto w-full">
+          <div className="px-0 md:px-0 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "1rem 0rem 0 0rem"}}>
             <Switch>
               <Route path="/notebooks" exact component={Notebooks} />
               <Route path="/notebook/:notebookId" exact component={NotebookView} />

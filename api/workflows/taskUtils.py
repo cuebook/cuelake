@@ -1,5 +1,6 @@
 from typing import List
 import os
+import time
 import math
 import logging
 import datetime as dt
@@ -54,6 +55,7 @@ class TaskUtils:
             if not workflowStatus:
                 logger.info(f"Error occured in this batch. Notebook Ids: {batchNotebookIds}")
             Zeppelin.restartInterpreter("spark")
+            time.sleep(5)
 
         if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
             return []
@@ -120,6 +122,7 @@ class TaskUtils:
             len(notebookRunStatusIds)
             == RunStatus.objects.filter(id__in=notebookRunStatusIds)
             .exclude(status=NOTEBOOK_STATUS_RUNNING)
+            .exclude(status=NOTEBOOK_STATUS_QUEUED)
             .count()
         ):
             return (
