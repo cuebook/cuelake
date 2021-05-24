@@ -136,15 +136,22 @@ class Schemas:
         tablesQuery = 'SELECT "TBLS"."TBL_ID", "TBLS"."TBL_NAME", "TBLS"."TBL_TYPE", "TBLS"."VIEW_ORIGINAL_TEXT", "DBS"."NAME" FROM "TBLS" INNER JOIN "DBS" ON "TBLS"."DB_ID" = "DBS"."DB_ID"'
         tablesDf = Postgres(connectionParams).fetchCompleteData(tablesQuery)
         tablesDf = tablesDf.merge(tableParamsDf, how="left", on="TBL_ID")
+
+        # getting & merging iceberg tables
+        s3Df = pd.DataFrame(data=Schemas.getS3FileNames())
+        s3Df.rename(columns={'Key': 'TBL_NAME', 'Size': 'totalSize'}, inplace=True)
+        s3Df['NAME'] = "Iceberg Tables"
+        tablesDf = tablesDf.append(s3Df, ignore_index=True)
+        
         tablesDf = tablesDf.fillna(value="NULL")
         databasesDf = tablesDf.groupby("NAME").apply(lambda grp: grp.to_dict("records")).reset_index(name="tables")
         databasesDf.columns = ["database", "tables"]
-
 
         columnsQuery = 'SELECT "CD_ID", "COLUMN_NAME", "TYPE_NAME" FROM "COLUMNS_V2"'
         columnsDf = Postgres(connectionParams).fetchCompleteData(columnsQuery)
         columnsDf = columnsDf.groupby("CD_ID").apply(lambda grp: grp.to_dict("records")).reset_index(name="columns")
         columnsDf.set_index('CD_ID', inplace=True)
+
 
         data = {"databases": databasesDf.to_dict("records"), "columns": columnsDf.to_dict()["columns"]}
         res.update(True, "Schemas retrieved successfully", data)
@@ -154,20 +161,22 @@ class Schemas:
     def getS3FileNames():
         """ S3 file names"""
 
-        s3 = boto3.client("s3")
-        response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
-        contents: list = response['Contents']
+        # s3 = boto3.client("s3")
+        # response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
+        # contents: list = response['Contents']
 
-        for content in contents:
-            if 'ETag' in content:
-                del content['ETag']
-            if 'StorageClass' in content:
-                del content['StorageClass']
-            if 'Owner' in content:
-                del content['Owner']
+        # for content in contents:
+        #     if 'ETag' in content:
+        #         del content['ETag']
+        #     if 'StorageClass' in content:
+        #         del content['StorageClass']
+        #     if 'Owner' in content:
+        #         del content['Owner']
 
-            content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
+        #     content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
 
+        contents = [{"Key": "Zones.csv", "LastModified": "2021-05-11T12:07:07Z", "Size": 2006}]
         return contents
+
 
 

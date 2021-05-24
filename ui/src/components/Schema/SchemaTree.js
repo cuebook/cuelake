@@ -43,79 +43,95 @@ export default function SchemaTree(props) {
 
     const getTreeData = () => {
         return databases.map(database=>{
-            return {
-                title: database.database,
-                key: database.database,
-                icon: <DatabaseOutlined />,
-                children: [
-                    {
-                        title: "TABLES",
-                        key: "TABLES",
-                        children: database.tables.filter(table=>table.TBL_TYPE==="EXTERNAL_TABLE").map(table=>{
-                            const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
-                            return {
-                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
-                                key: table.TBL_ID,
-                                icon: <TableOutlined />,
-                                children: [
-                                    {
-                                        title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
-                                        key: table.TBL_ID + " Last Updated",
-                                        icon: null
-                                    },
-                                    {
-                                        title: "Size: " + formatBytes(table.totalSize,2),
-                                        key: table.TBL_ID + " Size",
-                                    },
-                                    {
-                                        title: "Columns",
-                                        key: table.TBL_ID + " Columns",
-                                        children: columns[table.TBL_ID].map(column=>{
-                                            return {
-                                                title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                                type: column.COLUMN_NAME,
-                                                isLeaf: true
-                                            }
-                                        })
-                                    }
-                                ] 
-                            }
-                        })
-                    },
-                    {
-                        title: "VIEWS",
-                        key: "VIEWS",
-                        children: database.tables.filter(table=>table.TBL_TYPE==="VIRTUAL_VIEW").map(table=>{
-                            const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
-                            return {
-                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
-                                key: table.TBL_ID,
-                                icon: <BorderlessTableOutlined />,
-                                children: [
-                                    {
-                                        title: "Definition: " + table.VIEW_ORIGINAL_TEXT,
-                                        key: table.TBL_ID + " Size",
-                                    },
-                                    {
-                                        title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
-                                        key: table.TBL_ID + " Last Updated",
-                                    },
-                                    {
-                                        title: "Columns",
-                                        key: table.TBL_ID + " Columns",
-                                        children: columns[table.TBL_ID].map(column=>{
-                                            return {
-                                                title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                                type: column.COLUMN_NAME,
-                                                isLeaf: true
-                                            }
-                                        })
-                                    }
-                                ]
-                            }
-                        })
-                    }
-                ]
+            if (database.database == "Iceberg Tables"){
+               return {
+                    title: database.database,
+                    key: database.database,
+                    icon: <DatabaseOutlined />,
+                    children: database.tables.map(table=>{
+                        return {
+                            title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={table.LastModified}/></div></div>,
+                            key: table.TBL_ID,
+                            icon: <BorderlessTableOutlined />,
+                        }
+                    })
+               } 
+            }
+            else {
+                return {
+                    title: database.database,
+                    key: database.database,
+                    icon: <DatabaseOutlined />,
+                    children: [
+                        {
+                            title: "TABLES",
+                            key: "TABLES",
+                            children: database.tables.filter(table=>table.TBL_TYPE==="EXTERNAL_TABLE").map(table=>{
+                                const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
+                                return {
+                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
+                                    key: table.TBL_ID,
+                                    icon: <TableOutlined />,
+                                    children: [
+                                        {
+                                            title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
+                                            key: table.TBL_ID + " Last Updated",
+                                            icon: null
+                                        },
+                                        {
+                                            title: "Size: " + formatBytes(table.totalSize,2),
+                                            key: table.TBL_ID + " Size",
+                                        },
+                                        {
+                                            title: "Columns",
+                                            key: table.TBL_ID + " Columns",
+                                            children: columns[table.TBL_ID].map(column=>{
+                                                return {
+                                                    title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
+                                                    type: column.COLUMN_NAME,
+                                                    isLeaf: true
+                                                }
+                                            })
+                                        }
+                                    ] 
+                                }
+                            })
+                        },
+                        {
+                            title: "VIEWS",
+                            key: "VIEWS",
+                            children: database.tables.filter(table=>table.TBL_TYPE==="VIRTUAL_VIEW").map(table=>{
+                                const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
+                                return {
+                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
+                                    key: table.TBL_ID,
+                                    icon: <BorderlessTableOutlined />,
+                                    children: [
+                                        {
+                                            title: "Definition: " + table.VIEW_ORIGINAL_TEXT,
+                                            key: table.TBL_ID + " Size",
+                                        },
+                                        {
+                                            title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
+                                            key: table.TBL_ID + " Last Updated",
+                                        },
+                                        {
+                                            title: "Columns",
+                                            key: table.TBL_ID + " Columns",
+                                            children: columns[table.TBL_ID].map(column=>{
+                                                return {
+                                                    title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
+                                                    type: column.COLUMN_NAME,
+                                                    isLeaf: true
+                                                }
+                                            })
+                                        }
+                                    ]
+                                }
+                            })
+                        }
+                    ]
+                }
             }
         })
     }
