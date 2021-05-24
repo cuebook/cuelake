@@ -460,7 +460,7 @@ class Connections:
     def removeConnection(connection_id):
         res = ApiResponse()
         connection = Connection.objects.get(id=connection_id)
-        if connection.notebookObject_set.count() == 0:
+        if connection.notebookobject_set.count() == 0:
             Connection.objects.get(id=connection_id).delete()
             res.update(True, "Connection deleted successfully")
         else:
