@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Input, message, Select } from "antd";
+import { Button, Form, Input, message, Select, Popconfirm } from "antd";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-mysql";
 import "ace-builds/src-noconflict/theme-chrome";
@@ -154,14 +154,21 @@ export default function EditNotebook(props) {
               </Form.Item>
             </div>
           </div>
-          <Button
-            icon=""
-            type="primary"
-            className="mr-2"
-            htmlType="submit"
+          
+          <Popconfirm
+            title={"Updating this Form will overwrite the Notebook. If you made any changes to the Notebook earlier, they will be lost."}
+            onConfirm={form.submit}
+            okText="Overwrite"
+            cancelText="Cancel"
           >
-            Update Notebook
-          </Button>
+            <Button
+              icon=""
+              type="primary"
+              className="mr-2"
+            >
+              Update Notebook
+            </Button>
+          </Popconfirm>
         </Form>
       </div>
     );
