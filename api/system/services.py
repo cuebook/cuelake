@@ -1,6 +1,7 @@
 import json
 import requests
-from system.models import AccountSetting
+from system.models import AccountSetting, AccountSettingValue
+from system.serializers import AccountSettingSerializer
 from utils.apiResponse import ApiResponse
 import logging
 
@@ -83,7 +84,8 @@ class AccountSettingServices:
         Service to get keys and values of all AccountSettings
         """
         res = ApiResponse()
-        data = list(AccountSetting.objects.all().values("key", "value", "label", "type"))
+        accountSettings = AccountSetting.objects.all()
+        data = AccountSettingSerializer(accountSettings, many=True).data
         res.update(True, "Fetched account settings successfully", data)
         return res
     
@@ -97,8 +99,12 @@ class AccountSettingServices:
         res = ApiResponse()
         for setting in settings:
             accountSetting = AccountSetting.objects.get(key=setting["key"])
-            accountSetting.value = setting["value"]
-            accountSetting.save()
+            if len(accountSetting.accountsettingvalue_set.all()):
+                accountSettingValue = accountSetting.accountsettingvalue_set.all()[0]
+                accountSettingValue.value = setting["value"]
+                accountSettingValue.save()
+            else:
+                AccountSettingValue.objects.create(accountSetting=accountSetting, value=setting["value"])
         res.update(True, "Updated account setting successfully")
         return res
 

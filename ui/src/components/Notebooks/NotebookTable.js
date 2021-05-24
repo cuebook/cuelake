@@ -35,7 +35,13 @@ const {Search} = Input
 
 export default function NotebookTable() {
 
-  const [searchText, setSearchText] = useState("");
+  const [sortedInfo , setSortedInfo] = useState({});
+  const [limit, setLimit] = useState(25);
+  const [isAsc, setAsc] = useState()
+  const [searchText, setSearchText] = useState('');
+  const [onSort, setOnSort] = useState("");
+  const [filterNotebook, setFilterNotebook] = useState([]);
+  const [allNotebooks, setAllNotebooks] = useState([]);
   const [notebooks, setNotebooks] = useState([]);
   const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,14 +55,14 @@ export default function NotebookTable() {
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
-
+  
   useEffect(() => {
     if (!notebooks.length) {
         getNotebooks(0);
     }
 
     const refreshNotebookInterval = setInterval(() => {
-      refreshNotebooks((currentPageRef.current - 1)*10)
+      refreshNotebooks((currentPageRef.current - 1)*25)
     }, 3000);
 
     const refreshPodStatus = setInterval(() => {
@@ -77,6 +83,27 @@ export default function NotebookTable() {
     }
     setLoading(false)
     if(!offset) setCurrentPage(1)
+  };
+
+  const getSearchText = (value) => {
+    setSearchText(value)
+  }
+  const getAllNotebook = async (offset, value, columnToSort , sortOrder) => {
+    if(_.isEmpty(searchText) && _.isEmpty(value) && _.isEmpty(columnToSort)){
+      setSearchText(value)
+      setOnSort(columnToSort)
+      setAsc(sortOrder)
+      return
+    }
+    setLoading(true)
+    const response = await notebookService.getAllNotebooks(offset, limit, value, columnToSort, sortOrder );
+    if(response){
+      setFilterNotebook(response);
+    }
+    else{
+      setFilterNotebook([0])
+    }
+    setLoading(false)
   };
 
   const refreshNotebooks = async (offset) => {
@@ -107,17 +134,27 @@ export default function NotebookTable() {
         message.error(response.message)
       }
       setSelectedNotebook(null)
-      getNotebooks((currentPage - 1)*10)
+      getNotebooks((currentPage - 1)*25)
     }
     else{
       alert('Schedule not selected')
     }
   }
 
-  const handleTableChange = (event) => {
+  const handleTableChange = (event, filter, sorter) => {
+    setSortedInfo(sorter)
+    setOnSort(sorter.columnKey)
+    setAsc(sorter.order)
     setCurrentPage(event.current)
-    getNotebooks((event.current - 1)*10)
+    setLimit(event.current*25)
+    if (sorter.column){
+
+      getAllNotebook((event.current - 1)*25, searchText, sorter.columnKey, sorter.order)
+    }
+    if(event){
+      getNotebooks((event.current - 1)*25)
   }
+}
 
   const navigateToNotebook = (record) => {
     if(history.location.pathname.indexOf("api/redirect") !== -1)
@@ -138,7 +175,7 @@ export default function NotebookTable() {
   const unassignSchedule = async (notebookId) => {
     const response = await notebookService.unassignSchedule(notebookId);
     if(response.success){
-      refreshNotebooks((currentPage - 1)*10)
+      refreshNotebooks((currentPage - 1)*25)
     }
     else{
       message.error(response.message)
@@ -167,7 +204,7 @@ export default function NotebookTable() {
     const response = await notebookService.cloneNotebook(notebook.id, notebook.name.substring(1) + " Copy")
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " cloned successfully")
-      refreshNotebooks((currentPage - 1)*10)
+      refreshNotebooks((currentPage - 1)*25)
     }
     else{
       message.error(response.message)
@@ -189,7 +226,7 @@ export default function NotebookTable() {
     const response = await notebookService.deleteNotebook(notebook.id)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
-      refreshNotebooks((currentPage - 1)*10)
+      refreshNotebooks((currentPage - 1)*25)
     }
     else{
       message.error(response.message)
@@ -199,7 +236,7 @@ export default function NotebookTable() {
   const onNotebookToggleChange = async (event, notebook) => {
     const response = await notebookService.toggleNotebookSchedule(event, notebook.id)
     if(response.success){
-      refreshNotebooks((currentPage - 1)*10)
+      refreshNotebooks((currentPage - 1)*25)
     }
     else{
       message.error(response.message)
@@ -223,18 +260,31 @@ export default function NotebookTable() {
   }
 
   const onAddNotebookSuccess = () => {
-    refreshNotebooks((currentPage - 1)*10)
+    refreshNotebooks((currentPage - 1)*25)
     closeNewNotebookDrawer()
     closeEditNotebookDrawer()
   }
 
-  
+
+ const search = value => {
+  setSearchText(value)
+   if (_.isEmpty(value) ){
+     setFilterNotebook([])
+     return
+   }
+    getAllNotebook(0, value, onSort, isAsc)
+  };
+
   const columns = [
     {
       title: "Notebook",
       dataIndex: "name",
       key: "name",
       width: "20%",
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
+      ellipsis: true,
+
       render: text => {
         return (
           <span key={text}>
@@ -248,6 +298,9 @@ export default function NotebookTable() {
       dataIndex: "schedule",
       key: "schedule",
       width: "20%",
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'schedule' && sortedInfo.order,
+      ellipsis: true,
       render: (schedule, notebook) => {
         if(schedule && selectedNotebook != notebook.id){
           return (
@@ -282,9 +335,13 @@ export default function NotebookTable() {
       dataIndex: "assignedWorkflow",
       key: "assignedWorkflow",
       assign:"left",
+
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'assignedWorkflow' && sortedInfo.order,
+      ellipsis: true,
       // width: "10%",
       render: (text,record) => {
-        var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow.map(e => {
+        var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow && record.lastRun.assignedWorkflow.map(e => {
           return (
             <span
               style={{
@@ -310,9 +367,11 @@ export default function NotebookTable() {
     {
       title: "Latest Run",
       dataIndex: "lastRun",
-      key: "lastRun",
+      key: "lastRun1",
       width: "10%",
-      // align:"center",
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'lastRun1' && sortedInfo.order,
+      ellipsis: true,
       render: lastRun => {
         let timeDiff;
         if (lastRun && lastRun.startTimestamp && lastRun.endTimestamp){
@@ -348,8 +407,12 @@ export default function NotebookTable() {
     {
       title: "Latest Run Status",
       dataIndex: "lastRun",
-      key: "lastRun",
-      width: "10%",
+      key: "lastRun2",
+      width: "15%",
+
+      sorter: ()=>{},
+      sortOrder: sortedInfo.columnKey === 'lastRun2' && sortedInfo.order,
+      ellipsis: true,
       render: (lastRun) => {
         return (
           <span>
@@ -496,15 +559,6 @@ export default function NotebookTable() {
   _.times(pendingExecutors, (i) => {
     executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
   });
- const handleSearch = (val) => {
-    setSearchText(val)
-  };
-  let notebookData = notebooks && notebooks.notebooks
-  let convertedNotebookData = search(
-    notebookData,
-    ["name", "schedule", "lastRun", "notebookStatus"],
-    searchText
-  );
   return (
     <>
 
@@ -525,11 +579,11 @@ export default function NotebookTable() {
     <div className={style.actionBar}>
 
       <Search
-            onChange={e => {
-              handleSearch( e.target.value );
-            }}
+            style={{ margin: "0 0 10px 0" , width:350}}
             placeholder="Search"
-            style={{ width: 250 }}
+            enterButton="Search"
+            
+            onSearch={search}
             className="mr-2"
           />
       </div>
@@ -539,15 +593,15 @@ export default function NotebookTable() {
         rowKey={"id"}
         scroll={{ x: "100%" }}
         columns={columns}
-        dataSource={convertedNotebookData}
+        onChange={handleTableChange}
+        dataSource={  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
         loading={loading}
         size={"small"}
         pagination={{
           current: currentPage,
-          pageSize: 10,
-          total: notebooks ? notebooks.count : 0
+          pageSize:25,
+          total:  filterNotebook.length != 0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
         }}
-        onChange={(event) => handleTableChange(event)}
       />
       <Drawer
           title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}

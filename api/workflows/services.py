@@ -36,14 +36,16 @@ class WorkflowServices:
     """
 
     @staticmethod
-    def getWorkflows(offset: int = 0):
+    def getWorkflows(offset: int = 0, sortOn : str = None, isAsc : str = None):
         """
         Service to fetch and serialize Workflows
         :param offset: Offset for fetching NotebookJob objects
         """
-        LIMIT = 10
+        LIMIT = 25
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
+        if(sortOn):
+            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortOn, isAsc)
         total = workflows.count()
         data = WorkflowSerializer(workflows[offset:offset+LIMIT], many=True).data
 
@@ -53,6 +55,41 @@ class WorkflowServices:
             {"total": total, "workflows": data},
         )
         return res
+
+    @staticmethod
+    def sortingOnWorkflows(workflows, sortOn, isAsc):
+        if sortOn == 'name' and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("name")
+
+        if sortOn == 'name' and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-name")
+
+        if sortOn == 'triggerWorkflow' and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("triggerWorkflow__name")
+
+        if sortOn == 'triggerWorkflow' and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-triggerWorkflow__name")
+
+        if sortOn == "schedule" and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("crontab__customschedule__name")
+
+        if sortOn == "schedule" and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-crontab__customschedule__name")
+
+        if sortOn == "lastRunTime" and isAsc == "ascend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("last_run_at")
+        if sortOn == "lastRunTime" and isAsc == "descend":
+            workflows = Workflow.objects.filter(enabled=True).order_by("-last_run_at")
+
+        # if sortOn == "lastRunStatus" and isAsc == "ascend":
+        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
+
+        # if sortOn == "lastRunStatus" and isAsc == "descend":
+        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
+
+        return workflows
+
+
 
     @staticmethod
     @transaction.atomic
@@ -195,79 +232,6 @@ class WorkflowServices:
         updateStatus = Workflow.objects.filter(id=workflowId).update(crontab_id=scheduleId if scheduleId else 1)
         res.update(True, "Workflow schedule updated successfully", True)
         return res
-
-    @staticmethod
-    def runWorkflow(workflowId: int, workflowRunId: int = None):
-        """
-        Runs workflow
-        """
-        # TODO If workflow already
-        notebookIds = list(
-            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
-                "notebookId", flat=True
-            )
-        )
-        if workflowRunId:
-            workflowRun = WorkflowRun.objects.get(id=workflowRunId)
-            workflowRun.status = STATUS_RUNNING
-            workflowRun.save()
-        else:
-            workflowRun = WorkflowRun.objects.create(
-                workflow_id=workflowId, status=STATUS_RUNNING
-            )
-        notebookRunStatusIds = []
-        for notebookId in notebookIds:
-            runStatus = RunStatus.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType="Scheduled"
-            )
-            runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
-            notebookRunStatusIds.append(runStatus.id)
-
-        workflowStatus = polling.poll(
-            lambda: WorkflowServices.__checkGivenRunStatuses(notebookRunStatusIds),
-            check_success= lambda x: x != "stillRunning",
-            step=3,
-            timeout=3600,
-        )
-
-        if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
-            return []
-
-        if workflowStatus:
-            workflowRun.status = STATUS_SUCCESS
-            workflowRun.endTimestamp = dt.datetime.now()
-            workflowRun.save()
-        else:
-            workflowRun.status = STATUS_ERROR
-            workflowRun.endTimestamp = dt.datetime.now()
-            workflowRun.save()
-
-        dependentWorkflowIds = list(
-            Workflow.objects.filter(
-                triggerWorkflow_id=workflowId,
-                triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRun.status],
-            ).values_list("id", flat=True)
-        )
-        return dependentWorkflowIds
-
-    @staticmethod
-    def __checkGivenRunStatuses(notebookRunStatusIds: List[int]):
-        """Check if given runStatuses are status is SUCCESS"""
-
-        if (
-            len(notebookRunStatusIds)
-            == RunStatus.objects.filter(id__in=notebookRunStatusIds)
-            .exclude(status=NOTEBOOK_STATUS_RUNNING)
-            .count()
-        ):
-            return (
-                len(notebookRunStatusIds)
-                == RunStatus.objects.filter(
-                    id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS
-                ).count()
-            )
-
-        return "stillRunning"
 
 
 class WorkflowActions:

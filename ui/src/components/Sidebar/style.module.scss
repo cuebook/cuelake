@@ -1,0 +1,24 @@
+.embedNavBar{
+    width: 4rem;
+    background: #fafafa;
+
+    .navLink{
+        display: inline-flex;
+    }
+
+    .embedLabel{
+        opacity: 0;
+        position: relative;
+        top: -2px;
+        margin-left: 5px;
+    }
+
+    &:hover{
+        width: 12rem;
+        transition: 200ms;
+        
+        .embedLabel{
+            opacity: 1;
+        }
+    }
+}

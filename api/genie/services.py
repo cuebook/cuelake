@@ -7,19 +7,20 @@ import datetime as dt
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
+from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
 from utils.druidSpecGenerator import DruidIngestionSpecGenerator
-from genie.tasks import runNotebookJob as runNotebookJobTask, checkIfNotebookRunning
+from genie.tasks import runNotebookJob as runNotebookJobTask
 from kubernetes import config, client
 from django.conf import settings
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
-GET_NOTEBOOKOJECTS_LIMIT = 10
+GET_NOTEBOOKOJECTS_LIMIT = 25
 RUN_STATUS_LIMIT = 10
 
 class NotebookJobServices:
@@ -40,14 +41,19 @@ class NotebookJobServices:
         return notebookStatuses
 
     @staticmethod
-    def getNotebooks(offset: int = 0):
+    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sortOn: str = None, isAsc: str = None):
         """
         Service to fetch and serialize NotebookJob objects
         Number of NotebookObjects fetched is stored as the constant GET_NOTEBOOKOJECTS_LIMIT
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving notebooks")
+        # breakpoint()
         notebooks = Zeppelin.getAllNotebooks()
+        if searchQuery:
+            notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
+        if sortOn:
+            notebooks = NotebookJobServices.sortingOnNotebook(notebooks, sortOn, isAsc)
         if notebooks:
             notebookCount = len(notebooks)
             notebooks = notebooks[offset: offset + GET_NOTEBOOKOJECTS_LIMIT]
@@ -72,6 +78,92 @@ class NotebookJobServices:
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         return res
+
+    @staticmethod
+    def sortingOnNotebook(notebooks, sortOn, isAsc):
+        sortedNotebookId= []
+        if sortOn == "schedule" and isAsc == 'ascend':
+            sortedNotebookId = NotebookJob.objects.all().order_by("crontab__customschedule__name").values_list("notebookId", flat=True)
+            for notebookId in sortedNotebookId[::-1]:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        toAddNotebook = notebook
+                        notebooks.remove(notebook)
+                        notebooks.insert(0, toAddNotebook)
+        if sortOn == "schedule" and isAsc == 'descend':
+            sortedNotebookId = NotebookJob.objects.all().order_by("-crontab__customschedule__name").values_list("notebookId", flat=True)
+            for notebookId in sortedNotebookId:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        toAddNotebook = notebook
+                        notebooks.remove(notebook)
+                        notebooks.append(toAddNotebook)
+
+        if sortOn == 'name' and isAsc == 'ascend':
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"])
+        
+        if sortOn == 'name' and isAsc == 'descend':
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"], reverse=True)
+
+        if sortOn == "assignedWorkflow"and isAsc == 'ascend':
+            workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
+            sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
+            notebookIds = WorkflowNotebookJob.objects.filter(workflow_id__in=sortedWorkflowIds).values_list("notebookId",flat=True)
+            reversedNotebookIds = notebookIds[::-1]
+            for notebookId in reversedNotebookIds:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.insert(0, notebook)
+        if sortOn == "assignedWorkflow"and isAsc == 'descend':
+            workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
+            sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
+            notebookIds = WorkflowNotebookJob.objects.filter(workflow_id__in=sortedWorkflowIds).values_list("notebookId",flat=True)
+            reversedNotebookIds = notebookIds[::-1]
+            for notebookId in reversedNotebookIds:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.append(notebook)
+
+        if sortOn == "lastRun1" and isAsc == "ascend":
+            notebookIds = [notebook["id"] for notebook in notebooks]
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            reversedNotebookIds = sortedNotebookIds[::-1]
+            for notebookId in reversedNotebookIds:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.insert(0,notebook)
+        if sortOn == "lastRun1" and isAsc == "descend":
+            notebookIds = [notebook["id"] for notebook in notebooks]
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            reversedNotebookIds = sortedNotebookIds[::-1]
+            for notebookId in sortedNotebookIds:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.append(notebook)
+        if sortOn == "lastRun2" and isAsc == "ascend":
+            notebookIds = [notebook["id"] for notebook in notebooks]
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
+            reversedNotebookIds = sortedNotebookIds[::-1]
+            for notebookid in reversedNotebookIds:
+                for notebook in notebooks:
+                    if notebookid == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.insert(0,notebook)
+        if sortOn == "lastRun2" and isAsc == "descend":
+            notebookIds = [notebook["id"] for notebook in notebooks]
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
+            reversedNotebookIds = sortedNotebookIds[::-1]
+            for notebookId in reversedNotebookIds:
+                for notebook in notebooks:
+                    if notebookId == notebook["id"]:
+                        notebooks.remove(notebook)
+                        notebooks.append(notebook)
+
+        return notebooks
 
     @staticmethod
     def archivedNotebooks():
@@ -143,6 +235,8 @@ class NotebookJobServices:
         context["tempTableName"] = "tempTable_" + str(round(time.time() * 1000))
         # Adding Druid Ingestion URL to the context
         context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
+        # Adding S3 files directory in template
+        context["s3FilesDirectory"] = "s3a://" + settings.BUCKET_NAME + "/" + settings.PREFIX
         notebook = Template(json.dumps(notebookTemplate.template)).render(Context(context))
         return notebook, connection
 
@@ -351,7 +445,8 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        runNotebookJobTask.delay(notebookId=notebookId, runType="Manual")
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id, runType="Manual")
         res.update(True, "Notebook triggered successfully", None)
         return res
 
@@ -422,6 +517,15 @@ class NotebookJobServices:
             res.update(True, "Notebook deleted successfully", None)
         return res
 
+    @staticmethod
+    def search(notebooks, keys, text):
+        """ utitlites function for search """
+        filterNotebooks = []
+        for notebook in notebooks:
+            if text.lower() in notebook["path"].lower():
+                filterNotebooks.append(notebook)
+
+        return filterNotebooks
 
 class Connections:
 

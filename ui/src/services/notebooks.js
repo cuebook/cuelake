@@ -17,6 +17,13 @@ class NotebookService {
         else
             return null
     }
+    async getAllNotebooks(offset, limit, searchText, onSort, isAsc){
+        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&onSort="+ onSort + "&isAsc=" + isAsc )
+        if(response.success == true)
+        return response.data
+    else
+        return null
+}
 
     async getArchivedNotebooks(){
         const response = await apiService.get("genie/notebooks/archive")

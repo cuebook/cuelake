@@ -10,7 +10,9 @@ class Workflows(APIView):
     """
     def get(self, request, offset: int):
         """Gets all workflows"""
-        res = WorkflowServices.getWorkflows(offset)
+        sortOn = request.GET.get("sortOn", "")
+        order = request.GET.get("isAsc", '')
+        res = WorkflowServices.getWorkflows(offset, sortOn, order)
         return Response(res.json())
 
     def post(self, request):

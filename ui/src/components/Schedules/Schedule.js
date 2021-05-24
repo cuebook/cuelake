@@ -66,27 +66,32 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
     {
       title: "Name",
       dataIndex: "name",
-      key: "name"
+      key: "name",
+      sorter:(a,b)=>{return a.name.localeCompare(b.name)},
     },
     {
       title: "Schedule",
       dataIndex: "schedule",
       key: "schedule",
-    
+      sorter:(a,b)=>{return a.schedule.localeCompare(b.schedule)},
     },
 
     {
         title: "Assigned Notebook",
         dataIndex: "notebookCount",
         key: "notebookCount",
-      align:"center"
+      align:"center",
+      sorter:(a,b)=>a.notebookCount - b.notebookCount,
+
       },
 
     {
       title: "Assigned Workflow",
       dataIndex: "workflowCount",
       key: "workflowCount",
-      align:"center"
+      align:"center",
+      sorter:(a,b)=>a.workflowCount - b.workflowCount,
+
 
     
     },
@@ -135,8 +140,11 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
             rowKey={"id"}
             scroll={{ x: "100%" }}
             columns={columns}
+            size={"small"}
             dataSource={schedules}
-            pagination={false}
+            pagination={{
+              pageSize: 25,
+            }}
         />
         <Drawer
           title={"Add Connection"}

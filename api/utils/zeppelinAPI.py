@@ -7,6 +7,7 @@ from rest_framework import response
 
 NOTEBOOKS_ENDPOINT = "api/notebook"
 NOTEBOOK_STATUS_ENDPOINT = "api/notebook/job"
+INTERPRETER_RESTART_ENDPOINT = "api/interpreter/setting/restart"
 
 class ZeppelinAPI:
     """
@@ -107,6 +108,13 @@ class ZeppelinAPI:
         Renames zeppelin notebook
         """
         response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/rename", json.dumps({"name": newName}))
+        return self.__parseResponse(response)
+
+    def restartInterpreter(self, interpreterName: str):
+        """
+        Restarts interpreter
+        """
+        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{INTERPRETER_RESTART_ENDPOINT}/{interpreterName}")
         return self.__parseResponse(response)
 
     def __parseResponse(self, response):
