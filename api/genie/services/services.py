@@ -240,7 +240,7 @@ class NotebookJobServices:
         # Adding Druid Ingestion URL to the context
         context["druidLocation"] = "http://cueapp-druid-router:8888/druid/indexer/v1/task"
         # Adding S3 files directory in template
-        context["s3FilesDirectory"] = "s3a://" + settings.BUCKET_NAME + "/" + settings.PREFIX
+        context["s3FilesDirectory"] = "s3a://" + settings.S3_BUCKET_NAME + "/" + settings.S3_FILES_PREFIX 
         notebook = Template(json.dumps(notebookTemplate.template)).render(Context(context))
         return notebook, connection
 
@@ -507,7 +507,7 @@ class NotebookJobServices:
         res = ApiResponse(message="Error in archiving notebook")
         response = Zeppelin.renameNotebook(notebookId, notebookName)
         if response:
-            res.update(True, "Notebook archived successfully", None)
+            res.update(True, "Notebook unarchived successfully", None)
         return res
 
     @staticmethod

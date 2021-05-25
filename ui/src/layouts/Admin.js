@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 import ReactNotification from 'react-notifications-component';
 
@@ -18,29 +18,34 @@ import SchedulesView from "views/admin/Schedules.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
 
+// contexts
+import { GlobalContext, GlobalContextProvider } from "./GlobalContext"
+
 export default function Admin() {
   return (
     <>
-      <Sidebar />
-      <ReactNotification />
-      <div className="relative md:ml-64 bg-gray-200">
-        <AdminNavbar />
-        {/* Header */}
-        <HeaderStats />
-        <div className="px-0 md:px-0 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "1rem 0rem 0 0rem"}}>
-          <Switch>
-            <Route path="/notebooks" exact component={Notebooks} />
-            <Route path="/notebook/:notebookId" exact component={NotebookView} />
-            <Route path="/settings" exact component={Settings} />
-            <Route path="/connections" exact component={Connections} />
-            <Route path="/schedules" exact component={SchedulesView} />
-            <Route path="/workflows" exact component={WorkflowsMain} />
-            <Route path="/files" exact component={Files} />
-            <Route path="/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
-            <Redirect from="/" to="/notebooks" />
-          </Switch>
+      <GlobalContextProvider>
+        <Sidebar />
+        <ReactNotification />
+        <div className="relative md:ml-64 bg-gray-200">
+          <AdminNavbar />
+          {/* Header */}
+          <HeaderStats />
+          <div className="px-0 md:px-0 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "1rem 0rem 0 0rem"}}>
+            <Switch>
+              <Route path="/notebooks" exact component={Notebooks} />
+              <Route path="/notebook/:notebookId" exact component={NotebookView} />
+              <Route path="/settings" exact component={Settings} />
+              <Route path="/connections" exact component={Connections} />
+              <Route path="/schedules" exact component={SchedulesView} />
+              <Route path="/workflows" exact component={WorkflowsMain} />
+              <Route path="/files" exact component={Files} />
+              <Route path="/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
+              <Redirect from="/" to="/notebooks" />
+            </Switch>
+          </div>
         </div>
-      </div>
+      </GlobalContextProvider>
     </>
   );
 }

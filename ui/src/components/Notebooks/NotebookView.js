@@ -1,10 +1,13 @@
-import React from "react";
+import React, {useState} from "react";
 import style from "./style.module.scss";
 import { useParams } from 'react-router-dom';
 import apiService from "services/api";
 import { useHistory } from "react-router-dom";
+import SchemaTree from "components/Schema/SchemaTree";
+
 
 export default function NotebookView() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const params = useParams();
   const history = useHistory();
   let notebookId = params.notebookId;
@@ -18,6 +21,9 @@ export default function NotebookView() {
   }
   return (
     <>
+      <div style={{position: "absolute", width: 420, marginLeft: "720px" }} >
+        <SchemaTree/>
+      </div>
       <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );

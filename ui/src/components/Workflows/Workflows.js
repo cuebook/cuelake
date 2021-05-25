@@ -32,6 +32,7 @@ import notebookService from "services/notebooks";
 import { timehumanize } from 'services/general';
 import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
 import Moment from "react-moment";
+
 var moment = require("moment");
 
 const { TabPane } = Tabs;
@@ -85,7 +86,6 @@ export default function Workflows(props) {
       }
       setLoading(true)
       const response = await workflowsService.getAllWorkflows(offset, columnToSort, order);
-      console.log('response', response)
       if(response){
         setFitlerWorkflows(response);
         setTotal(response.Total)

@@ -4,14 +4,13 @@ import NotebookTable from "components/Notebooks/NotebookTable.js";
 import ArchivedNotebook from "components/Notebooks/ArchivedNotebookTable.js";
 
 const { TabPane } = Tabs
-// components
 
 export default function NotebookTableFunction() {
   return (
     <>
       <div className="flex flex-wrap mh-full">
         <div className="w-full mb-12 px-4">
-		    <Tabs defaultActiveKey="1">
+		    <Tabs defaultActiveKey="1" destroyInactiveTabPane={true}>
 		      <TabPane tab="Notebooks" key="1">
 		        <NotebookTable />
 		      </TabPane>

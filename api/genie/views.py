@@ -2,7 +2,7 @@ from django.http import HttpRequest
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices
+from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices, Schemas
 from rest_framework.decorators import api_view
 
 class NotebookOperationsView(APIView):
@@ -236,9 +236,17 @@ class NotebookTemplateView(APIView):
         return Response(res.json())
 
 class DriverAndExecutorStatus(APIView):
-    """
-    Method to get drivers and executors count
-    """
     def get(self, request):
+        """
+        Method to get drivers and executors count
+        """
         res = KubernetesServices.getDriversCount()
+        return Response(res.json())
+
+class SchemasView(APIView):
+    def get(self, request):
+        """
+        Method to get Tables and schemas
+        """
+        res = Schemas.getSchemas()
         return Response(res.json())

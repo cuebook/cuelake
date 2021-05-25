@@ -3,8 +3,8 @@ from typing import List
 from utils.apiResponse import ApiResponse
 from django.conf import settings
 
-BUCKET_NAME = settings.BUCKET_NAME
-PREFIX = settings.PREFIX
+S3_BUCKET_NAME = settings.S3_BUCKET_NAME
+S3_FILES_PREFIX = settings.S3_FILES_PREFIX
 
 
 class FilesServices:
@@ -19,7 +19,7 @@ class FilesServices:
 		"""
 		res = ApiResponse(message="Error retrieving files")
 		s3 = boto3.client("s3")
-		response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX, Delimiter="/")
+		response = s3.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=S3_FILES_PREFIX, Delimiter="/")
 		contents: list = response['Contents']
 
 		for content in contents:
@@ -30,7 +30,7 @@ class FilesServices:
 			if 'Owner' in content:
 				del content['Owner']
 
-			content['Key'] = content['Key'][len(PREFIX):]
+			content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
 
 		res.update(True, "Files retrieved successfully", contents)
 		return res
@@ -42,7 +42,7 @@ class FilesServices:
 		"""
 		res = ApiResponse(message="Error uploading file")
 		s3 = boto3.client("s3")
-		s3.upload_fileobj(Fileobj=file, Bucket=BUCKET_NAME, Key=PREFIX+file.name)
+		s3.upload_fileobj(Fileobj=file, Bucket=S3_BUCKET_NAME, Key=S3_FILES_PREFIX+file.name)
 
 		res.update(True, "Successfully uploaded file")
 		return res
@@ -54,6 +54,6 @@ class FilesServices:
 		"""
 		res = ApiResponse(message="Error uploading file")
 		s3 = boto3.client("s3")
-		s3.delete_object(Bucket=BUCKET_NAME, Key=PREFIX+fileKey)
+		s3.delete_object(Bucket=S3_BUCKET_NAME, Key=S3_FILES_PREFIX+fileKey)
 		res.update(True, "Successfully uploaded file")
 		return res

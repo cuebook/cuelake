@@ -22,7 +22,6 @@ export default function AlertSettings(){
   }
 
   const updateAccountSettings = async (requestPayload) => {
-      console.log(requestPayload)
     const response = await settingsService.updateAccountSettings(requestPayload)
     if(response.success){
         message.success("Settings updated successfully")
