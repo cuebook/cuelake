@@ -161,21 +161,20 @@ class Schemas:
     def getS3FileNames():
         """ S3 file names"""
 
-        # s3 = boto3.client("s3")
-        # response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
-        # contents: list = response['Contents']
+        s3 = boto3.client("s3")
+        response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
+        contents: list = response['Contents']
 
-        # for content in contents:
-        #     if 'ETag' in content:
-        #         del content['ETag']
-        #     if 'StorageClass' in content:
-        #         del content['StorageClass']
-        #     if 'Owner' in content:
-        #         del content['Owner']
+        for content in contents:
+            if 'ETag' in content:
+                del content['ETag']
+            if 'StorageClass' in content:
+                del content['StorageClass']
+            if 'Owner' in content:
+                del content['Owner']
 
-        #     content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
+            content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
 
-        contents = [{"Key": "Zones.csv", "LastModified": "2021-05-11T12:07:07Z", "Size": 2006}]
         return contents
 
 
