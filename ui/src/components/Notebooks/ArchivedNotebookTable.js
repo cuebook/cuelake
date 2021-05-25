@@ -7,7 +7,7 @@ import {
   Tooltip,
   message,
 } from "antd";
-import { UndoOutlined, DeleteOutlined, LoadingOutlined, BackwardFilled } from '@ant-design/icons';
+import { RetweetOutlined, DeleteOutlined, LoadingOutlined, BackwardFilled } from '@ant-design/icons';
 
 export default function NotebookTable(props) {
   const [notebooks, setNotebooks] = useState([]);
@@ -94,7 +94,7 @@ export default function NotebookTable(props) {
             <LoadingOutlined />
             : 
             <Tooltip title={"Unarchive Notebook"}>
-              <UndoOutlined onClick={() => unarchiveNotebook(notebook)} />
+              <RetweetOutlined onClick={() => unarchiveNotebook(notebook)} />
             </Tooltip>
               }
             <Tooltip title={"Delete Notebook"}>
