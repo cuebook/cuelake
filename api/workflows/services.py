@@ -6,6 +6,9 @@ import time
 import datetime as dt
 from django.db import transaction
 import polling
+
+from app.celery import app
+
 from workflows.models import (
     Workflow,
     WorkflowRun,
@@ -262,24 +265,20 @@ class WorkflowActions:
         return res
 
     @staticmethod
-    def stopWorkflow(workflowId: int):
+    def stopWorkflow(workflowRunId: int):
         """
         Stops given workflow
         """
         res = ApiResponse(message="Error in stopping workflow")
-        notebookIds = list(
-            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
-                "notebookId", flat=True
-            )
-        )
-        workflowRuns = WorkflowRun.objects.filter(workflow_id=workflowId).order_by("-startTimestamp")
-        if workflowRuns.count():
-            workflowRun = workflowRuns[0]
-            workflowRun.status = STATUS_ABORTED
-            workflowRun.endTimestamp = dt.datetime.now()
-            workflowRun.save()
+        workflowRun = WorkflowRun.objects.get(id=workflowRunId)
+        # Revoke celery task
+        app.control.revoke(workflowRun.taskId, terminate=True)
+        # Update workflow run status
+        workflowRun.status = STATUS_ABORTED
+        workflowRun.endTimestamp = dt.datetime.now()
+        workflowRun.save()
 
-        notebookIds = Workflow.objects.get(id=workflowId).notebookjob_set.all().values_list("notebookId", flat=True)
+        notebookIds = Workflow.objects.get(id=workflowRun.workflow.id).notebookjob_set.all().values_list("notebookId", flat=True)
         responses = [ NotebookJobServices.stopNotebookJob(notebookId) for notebookId in notebookIds ]
 
         res.update(True, "Stopped workflow successfully")

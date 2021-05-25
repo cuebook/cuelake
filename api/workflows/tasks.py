@@ -8,7 +8,7 @@ from django.conf import settings
 
 from system.services import NotificationServices
 from workflows.taskUtils import TaskUtils
-from workflows.models import WorkflowRun, STATUS_RECEIVED, STATUS_ERROR
+from workflows.models import Workflow, WorkflowRun, STATUS_RECEIVED, STATUS_ERROR, STATUS_ALWAYS
 
 import logging
 
@@ -22,7 +22,13 @@ def runWorkflowJob(workflowId: int, workflowRunId: int = None):
     :param workflowId: ID of Workflows.workflow model
 	"""
 	try:
-		dependentWorkflowIds = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunId=workflowRunId)
+		workflowRunStatus = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunId=workflowRunId, taskId=runWorkflowJob.request.id)
+		dependentWorkflowIds = list(
+            Workflow.objects.filter(
+                triggerWorkflow_id=workflowId,
+                triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRunStatus],
+            ).values_list("id", flat=True)
+        )
 		for workflowId in dependentWorkflowIds:
 			workflowRun = WorkflowRun.objects.create(workflow_id=workflowId, status=STATUS_RECEIVED)
 			runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)

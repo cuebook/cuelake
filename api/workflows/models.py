@@ -22,6 +22,7 @@ class WorkflowRun(models.Model):
 	status = models.CharField(max_length=50, default=STATUS_SUCCESS)
 	startTimestamp = models.DateTimeField(auto_now_add=True)
 	endTimestamp = models.DateTimeField(null=True, default=None)
+	taskId = models.CharField(max_length=200, default="")
 
 class NotebookJob(models.Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, db_index=True)

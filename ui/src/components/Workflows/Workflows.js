@@ -217,7 +217,7 @@ export default function Workflows(props) {
     }
 
     const stopWorkflow = async workflow => {
-      const response = await workflowsService.stopWorkflow(workflow.id);
+      const response = await workflowsService.stopWorkflow(workflow.lastRun.workflowRunId);
       refreshWorkflows()
     }
 
@@ -376,7 +376,7 @@ export default function Workflows(props) {
         }
       },
       {
-        title: "Actions",
+        title: "",
         dataIndex: "",
         key: "",
         // width: "10%",

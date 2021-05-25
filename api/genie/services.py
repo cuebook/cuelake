@@ -3,6 +3,7 @@ import json
 import os
 import pytz
 import time
+import logging
 import datetime as dt
 from typing import List
 from django.template import Template, Context
@@ -16,6 +17,9 @@ from utils.druidSpecGenerator import DruidIngestionSpecGenerator
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from kubernetes import config, client
 from django.conf import settings
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"

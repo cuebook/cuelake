@@ -134,17 +134,6 @@ export default function WorkflowRuns(props) {
           );
         }
     },
-    // {
-    //     title: "Actions",
-    //     dataIndex: "",
-    //     key: "",
-    //     width: "10%",
-    //     render: (text, record) => {
-    //       return (
-    //         <a href={"workflows/workflowRun/" + record.id}>Logs</a>
-    //       );
-    //     }
-    // }
   ]
 
   return (

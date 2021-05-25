@@ -32,12 +32,12 @@ class TaskUtils:
     Class containing workflow job utils
     """
     @staticmethod
-    def runWorkflow(workflowId: int, workflowRunId: int = None):
+    def runWorkflow(workflowId: int, taskId: str, workflowRunId: int = None):
         """
         Runs workflow
         """
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
-        workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, workflowRunId)
+        workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
         successFlag = True
         for index in range(int(math.ceil(len(notebookIds) / NOTEBOOK_BATCH_COUNT))):
             # processing one batch of notebooks at a time
@@ -49,7 +49,9 @@ class TaskUtils:
                 step=3,
                 timeout=3600*6,
             )
+            logger.info(f"Workflow status for batch {index + 1}: {str(workflowStatus)}")
             if not workflowStatus and successFlag:
+                logger.info(f"Success flag set to False. WorkflowStatus: {str(workflowStatus)} SuccesFlag: {str(successFlag)}")
                 successFlag = False
             logger.info(f"Finished batch {index + 1}. Restarting spark interpreter")
             if not workflowStatus:
@@ -63,14 +65,7 @@ class TaskUtils:
         workflowRun.status = STATUS_SUCCESS if successFlag else STATUS_ERROR
         workflowRun.endTimestamp = dt.datetime.now()
         workflowRun.save()
-
-        dependentWorkflowIds = list(
-            Workflow.objects.filter(
-                triggerWorkflow_id=workflowId,
-                triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRun.status],
-            ).values_list("id", flat=True)
-        )
-        return dependentWorkflowIds
+        return workflowRun.status
 
     @staticmethod
     def __runNotebookJobsFromList(notebookIds: List[int]):
@@ -99,17 +94,18 @@ class TaskUtils:
         return notebookIds
 
     @staticmethod
-    def __getOrCreateWorkflowRun(workflowId: int, workflowRunId: int = None):
+    def __getOrCreateWorkflowRun(workflowId: int, taskId: str, workflowRunId: int = None):
         """
         Gets or Creates workflow run object
         """
         if workflowRunId:
             workflowRun = WorkflowRun.objects.get(id=workflowRunId)
             workflowRun.status = STATUS_RUNNING
+            workflowRun.taskId = taskId
             workflowRun.save()
         else:
             workflowRun = WorkflowRun.objects.create(
-                workflow_id=workflowId, status=STATUS_RUNNING
+                workflow_id=workflowId, status=STATUS_RUNNING, taskId=taskId
             )
         return workflowRun
     
@@ -118,18 +114,10 @@ class TaskUtils:
         """
         Check if given runStatuses are status is SUCCESS
         """
-        if (
-            len(notebookRunStatusIds)
-            == RunStatus.objects.filter(id__in=notebookRunStatusIds)
-            .exclude(status=NOTEBOOK_STATUS_RUNNING)
-            .exclude(status=NOTEBOOK_STATUS_QUEUED)
-            .count()
-        ):
-            return (
-                len(notebookRunStatusIds)
-                == RunStatus.objects.filter(
-                    id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS
-                ).count()
-            )
-
+        runningAndQueuedNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds).exclude(status=NOTEBOOK_STATUS_RUNNING).exclude(status=NOTEBOOK_STATUS_QUEUED).count()
+        if (len(notebookRunStatusIds) == runningAndQueuedNotebookCount):
+            successfulNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS).count()
+            logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}. Notebooks in batch: {str(len(notebookRunStatusIds))}")
+            logger.info(f"Notebook Run Status Ids: {str(notebookRunStatusIds)}")
+            return (len(notebookRunStatusIds) == successfulNotebookCount)
         return "RUNNING"

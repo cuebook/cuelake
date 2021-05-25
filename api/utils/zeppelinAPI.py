@@ -1,9 +1,13 @@
 import asyncio
+import logging
 import json
 import aiohttp
 import requests
 from django.conf import settings
 from rest_framework import response
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 NOTEBOOKS_ENDPOINT = "api/notebook"
 NOTEBOOK_STATUS_ENDPOINT = "api/notebook/job"
@@ -59,6 +63,8 @@ class ZeppelinAPI:
         Stop all paragraphs from a notebook
         """
         response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+        logger.info(f"Stop notebook {notebookId}")
+        logger.info(f"Stop notebook response {response.json()}")
         return self.__parseResponse(response)
 
     def clearNotebookResults(self, notebookId: str):
@@ -66,6 +72,8 @@ class ZeppelinAPI:
         Clear all paragraph results from a notebook
         """
         response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/clear")
+        logger.info(f"Clear notebook {notebookId}")
+        logger.info(f"Clear notebook response {response.json()}")
         return self.__parseResponse(response)
 
     def addNotebook(self, notebook: dict):
@@ -80,8 +88,6 @@ class ZeppelinAPI:
         Clear all paragraph results from a notebook
         """
         response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}", payload)
-        print(response.json())
-        print(payload)
         return self.__parseResponse(response)
 
     def deleteNotebook(self, notebookId: str):
