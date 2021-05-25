@@ -22,10 +22,14 @@ Whenever a row is updated in the ORDERS table in the source database, `MODIFIEDT
 
 ![Notebook Form](images/Notebook.png)
 
-When you run this notebook for the first time, CueLake will fetch the entire data and create the S3 table in the specified path. On the next run, only the incremental rows will be fetched and upserted into the S3 table. CueLake uses Iceberg's `merge into` query to merge the data.
+When you run this notebook for the first time, CueLake will fetch the entire data and create the S3 table. On the next run, only the incremental rows will be fetched and upserted into the S3 table. CueLake uses Iceberg's `merge into` query to merge the data.
+
+On each run of an incremental refresh notebook, it's paragraphs execute the following tasks:
+* Execute Spark SQL query to fetch incremental data from the database.
+* Sort the incremental data.
+* Merge the incremental data into the Iceberg table.
+* Run maintenance on Iceberg table
+
 
 ## Full Refresh
 Full Refresh template fetches all the data from your source database and overwrites the destination table in S3. It creates the destination table, if it doesn't exist.
-
-## Blank
-Blank template opens a blank Zeppelin notebook.
