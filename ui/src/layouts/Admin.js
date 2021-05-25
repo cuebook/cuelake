@@ -19,7 +19,7 @@ import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
 
 // contexts
-import { GlobalContextProvider } from "./GlobalContext"
+import { GlobalContextProvider } from "./GlobalContext";
 
 export default function Admin() {
   return (
