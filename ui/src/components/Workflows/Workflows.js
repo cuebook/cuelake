@@ -570,6 +570,7 @@ export default function Workflows(props) {
                 pagination={{
                   current: currentPage,
                   pageSize: 25,
+                  showSizeChanger: false,
                   total: filterWorkflows ? filterWorkflows.total : total ? total : 0
                 }}
             />

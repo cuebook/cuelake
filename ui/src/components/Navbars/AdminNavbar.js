@@ -4,7 +4,7 @@ export default function Navbar() {
   return (
     <>
       {/* Navbar */}
-      <nav className="absolute top-0 left-0 w-full z-10 bg-transparent md:flex-row md:flex-no-wrap md:justify-start flex items-center p-4">
+      <nav className="absolute top-0 left-0 w-full bg-transparent md:flex-row md:flex-no-wrap md:justify-start flex items-center p-4">
         <div className="w-full mx-auto items-center flex justify-between md:flex-no-wrap flex-wrap md:px-0 px-0">
           <form className="md:flex hidden flex-row flex-wrap items-center lg:ml-auto w-100">
             <div className="relative flex w-full flex-wrap items-stretch">

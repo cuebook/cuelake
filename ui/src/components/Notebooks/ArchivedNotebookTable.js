@@ -1,29 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import TimeAgo from 'react-timeago';
+import React, { useState, useEffect } from "react";
 import _ from "lodash";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
-import { useHistory } from "react-router-dom";
-import {search} from "services/general.js"
 import {
   Table,
-  Button,
-  Modal,
-  Input,
-  Select,
   Tooltip,
-  Popover,
-  Form,
   message,
-  Drawer,
-  Popconfirm,
-  Switch,
-  Menu, 
-  Dropdown
 } from "antd";
-import { UndoOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
+import { UndoOutlined, DeleteOutlined, LoadingOutlined, BackwardFilled } from '@ant-design/icons';
 
-export default function NotebookTable() {
+export default function NotebookTable(props) {
   const [notebooks, setNotebooks] = useState([]);
   const [loading, setLoading] = useState([]);
   const [unarchivingNotebook, setUnarchivingNotebook] = useState(false);
@@ -84,7 +70,7 @@ export default function NotebookTable() {
 
   const columns = [
     {
-      title: "Notebook",
+      title: "Archived Notebooks",
       dataIndex: "path",
       key: "path",
       width: "20%",
@@ -121,16 +107,18 @@ export default function NotebookTable() {
   ]
 
   return (
-      <Table
-        rowKey={"id"}
-        scroll={{ x: "100%" }}
-        columns={columns}
-        dataSource={notebooks}
-        loading={loading}
-        size={"small"}
-        // onChange={(event) => handleTableChange(event)}
-      />
-
+      <>
+        <a className={style.notebookLinkText} onClick={() => props.hideArchivedNotebooksTable() }><BackwardFilled />  Notebooks</a>
+        <Table
+          rowKey={"id"}
+          scroll={{ x: "100%" }}
+          columns={columns}
+          dataSource={notebooks}
+          loading={loading}
+          size={"small"}
+          // onChange={(event) => handleTableChange(event)}
+        />
+      </>
     )
 
 }

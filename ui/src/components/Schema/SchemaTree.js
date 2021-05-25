@@ -3,7 +3,7 @@ import TimeAgo from 'react-timeago';
 import style from "./style.module.scss";
 import { Tree } from 'antd';
 import Moment from 'react-moment';
-import { CarryOutOutlined, FormOutlined, DatabaseOutlined, TableOutlined, BorderlessTableOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, TableOutlined, BorderlessTableOutlined } from '@ant-design/icons';
 import { GlobalContext } from "layouts/GlobalContext"
 import notebookService from "services/notebooks.js";
 import { formatBytes } from "utils";
@@ -50,9 +50,11 @@ export default function SchemaTree(props) {
                     icon: <DatabaseOutlined />,
                     children: database.tables.map(table=>{
                         return {
-                            title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={table.LastModified}/></div></div>,
-                            key: table.TBL_ID,
-                            icon: <BorderlessTableOutlined />,
+                            title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME}</div></div>,
+                            key: table.TBL_NAME,
+                            showLine: false,
+                            showIcon: false,
+                            icon: <TableOutlined />,
                         }
                     })
                } 
@@ -69,7 +71,7 @@ export default function SchemaTree(props) {
                             children: database.tables.filter(table=>table.TBL_TYPE==="EXTERNAL_TABLE").map(table=>{
                                 const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
                                 return {
-                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
+                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
                                     key: table.TBL_ID,
                                     icon: <TableOutlined />,
                                     children: [
@@ -85,8 +87,9 @@ export default function SchemaTree(props) {
                                         {
                                             title: "Columns",
                                             key: table.TBL_ID + " Columns",
-                                            children: columns[table.TBL_ID].map(column=>{
+                                            children: columns[table.TBL_ID].map((column, index)=>{
                                                 return {
+                                                    key: column.CD_ID + "_" + index,
                                                     title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
                                                     type: column.COLUMN_NAME,
                                                     isLeaf: true
@@ -103,7 +106,7 @@ export default function SchemaTree(props) {
                             children: database.tables.filter(table=>table.TBL_TYPE==="VIRTUAL_VIEW").map(table=>{
                                 const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
                                 return {
-                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "12px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
+                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
                                     key: table.TBL_ID,
                                     icon: <BorderlessTableOutlined />,
                                     children: [
@@ -118,8 +121,9 @@ export default function SchemaTree(props) {
                                         {
                                             title: "Columns",
                                             key: table.TBL_ID + " Columns",
-                                            children: columns[table.TBL_ID].map(column=>{
+                                            children: columns[table.TBL_ID].map((column, index)=>{
                                                 return {
+                                                    key: column.CD_ID + "_" + index,
                                                     title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
                                                     type: column.COLUMN_NAME,
                                                     isLeaf: true

@@ -91,32 +91,81 @@
 }
 
 .driversAndExecutores{
-    display: flex;
-    
+    display: flex;   
 }
+
 .flexContainer{
     display: flex;
     flex-direction: row-reverse;
     justify-content: end;
     text-align: start;
-    padding-bottom: 5px;
 }
-.driversAndExecutoresStyle{
+
+.archiveNotebookLink{
     display: flex;
     flex-direction: row;
     justify-content: center;
-    min-width: 250px;
-    padding: 10px;
+    min-width: 170px;
+    padding: 5px;
+}
+
+.driversAndExecutoresStyle{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    min-width: 350px;
+    padding: 5px;
     color:#000000D9;
 }
+
 .podStyle{
     margin-right:10px;
 }
+
 .actionBar {
-    // padding: 5px;
     margin-bottom: 5px;
-    margin-top: 5px;
     display: inline-block;
     width: 100%;
   }
 
+
+.notebookLinkText{
+    padding: 10px 0;
+    display: block;
+}
+
+.schemaBrowser{
+    position: absolute;
+    height: 100vh;
+    top: 0;
+    right: -402px;
+    width: 400px;
+    background: #fff;
+    padding: 10px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    transition: 200ms;
+
+    &.open{
+        right: 0;
+        transition: 200ms;
+    }
+}
+
+.schemaBrowserDrawerButton{
+    position: absolute;
+    top: 200px;
+    left: -40px;
+    background: white;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 10px 0 0 10px;
+    border-right: none;
+    cursor: pointer;
+    text-align:center;
+    width: 40px;
+}
+
+.schemaTreeWrapper{
+    height: 100vh;
+    overflow: auto;
+}

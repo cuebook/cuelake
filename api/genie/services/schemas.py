@@ -34,48 +34,6 @@ class Postgres():
             pass
             # logger.error(str(error))
 
-
-    def testConnection(self):
-        """
-        Tests connection and then closes it.
-        """
-        if self.connection:
-            try:
-                # logger.info("Testing and closing DB connection")
-                self.connection.close()
-                return True
-            except (Exception) as error:
-                # logger.error(str(error))
-                return False
-        else:
-            return False
-
-    def runQuery(self, query, isTable, limitResults: bool = True):
-        """
-        Run query and fetch data from connection with provided credentials and closes the connection.
-        :param query: SQL query to be executed
-        :param isTable: boolean if table
-        :param limitResults: bool if want to limit results
-        """
-        if self.connection:
-            dataframe = self.fetchData(query)
-            dataframe = dataframe.fillna("")
-            metaData = {}
-            data = []
-            if not isTable:
-                dataframe = dataframe.melt(dataframe.columns[0])
-                isXColumnTime, newDataframe = checkIfColumnIsTime(dataframe, dataframe.columns[0])
-                if isXColumnTime:
-                    dataframe = newDataframe
-                metaData = self.getMetaDataForChart(dataframe, isXColumnTime)
-            data = dataframe.to_dict("records")
-            # logger.info("Closing DB connection")
-            self.connection.close()
-            return {"data": data, "metaData": metaData}
-        else:
-            # logger.info("DB connection inactive")
-            return False
-
     def fetchData(self, query, limitResults: bool = True):
         """
         Fetch data for query from self.connection
@@ -163,7 +121,7 @@ class Schemas:
 
         s3 = boto3.client("s3")
         response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
-        contents: list = response['Contents']
+        contents: list = response.get('CommonPrefixes', [])
 
         for content in contents:
             if 'ETag' in content:
@@ -173,7 +131,7 @@ class Schemas:
             if 'Owner' in content:
                 del content['Owner']
 
-            content['Key'] = content['Key'][len(S3_FILES_PREFIX):]
+            content['Key'] = content['Prefix'][len(settings.HADOOP_S3_PREFIX):-1]
 
         return contents
 

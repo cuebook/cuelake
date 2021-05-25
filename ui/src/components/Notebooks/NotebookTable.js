@@ -4,20 +4,16 @@ import _ from "lodash";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import { useHistory } from "react-router-dom";
-import {search} from "services/general.js"
 import {
   Table,
   Button,
-  Modal,
   Input,
   Select,
   Tooltip,
   Popover,
-  Form,
   message,
   Drawer,
   Popconfirm,
-  Switch,
   Menu, 
   Dropdown
 } from "antd";
@@ -28,6 +24,7 @@ import EditNotebook from "./EditNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
 import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
 import { timehumanize } from 'services/general';
+import ArchivedNotebookTable from "components/Notebooks/ArchivedNotebookTable.js";
 
 var moment = require("moment");
 const { Option } = Select;
@@ -47,11 +44,11 @@ export default function NotebookTable() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState('');
-  const [scheduleName, setScheduleName] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
   const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
   const [editNotebookDrawerId, setEditNotebookDrawer] = useState(null);
+  const [isArchivedNotebookVisible, setIsArchivedNotebookVisible] = useState(null);
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
@@ -240,6 +237,15 @@ export default function NotebookTable() {
     }
   }
 
+  const showArchivedNotebookTable = () => {
+    setIsArchivedNotebookVisible(true)
+  }
+
+  const hideArchivedNotebooksTable = () => {
+    setIsArchivedNotebookVisible(false)
+  }
+  
+
   const closeNewNotebookDrawer = () => {
     setIsNewNotebookDrawerVisible(false)
   }
@@ -294,7 +300,7 @@ export default function NotebookTable() {
       title: "Schedule",
       dataIndex: "schedule",
       key: "schedule",
-      width: "20%",
+      width: "10%",
       sorter: ()=>{},
       sortOrder: sortedInfo.columnKey === 'schedule' && sortedInfo.order,
       ellipsis: true,
@@ -336,7 +342,7 @@ export default function NotebookTable() {
       sorter: ()=>{},
       sortOrder: sortedInfo.columnKey === 'assignedWorkflow' && sortedInfo.order,
       ellipsis: true,
-      // width: "10%",
+      width: "10%",
       render: (text,record) => {
         var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow && record.lastRun.assignedWorkflow.map(e => {
           return (
@@ -405,7 +411,7 @@ export default function NotebookTable() {
       title: "Latest Run Status",
       dataIndex: "lastRun",
       key: "lastRun2",
-      width: "15%",
+      width: "11%",
 
       sorter: ()=>{},
       sortOrder: sortedInfo.columnKey === 'lastRun2' && sortedInfo.order,
@@ -516,12 +522,6 @@ export default function NotebookTable() {
                 <PlayCircleOutlined onClick={() => runNotebook(notebook)} />
               </Tooltip>
             }
-            {/* 
-            TODO
-            Add edit functionality from UI
-            <Tooltip title={"Edit Notebook"}>
-              <EditOutlined onClick={() => navigateToNotebook(notebook)} />
-            </Tooltip> */}
             <Tooltip title={"Notebook"}>
               <FileTextOutlined onClick={() => navigateToNotebook(notebook)} />
             </Tooltip>
@@ -545,7 +545,7 @@ export default function NotebookTable() {
     drivers.push(<i className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}  key={i}></i>);
   });
   _.times(pendingDrivers, (i) => {
-    drivers.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
+    drivers.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}} key={i} ></i>);
   });
 
   let executors = []
@@ -556,103 +556,117 @@ export default function NotebookTable() {
   _.times(pendingExecutors, (i) => {
     executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
   });
+
   return (
     <>
 
-    <div className={style.flexContainer}  >
+    {/* Header */}
+    {
+      isArchivedNotebookVisible ?
+      <ArchivedNotebookTable hideArchivedNotebooksTable={hideArchivedNotebooksTable}/>
+      :
+      <>
+        <div className={style.flexContainer}  >
+          <Button
+              key="createTag"
+              type="primary"
+              onClick={() => openNewNotebookDrawer()}
+          >
+              New Notebook
+          </Button>
+          <div className={style.archiveNotebookLink}>
+            <a onClick={() => showArchivedNotebookTable()}>Archived Notebooks</a>
+          </div>
+          <div className={style.driversAndExecutoresStyle}>
+            <div className={style.podStyle}>Drivers : {drivers.length > 0 ? drivers : 0 }</div>
+            <div className={style.podStyle}>Executors : {executors.length > 0 ? executors : 0}</div>
+          </div>
+          <div className={style.actionBar}>
+            <Search
+                style={{ margin: "0 0 10px 0" , width:350}}
+                placeholder="Search"
+                enterButton="Search"
+                
+                onSearch={search}
+                className="mr-2"
+              />
+          </div>
+        </div>
 
-      <Button
-          key="createTag"
-          type="primary"
-          onClick={() => openNewNotebookDrawer()}
+        {/* Table */}
+        <Table
+          rowKey={"id"}
+          scroll={{ x: "100%" }}
+          columns={columns}
+          onChange={handleTableChange}
+          dataSource={  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
+          loading={loading}
+          size={"small"}
+          pagination={{
+            showSizeChanger: false,
+            current: currentPage,
+            pageSize:25,
+            total:  filterNotebook.length != 0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
+          }}
+        />
+      </>
+    }
+      
+
+    {/* Drawer Components */}
+    <Drawer
+        title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
+        width={720}
+        onClose={closeRunLogsDrawer}
+        visible={isRunLogsDrawerVisible}
+        bodyStyle={{ paddingBottom: 80 }}
+        footer={
+          <div
+            style={{
+              textAlign: 'right',
+            }}
+          >
+            <Button onClick={closeRunLogsDrawer} style={{ marginRight: 8 }}>
+              Close
+            </Button>
+          </div>
+        }
       >
-          New Notebook
-      </Button>
-
-      <div className={style.driversAndExecutoresStyle}>
-      <div className={style.podStyle}>Drivers : {drivers.length > 0 ? drivers : 0 }</div>
-      <div className={style.podStyle}>Executors : {executors.length > 0 ? executors : 0}</div>
-      </div>
-    <div className={style.actionBar}>
-
-      <Search
-            style={{ margin: "0 0 10px 0" , width:350}}
-            placeholder="Search"
-            enterButton="Search"
-            
-            onSearch={search}
-            className="mr-2"
-          />
-      </div>
-
-    </div>
-      <Table
-        rowKey={"id"}
-        scroll={{ x: "100%" }}
-        columns={columns}
-        onChange={handleTableChange}
-        dataSource={  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
-        loading={loading}
-        size={"small"}
-        pagination={{
-          current: currentPage,
-          pageSize:25,
-          total:  filterNotebook.length != 0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
-        }}
-      />
-      <Drawer
-          title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
-          width={720}
-          onClose={closeRunLogsDrawer}
-          visible={isRunLogsDrawerVisible}
-          bodyStyle={{ paddingBottom: 80 }}
-          footer={
-            <div
-              style={{
-                textAlign: 'right',
-              }}
-            >
-              <Button onClick={closeRunLogsDrawer} style={{ marginRight: 8 }}>
-                Close
-              </Button>
-            </div>
-          }
-        >
-          { isRunLogsDrawerVisible 
-            ? 
-            <NotebookRunLogs notebook={runLogNotebook}></NotebookRunLogs>
-            :
-            null
-          }
-      </Drawer>
-      <Drawer
-          title={"New Notebook"}
-          width={720}
-          onClose={closeNewNotebookDrawer}
-          visible={isNewNotebookDrawerVisible}
-          bodyStyle={{ paddingBottom: 80 }}
-        >
-          { isNewNotebookDrawerVisible 
-            ? 
-            <AddNotebook onAddNotebookSuccess={onAddNotebookSuccess}></AddNotebook>
-            :
-            null
-          }
-      </Drawer>
-      <Drawer
-          title={"Edit Notebook"}
-          width={720}
-          onClose={closeEditNotebookDrawer}
-          visible={editNotebookDrawerId}
-          bodyStyle={{ paddingBottom: 80 }}
-        >
-          { editNotebookDrawerId 
-            ? 
-            <EditNotebook onAddNotebookSuccess={onAddNotebookSuccess} notebookObjId={editNotebookDrawerId}></EditNotebook>
-            :
-            null
-          }
-      </Drawer>
+        { isRunLogsDrawerVisible 
+          ? 
+          <NotebookRunLogs notebook={runLogNotebook}></NotebookRunLogs>
+          :
+          null
+        }
+    </Drawer>
+    <Drawer
+        title={"New Notebook"}
+        width={720}
+        onClose={closeNewNotebookDrawer}
+        visible={isNewNotebookDrawerVisible}
+        bodyStyle={{ paddingBottom: 80 }}
+      >
+        { isNewNotebookDrawerVisible 
+          ? 
+          <AddNotebook onAddNotebookSuccess={onAddNotebookSuccess}></AddNotebook>
+          :
+          null
+        }
+    </Drawer>
+    <Drawer
+        title={"Edit Notebook"}
+        width={720}
+        onClose={closeEditNotebookDrawer}
+        visible={editNotebookDrawerId}
+        bodyStyle={{ paddingBottom: 80 }}
+      >
+        { editNotebookDrawerId 
+          ? 
+          <EditNotebook onAddNotebookSuccess={onAddNotebookSuccess} notebookObjId={editNotebookDrawerId}></EditNotebook>
+          :
+          null
+        }
+    </Drawer>
     </>
   );
 }
