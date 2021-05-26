@@ -1,12 +1,17 @@
 import { getCookie } from "./general.js";
 
 class ApiService {
-  host = "";
-  base_url = this.host + "/api/";
-  zeppelin_base_url = "/zeppelin";
-  // host = "http://localhost:8000";
-  // base_url = this.host + "/api/";
-  // zeppelin_base_url = "http://localhost:8081";
+  constructor(basePath){
+    // Development Settings
+    // this.host = "http://localhost:8000";
+    // this.base_url = this.host + basePath + "/api/";
+    // this.zeppelin_base_url = "http://localhost:8081";
+
+    // Production Settings
+    this.host = "";
+    this.base_url = this.host + basePath + "/api/";
+    this.zeppelin_base_url = "/zeppelin";
+  }
   
   async get(endpoint) {
     let response = await fetch(this.base_url + endpoint, {
@@ -64,5 +69,9 @@ class ApiService {
 
 }
 
-let apiService = new ApiService()
+let basePath = "";
+if (window.location.pathname.indexOf("api/redirect/cuelake")){
+  basePath = "/api/redirect/cuelake";
+}
+let apiService = new ApiService(basePath)
 export default apiService;
