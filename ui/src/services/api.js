@@ -70,7 +70,7 @@ class ApiService {
 }
 
 let basePath = "";
-if (window.location.pathname.indexOf("api/redirect/cuelake")){
+if (window.location.pathname.indexOf("api/redirect/cuelake") !== -1){
   basePath = "/api/redirect/cuelake";
 }
 let apiService = new ApiService(basePath)
