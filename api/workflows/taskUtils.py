@@ -42,7 +42,7 @@ class TaskUtils:
         for index in range(int(math.ceil(len(notebookIds) / NOTEBOOK_BATCH_COUNT))):
             # processing one batch of notebooks at a time
             batchNotebookIds = notebookIds[index * NOTEBOOK_BATCH_COUNT:(index + 1) * NOTEBOOK_BATCH_COUNT]
-            notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(batchNotebookIds)
+            notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(batchNotebookIds, workflowRun.id)
             workflowStatus = polling.poll(
                 lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds),
                 check_success= lambda x: x != "RUNNING",
@@ -68,16 +68,18 @@ class TaskUtils:
         return workflowRun.status
 
     @staticmethod
-    def __runNotebookJobsFromList(notebookIds: List[int]):
+    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunId: int):
         """
         Runs notebook jobs for all notebookIds
         """
         notebookRunStatusIds = []
         for notebookId in notebookIds:
             runStatus = RunStatus.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow"
+                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRun_id=workflowRunId
             )
-            runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
+            response = runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
+            runStatus.taskId = response.id
+            runStatus.save()
             notebookRunStatusIds.append(runStatus.id)
         return notebookRunStatusIds
     

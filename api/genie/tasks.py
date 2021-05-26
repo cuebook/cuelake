@@ -24,7 +24,8 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     :param runStatusId: ID of genie.runStatus model
     """
     logger.info(f"Starting notebook job for: {notebookId}")
-    runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType)
+    taskId = runNotebookJob.request.id # Celery task id
+    runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType, taskId)
 
     try:
         # Check if notebook is already running
@@ -63,16 +64,17 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
 
-def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str):
+def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, taskId: str):
     """
     Gets or creates a notebook run status object
     """
     if not runStatusId:
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType)
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId)
     else:
         runStatus = RunStatus.objects.get(id=runStatusId)
         runStatus.startTimestamp = dt.datetime.now()
         runStatus.status = NOTEBOOK_STATUS_RUNNING
+        runStatus.taskId = taskId
         runStatus.save()
     return runStatus
 

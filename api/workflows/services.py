@@ -26,7 +26,7 @@ from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.services import NotebookJobServices
-from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
+from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
 
 from django_celery_beat.models import CrontabSchedule
 # Name of the celery task which calls the zeppelin api
@@ -270,6 +270,8 @@ class WorkflowActions:
         Stops given workflow
         """
         res = ApiResponse(message="Error in stopping workflow")
+        
+        # Stopping workflow task
         workflowRun = WorkflowRun.objects.get(id=workflowRunId)
         # Revoke celery task
         app.control.revoke(workflowRun.taskId, terminate=True)
@@ -278,8 +280,17 @@ class WorkflowActions:
         workflowRun.endTimestamp = dt.datetime.now()
         workflowRun.save()
 
-        notebookIds = Workflow.objects.get(id=workflowRun.workflow.id).notebookjob_set.all().values_list("notebookId", flat=True)
-        responses = [ NotebookJobServices.stopNotebookJob(notebookId) for notebookId in notebookIds ]
+        # Stopping notebook tasks
+        notebookRunStatuses = RunStatus.objects.filter(workflowRun=workflowRunId)
+        for notebookRunStatus in notebookRunStatuses:
+            if notebookRunStatus.status == NOTEBOOK_STATUS_QUEUED:
+                app.control.revoke(notebookRunStatus.taskId, terminate=True)
+                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
+                notebookRunStatus.save()
+            elif notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING:
+                notebookRunStatus.status = "ABORTING"
+                notebookRunStatus.save()
+                NotebookJobServices.stopNotebookJob(notebookRunStatus.notebookId)
 
         res.update(True, "Stopped workflow successfully")
         return res
