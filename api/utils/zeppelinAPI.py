@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 import json
 import aiohttp
 import requests
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 NOTEBOOKS_ENDPOINT = "api/notebook"
 NOTEBOOK_STATUS_ENDPOINT = "api/notebook/job"
 INTERPRETER_RESTART_ENDPOINT = "api/interpreter/setting/restart"
+ZEPPELIN_API_RETRY_COUNT = 3
 
 class ZeppelinAPI:
     """
@@ -51,6 +53,16 @@ class ZeppelinAPI:
         response = requests.get(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
         return self.__parseResponse(response)
 
+    def getNotebookDetailsWithRetry(self, notebookId: str, retryCount: int = 0):
+        response = self.getNotebookDetails(notebookId)
+        if response:
+            return response
+        else:
+            if retryCount < ZEPPELIN_API_RETRY_COUNT:
+                return self.getNotebookDetailsWithRetry(notebookId, retryCount + 1)
+            else:
+                return False
+
     def runNotebookJob(self, notebookId: str):
         """
         Run all paragraphs from a notebook
@@ -62,9 +74,14 @@ class ZeppelinAPI:
         """
         Stop all paragraphs from a notebook
         """
-        response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+        isNotebookRunning = True
+        while isNotebookRunning:
+            requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+            response = self.getNotebookDetailsWithRetry(notebookId)
+            isNotebookRunning = response.get("info", {}).get("isRunning", False)
+            time.sleep(3)
+
         logger.info(f"Stop notebook {notebookId}")
-        logger.info(f"Stop notebook response {response.json()}")
         return self.__parseResponse(response)
 
     def clearNotebookResults(self, notebookId: str):

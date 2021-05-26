@@ -5,6 +5,7 @@ import pytz
 import time
 import logging
 import datetime as dt
+import threading
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
@@ -461,9 +462,9 @@ class NotebookJobServices:
         """
         res = ApiResponse(message="Error in stopping notebook")
         # Updating runStatus that the task was aborted
-        response = Zeppelin.stopNotebookJob(notebookId)
-        if response:
-            res.update(True, "Notebook stopped successfully", None)
+        thread = threading.Thread(target=Zeppelin.stopNotebookJob, args=[notebookId])
+        thread.start()
+        res.update(True, "Aborting notebook job", None)
         return res
 
     @staticmethod

@@ -94,7 +94,7 @@ def __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
     """
     Checks if notebook is running and stores logs
     """
-    response = __getNotebookDetails(notebookId)
+    response = Zeppelin.getNotebookDetailsWithRetry(notebookId)
     if response:
         runStatus.logs = json.dumps(response)
         runStatus.save()
@@ -106,19 +106,6 @@ def __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
         __setNotebookStatus(response, runStatus)
         return False
 
-
-def __getNotebookDetails(notebookId: str, retryCount: int = 0):
-    """
-    Gets notebook details with a retry mechanism
-    """
-    response = Zeppelin.getNotebookDetails(notebookId)
-    if response:
-        return response
-    else:
-        if retryCount < ZEPPELIN_API_RETRY_COUNT:
-            return __getNotebookDetails(notebookId, retryCount + 1)
-        else:
-            return False
 
 def __setNotebookStatus(response, runStatus: RunStatus):
     """
