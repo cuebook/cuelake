@@ -57,7 +57,7 @@ class TaskUtils:
             if not workflowStatus:
                 logger.info(f"Error occured in this batch. Notebook Ids: {batchNotebookIds}")
             Zeppelin.restartInterpreter("spark")
-            time.sleep(5)
+            time.sleep(10)
 
         if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
             return []

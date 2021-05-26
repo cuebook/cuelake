@@ -10,20 +10,13 @@ class NotebookService {
             return null
     }
 
-    async getNotebooks(offset){
-        const response = await apiService.get("genie/notebooks/" + offset)
+    async getNotebooks(offset, limit, searchText, sortColumn, sortOrder){
+        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sortColumn="+ sortColumn + "&sortOrder=" + sortOrder)
         if(response.success == true)
             return response.data
         else
             return null
     }
-    async getAllNotebooks(offset, limit, searchText, onSort, isAsc){
-        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&onSort="+ onSort + "&isAsc=" + isAsc )
-        if(response.success == true)
-        return response.data
-    else
-        return null
-}
 
     async getArchivedNotebooks(){
         const response = await apiService.get("genie/notebooks/archive")

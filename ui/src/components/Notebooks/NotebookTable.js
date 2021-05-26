@@ -34,11 +34,9 @@ export default function NotebookTable() {
 
   const [sortedInfo , setSortedInfo] = useState({});
   const [limit, setLimit] = useState(25);
-  const [isAsc, setAsc] = useState()
+  const [sortOrder, setSortOrder] = useState('')
   const [searchText, setSearchText] = useState('');
-  const [onSort, setOnSort] = useState("");
-  const [filterNotebook, setFilterNotebook] = useState([]);
-  const [allNotebooks, setAllNotebooks] = useState([]);
+  const [sortColumn, setSortColumn] = useState('');
   const [notebooks, setNotebooks] = useState([]);
   const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,6 +50,12 @@ export default function NotebookTable() {
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
+  const sortOrderRef = useRef(sortOrder);
+  sortOrderRef.current = sortOrder;
+  const searchTextRef = useRef(searchText);
+  searchTextRef.current = searchText;
+  const sortColumnRef = useRef(sortColumn);
+  sortColumnRef.current = sortColumn;
   
   useEffect(() => {
     if (!notebooks.length) {
@@ -59,7 +63,7 @@ export default function NotebookTable() {
     }
 
     const refreshNotebookInterval = setInterval(() => {
-      refreshNotebooks((currentPageRef.current - 1)*25)
+      refreshNotebooks()
     }, 3000);
 
     const refreshPodStatus = setInterval(() => {
@@ -74,7 +78,7 @@ export default function NotebookTable() {
 
   const getNotebooks = async (offset) => {
     setLoading(true)
-    const response = await notebookService.getNotebooks(offset);
+    const response = await notebookService.getNotebooks(offset, limit, searchTextRef.current, sortColumnRef.current, sortOrderRef.current);
     if(response){
       setNotebooks(response);
     }
@@ -82,28 +86,13 @@ export default function NotebookTable() {
     if(!offset) setCurrentPage(1)
   };
 
-  const getAllNotebook = async (offset, value, columnToSort , sortOrder) => {
-    if(_.isEmpty(searchText) && _.isEmpty(value) && _.isEmpty(columnToSort)){
-      setSearchText(value)
-      setOnSort(columnToSort)
-      setAsc(sortOrder)
-      return
-    }
-    setLoading(true)
-    const response = await notebookService.getAllNotebooks(offset, limit, value, columnToSort, sortOrder );
-    if(response){
-      setFilterNotebook(response);
-    }
-    else{
-      setFilterNotebook([0])
-    }
-    setLoading(false)
-  };
-
-  const refreshNotebooks = async (offset) => {
-    const response = await notebookService.getNotebooks(offset);
-    if(response){
-      setNotebooks(response);
+  const refreshNotebooks = async (searchText = searchTextRef.current, sortColumn = sortColumnRef.current, sortOrder = sortOrderRef.current, currentPage = currentPageRef.current) => {
+    if(currentPageRef.current){
+      
+      const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sortColumn, sortOrder);
+      if(response){
+        setNotebooks(response);
+      }
     }
   };
 
@@ -128,7 +117,7 @@ export default function NotebookTable() {
         message.error(response.message)
       }
       setSelectedNotebook(null)
-      getNotebooks((currentPage - 1)*25)
+      getNotebooks((currentPage - 1)*limit)
     }
     else{
       alert('Schedule not selected')
@@ -137,18 +126,11 @@ export default function NotebookTable() {
 
   const handleTableChange = (event, filter, sorter) => {
     setSortedInfo(sorter)
-    setOnSort(sorter.columnKey)
-    setAsc(sorter.order)
+    setSortColumn(sorter.columnKey)
+    setSortOrder(sorter.order)
     setCurrentPage(event.current)
-    setLimit(event.current*25)
-    if (sorter.column){
-
-      getAllNotebook((event.current - 1)*25, searchText, sorter.columnKey, sorter.order)
-    }
-    if(event){
-      getNotebooks((event.current - 1)*25)
+    refreshNotebooks(searchText, sorter.columnKey, sorter.order, event.current)
   }
-}
 
   const navigateToNotebook = (record) => {
     if(history.location.pathname.indexOf("api/redirect") !== -1)
@@ -169,7 +151,7 @@ export default function NotebookTable() {
   const unassignSchedule = async (notebookId) => {
     const response = await notebookService.unassignSchedule(notebookId);
     if(response.success){
-      refreshNotebooks((currentPage - 1)*25)
+      refreshNotebooks()
     }
     else{
       message.error(response.message)
@@ -198,7 +180,7 @@ export default function NotebookTable() {
     const response = await notebookService.cloneNotebook(notebook.id, notebook.name.substring(1) + " Copy")
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " cloned successfully")
-      refreshNotebooks((currentPage - 1)*25)
+      refreshNotebooks()
     }
     else{
       message.error(response.message)
@@ -209,7 +191,7 @@ export default function NotebookTable() {
     const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1))
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " moved to archive")
-      refreshNotebooks((currentPage - 1)*10)
+      refreshNotebooks()
     }
     else{
       message.error(response.message)
@@ -220,7 +202,7 @@ export default function NotebookTable() {
     const response = await notebookService.deleteNotebook(notebook.id)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
-      refreshNotebooks((currentPage - 1)*25)
+      refreshNotebooks()
     }
     else{
       message.error(response.message)
@@ -230,7 +212,7 @@ export default function NotebookTable() {
   const onNotebookToggleChange = async (event, notebook) => {
     const response = await notebookService.toggleNotebookSchedule(event, notebook.id)
     if(response.success){
-      refreshNotebooks((currentPage - 1)*25)
+      refreshNotebooks()
     }
     else{
       message.error(response.message)
@@ -263,19 +245,17 @@ export default function NotebookTable() {
   }
 
   const onAddNotebookSuccess = () => {
-    refreshNotebooks((currentPage - 1)*25)
+    refreshNotebooks()
     closeNewNotebookDrawer()
     closeEditNotebookDrawer()
   }
 
 
- const search = value => {
-  setSearchText(value)
-   if (_.isEmpty(value) ){
-     setFilterNotebook([])
-     return
-   }
-    getAllNotebook(0, value, onSort, isAsc)
+  const search = value => {
+    setSearchText(value)
+    if (_.isEmpty(value) ){
+      refreshNotebooks(value, sortColumn, sortOrder, currentPage)
+    }
   };
 
   const columns = [
@@ -599,14 +579,14 @@ export default function NotebookTable() {
           scroll={{ x: "100%" }}
           columns={columns}
           onChange={handleTableChange}
-          dataSource={  filterNotebook.length == 0 ? notebooks.notebooks : filterNotebook.notebooks}
+          dataSource={  notebooks.notebooks}
           loading={loading}
           size={"small"}
           pagination={{
             showSizeChanger: false,
             current: currentPage,
-            pageSize:25,
-            total:  filterNotebook.length != 0 ? filterNotebook.count :(notebooks ? notebooks.count : 0) 
+            pageSize:limit,
+            total: (notebooks ? notebooks.count : 0) 
           }}
         />
       </>

@@ -71,13 +71,11 @@ class NotebookView(APIView):
     Class to get notebooks from zeppelin server
     """
     def get(self, request, offset: int ):
-        limit = request.GET.get('limit',25)
+        limit = request.GET.get('limit', 25)
         searchQuery = request.GET.get('searchText', '')
-        sortOn = request.GET.get('onSort', '')
-        isAsc = request.GET.get('isAsc', '')
-        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sortOn, isAsc)
-        # else:
-        #     res = NotebookJobServices.getNotebooks(offset)
+        sortColumn = request.GET.get('sortColumn', '')
+        sortOrder = request.GET.get('sortOrder', '')
+        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sortColumn, sortOrder)
         return Response(res.json())
 
     def post(self, request):
