@@ -57,18 +57,19 @@ Select your Node Group. Click on the `Node IAM Role ARN` to go to the IAM Roles 
 Attach `AmazonS3FullAccess` policy.
 
 ### Setup S3 buckets
-In your AWS console, create two new S3 buckets. CueLake will use these buckets to store Iceberg and Spark tables.
+In your AWS console, create a new S3 bucket. CueLake will use this bucket to store Iceberg and Spark tables.
 
-Next setup these S3 buckets as the warehouse locations in Spark.
+Next setup this S3 bucket as the warehouse location in Spark.
 Go to the Settings screen in CueLake and click on Interpreter Settings tab. Search for **spark** interpreter. In the spark interpreter, click on `edit`.
 
 ![Node IAM Role ARN](images/Spark_Interpreter.png)
 
-Go to the bottom of the paragraph. Enter S3 bucket path for Spark tables as value in `spark.sql.warehouse.dir` property and for Iceberg tables in `spark.sql.catalog.cuelake.warehouse` property. Below is a sample property setup.
+Go to the bottom of the paragraph. Enter the S3 bucket path in two properties as below.
+`spark.sql.warehouse.dir` property is used for Spark tables. `spark.sql.catalog.cuelake.warehouse` property is used for iceberg tables.
 
 ```
-spark.sql.warehouse.dir	                s3a://cuebook/warehouse
-spark.sql.catalog.cuelake.warehouse	    s3a://cuebook/cuelake
+spark.sql.warehouse.dir	                s3a://<YourBucketName>/warehouse
+spark.sql.catalog.cuelake.warehouse	    s3a://<YourBucketName>/cuelake
 ```
 
 Click `Save` and restart the interpreter.

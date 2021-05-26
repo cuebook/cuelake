@@ -19,6 +19,7 @@ CueLake uses **Zeppelin** to auto start and stop the Spark cluster for every sch
 
 To know why we are building CueLake, read our [viewpoint](https://cuelake.cuebook.ai/viewpoint).
 
+
 ![CueLake](images/CueLake.gif)
 
 ### What is a Lakehouse?

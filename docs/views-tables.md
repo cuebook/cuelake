@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Views and Tables
-nav_order: 8
+nav_order: 9
 permalink: /views-tables
 ---
 
