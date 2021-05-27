@@ -100,12 +100,26 @@ def __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus):
         runStatus.save()
         isNotebookRunning = response.get("info", {}).get("isRunning", False)
         if not isNotebookRunning:
+            if(__checkIfRetryable(response)):
+                __rerunNotebook(notebookId)
+                return True
             __setNotebookStatus(response, runStatus)
         return isNotebookRunning
     else:
         __setNotebookStatus(response, runStatus)
         return False
 
+def __rerunNotebook(notebookId):
+    Zeppelin.runNotebookJob(notebookId)
+
+def __checkIfRetryable(response):
+    responseString = json.dumps(response)
+    if "org.apache.zeppelin.interpreter.LazyOpenInterpreter.interpret" in responseString:
+        logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
+        logger.error(f"{responseString}")
+        return True
+    else:
+        return False
 
 def __setNotebookStatus(response, runStatus: RunStatus):
     """
