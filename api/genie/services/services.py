@@ -81,6 +81,8 @@ class NotebookJobServices:
                     notebook["notebookStatus"] = notebookRunStatus.status if notebookRunStatus.status else None
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
+        else:
+            res.update(True, "NotebookObjects retrieved successfully", [])
         return res
 
     @staticmethod
@@ -104,10 +106,10 @@ class NotebookJobServices:
                         notebooks.append(toAddNotebook)
 
         if sortColumn == 'name' and sortOrder == 'ascend':
-            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"])
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"].upper())
         
         if sortColumn == 'name' and sortOrder == 'descend':
-            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"], reverse=True)
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"].upper(), reverse=True)
 
         if sortColumn == "assignedWorkflow"and sortOrder == 'ascend':
             workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
@@ -132,7 +134,7 @@ class NotebookJobServices:
 
         if sortColumn == "lastRun1" and sortOrder == "ascend":
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in reversedNotebookIds:
                 for notebook in notebooks:
@@ -141,7 +143,7 @@ class NotebookJobServices:
                         notebooks.insert(0,notebook)
         if sortColumn == "lastRun1" and sortOrder == "descend":
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in sortedNotebookIds:
                 for notebook in notebooks:

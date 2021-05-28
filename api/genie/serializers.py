@@ -29,10 +29,10 @@ class RunStatusSerializer(serializers.ModelSerializer):
     def get_assignedWorkflow(self, obj):
         assignedWorkflowId = WorkflowNotebookJob.objects.filter(notebookId = obj.notebookId).values_list("workflow_id", flat=True)
         names= Workflow.objects.filter(id__in = assignedWorkflowId).values_list('name', flat= True)
-        workflowName = []
+        workflowNames = []
         for name in names:
-            workflowName.append(name)
-        return workflowName
+            workflowNames.append(name)
+        return workflowNames
 
     class Meta:
         model = RunStatus

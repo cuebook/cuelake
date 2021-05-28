@@ -120,7 +120,6 @@ export default function WorkflowRuns(props) {
       
           let item = (
             <div> 
-            {record ? <TimeAgo date={record.startTimestamp} /> : null}
              <div style={{fontSize:"12px"}}> 
              {diff}
               </div>
