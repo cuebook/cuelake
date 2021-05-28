@@ -17,6 +17,7 @@ import Files from "views/admin/Files.js";
 import SchedulesView from "views/admin/Schedules.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
+import SparkUI from "views/admin/sparkUI.js";
 
 // contexts
 import { GlobalContextProvider } from "./GlobalContext";
@@ -40,6 +41,7 @@ export default function Admin() {
               <Route path="/schedules" exact component={SchedulesView} />
               <Route path="/workflows" exact component={WorkflowsMain} />
               <Route path="/files" exact component={Files} />
+              <Route path="/spark" exact component={SparkUI} />
               <Route path="/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
               <Redirect from="/" to="/notebooks" />
             </Switch>

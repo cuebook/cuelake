@@ -21,7 +21,7 @@ import {
   } from "antd";
 
 import notebookService from "services/notebooks.js";
-import { RUNNING, ABORT, FINISHED, ERROR, PENDING } from "./constants";
+import { RUNNING, ABORT, FINISHED, ERROR, SUCCESS, PENDING } from "./constants";
 import { timehumanize } from 'services/general';
 var moment = require("moment");
 
@@ -148,9 +148,16 @@ export default function NotebookRunLogs(props) {
           const paragraphPercent = 100/(paragraphs.length)
           paragraphs.forEach(paragraph => {
             let paragraphClassName = ""
-            if(paragraph.status === FINISHED) paragraphClassName = "bg-green-500";
+            let paragraphStatus = ""
+            if(paragraph.hasOwnProperty('results')){
+              if(paragraph["results"].hasOwnProperty("code")){
+                paragraphStatus = paragraph["results"]["code"]
+              }
+            }
+            if(paragraphStatus === SUCCESS) paragraphClassName = "bg-green-500";
             else if(paragraph.status === ERROR) paragraphClassName = "bg-red-500";
             else if(paragraph.status === RUNNING) paragraphClassName = "bg-blue-400";
+            else if(paragraph.status === PENDING) paragraphClassName = "bg-blue-300";
             else if(paragraph.status === ABORT) paragraphClassName = "bg-yellow-500";
             let content = 
               <div className={style.tooltip}>
