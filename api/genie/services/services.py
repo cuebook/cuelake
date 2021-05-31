@@ -518,6 +518,7 @@ class NotebookJobServices:
         res = ApiResponse(message="Error in deleting notebook")
         response = Zeppelin.deleteNotebook(notebookId)
         if response:
+            NotebookObject.objects.filter(notebookZeppelinId=notebookId).delete()
             res.update(True, "Notebook deleted successfully", None)
         return res
 
