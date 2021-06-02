@@ -10,7 +10,7 @@ To extract and load incremental data, you write simple select statements. CueLak
 
 To transform data, you write SQL statements to create views and tables in your data lakehouse. 
 
-CueLake uses Celery as the executor and celery-beat as the scheduler. Celery jobs trigger **Zeppelin** notebooks. Zeppelin auto- starts and stops the Spark cluster for every scheduled run of notebooks.
+CueLake uses Celery as the executor and celery-beat as the scheduler. Celery jobs trigger **Zeppelin** notebooks. Zeppelin auto-starts and stops the Spark cluster for every scheduled run of notebooks.
 
 To know why we are building CueLake, read our [viewpoint](https://cuelake.cuebook.ai/viewpoint).
 
