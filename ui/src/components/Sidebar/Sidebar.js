@@ -36,7 +36,7 @@ export default function Sidebar(props) {
       "icon": "fa-calendar"
     },
     {
-      "label": "Spark UI",
+      "label": "Spark-UI",
       "path": "/spark",
       "icon": "fa-star"
     },
