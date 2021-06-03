@@ -21,9 +21,9 @@ class NotificationServices:
         :param message: Message to be sent to slack
         """
         try:
-            slackWebHookUrl = AccountSetting.objects.get(key=ACCOUNT_SETTING_SLACK_URL_KEY).value
-            isNotifyOnSuccess = AccountSetting.objects.get(key=NOTIFY_ON_SUCCESS_KEY).value == "true"
-            isNotifyOnFailure = AccountSetting.objects.get(key=NOTIFY_ON_FAILURE_KEY).value == "true"
+            slackWebHookUrl = AccountSettingValue.objects.get(accountSetting__key=ACCOUNT_SETTING_SLACK_URL_KEY).value
+            isNotifyOnSuccess = AccountSettingValue.objects.get(accountSetting__key=NOTIFY_ON_SUCCESS_KEY).value == "true"
+            isNotifyOnFailure = AccountSettingValue.objects.get(accountSetting__key=NOTIFY_ON_FAILURE_KEY).value == "true"
             if slackWebHookUrl:
                 if (isNotifyOnFailure and not isSuccess) or (isNotifyOnSuccess and isSuccess):
                     NotificationServices.sendSlackNotification(slackWebHookUrl, notebookName, isSuccess, message)
