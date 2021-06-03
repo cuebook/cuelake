@@ -12,7 +12,7 @@ class ApiService {
     this.host = "";
     this.base_url = this.host + basePath + "/api/";
     this.zeppelin_base_url = "/zeppelin";
-    this.spark_base_url = "/spark";
+    this.spark_base_url = "/spark/jobs";
   }
   
   async get(endpoint) {
