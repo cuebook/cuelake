@@ -114,7 +114,7 @@ def __rerunNotebook(notebookId):
 
 def __checkIfRetryable(response):
     responseString = json.dumps(response)
-    if "org.apache.zeppelin.interpreter.LazyOpenInterpreter.interpret" in responseString:
+    if "org.apache.zeppelin.interpreter.InterpreterException: java.lang.NullPointerException" in responseString:
         logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
         logger.error(f"{responseString}")
         return True
