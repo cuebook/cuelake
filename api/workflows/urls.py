@@ -9,6 +9,6 @@ urlpatterns = [
     path("workflowRuns/<int:workflowRunId>", views.WorkflowRunLog.as_view(), name="workflowRunLogs"),
     path("runWorkflow/<int:workflowId>", views.RunWorkflow.as_view(), name="runWorkflow"),
     path("stopWorkflow/<int:workflowId>", views.StopWorkflow.as_view(), name="stopWorkflow"),
-    path("updateTriggerWorkflow/<int:workflowId>", views.UpdateTriggerWorkflow.as_view(), name="stopWorkflow"),
-    path("updateSchedule/<int:workflowId>", views.UpdateSchedule.as_view(), name="stopWorkflow"),
+    path("updateTriggerWorkflow/<int:workflowId>", views.UpdateTriggerWorkflow.as_view(), name="updateTriggerWorkflow"),
+    path("updateSchedule/<int:workflowId>", views.UpdateSchedule.as_view(), name="updateSchedule"),
 ]
