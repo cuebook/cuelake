@@ -374,7 +374,7 @@ class NotebookJobServices:
             res.update(False, "Crontab must contain five elements")
             return res        
         timezone = timezone if timezone else "UTC"
-        Schedule.objects.create(
+        schedule = Schedule.objects.create(
             minute=cronElements[0],
             hour=cronElements[1],
             day_of_month=cronElements[2],
@@ -383,7 +383,7 @@ class NotebookJobServices:
             timezone=timezone,
             name=name,
         )
-        res.update(True, "Schedule added successfully", None)
+        res.update(True, "Schedule added successfully", schedule.id)
         return res
         
     @staticmethod

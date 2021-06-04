@@ -1,0 +1,15 @@
+[run]
+omit = */tests/*
+       */migrations/*
+       */dist-packages/*
+       */site-packages/*
+       *apps.py,
+       *migrations/*,
+       *settings*,
+       *urls.py,
+       *wsgi/*,
+       manage.py,
+       */tasks.py
+[report]
+skip_covered = True
+skip_empty = True
