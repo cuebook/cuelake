@@ -1,8 +1,6 @@
 import React from "react";
-import { Tabs } from "antd"
 import NotebookTable from "components/Notebooks/NotebookTable.js";
 
-const { TabPane } = Tabs
 
 export default function NotebookTableFunction() {
   return (

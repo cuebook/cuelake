@@ -114,7 +114,11 @@ def __rerunNotebook(notebookId):
 
 def __checkIfRetryable(response):
     responseString = json.dumps(response)
-    if "org.apache.zeppelin.interpreter.LazyOpenInterpreter.interpret" in responseString:
+    if "org.apache.zeppelin.interpreter.InterpreterException: java.lang.NullPointerException" in responseString:
+        logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
+        logger.error(f"{responseString}")
+        return True
+    elif "org.apache.zeppelin.spark.SparkSqlInterpreter.internalInterpret(SparkSqlInterpreter.java:80)" in responseString:
         logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
         logger.error(f"{responseString}")
         return True

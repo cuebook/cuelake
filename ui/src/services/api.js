@@ -6,11 +6,13 @@ class ApiService {
     // this.host = "http://localhost:8000";
     // this.base_url = this.host + basePath + "/api/";
     // this.zeppelin_base_url = "http://localhost:8081";
+    // this.spark_base_url = "http://localhost:4040";
 
     // Production Settings
     this.host = "";
     this.base_url = this.host + basePath + "/api/";
     this.zeppelin_base_url = "/zeppelin";
+    this.spark_base_url = "/sparkui/jobs";
   }
   
   async get(endpoint) {

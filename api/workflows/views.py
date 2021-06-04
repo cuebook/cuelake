@@ -19,7 +19,6 @@ class Workflows(APIView):
 
     def post(self, request):
         data = request.data
-
         name = data.get("name", "")
         scheduleId = data.get("scheduleId", "")
         triggerWorkflowId = data.get("triggerWorkflowId", "")
