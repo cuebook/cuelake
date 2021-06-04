@@ -76,6 +76,13 @@ class NotebookJobServices:
                     notebook["notebookJobId"] = notebookJob.id
                 else:
                     notebook["isScheduled"] = False
+            
+                assignedWorkflowId = WorkflowNotebookJob.objects.filter(notebookId = notebook["id"]).values_list("workflow_id", flat=True)
+                names= Workflow.objects.filter(id__in = assignedWorkflowId).values_list('name', flat= True)
+                workflowNames = []
+                for name in names:
+                    workflowNames.append(name)
+                notebook["assignedWorkflow"] = workflowNames
                 notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
                 if notebookRunStatus:
                     notebook["notebookStatus"] = notebookRunStatus.status if notebookRunStatus.status else None
