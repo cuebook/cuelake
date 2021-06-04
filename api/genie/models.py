@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.fields import CharField
-from django_celery_beat.models import PeriodicTask, PeriodicTasks
-from django_celery_beat.models import CrontabSchedule
+from django_celery_beat.models import PeriodicTask, PeriodicTasks, CrontabSchedule
 from workflows.models import WorkflowRun
 from django.db.models import signals
 
