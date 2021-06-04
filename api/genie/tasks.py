@@ -118,6 +118,10 @@ def __checkIfRetryable(response):
         logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
         logger.error(f"{responseString}")
         return True
+    elif "org.apache.zeppelin.spark.SparkSqlInterpreter.internalInterpret(SparkSqlInterpreter.java:80)" in responseString:
+        logger.error(f"Error occured in opening a new interpreter instance. Retrying.")
+        logger.error(f"{responseString}")
+        return True
     else:
         return False
 
