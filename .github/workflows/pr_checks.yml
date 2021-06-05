@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-   workflow_dispatch:
-
 jobs:
   Pytest:
     runs-on: ubuntu-latest
