@@ -1,0 +1,89 @@
+name: Pull Request Checks
+
+on:
+  # push:
+  #   branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+   workflow_dispatch:
+
+jobs:
+  Pytest:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install Requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+
+    - name: Run Test Cases
+      with: 
+        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
+      run: |
+        export GIT_COMMIT_SHA=${{ github.event.pull_request.head.sha }}
+        cd /usr/src/api
+        source .env.dev
+
+        printenv
+
+        export CC_TEST_REPORTER_ID=${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
+
+        echo "Downloading test_reporter"
+        curl https://s3.amazonaws.com/codeclimate/test-reporter/test-reporter-latest-linux-amd64 > test_reporter
+        chmod +x test_reporter
+        ./test_reporter before-build
+
+        echo "Running pytest"
+        if coverage run -m pytest -q -x --tb=auto --cov=./ --cov-report=xml; then
+            if [ -e coverage.xml ]
+            then
+                echo " ---------------- Coverage.xml file found --------------------- "
+            else
+                echo " ---------------- Coverage.xml file not found --------------------"
+            fi
+
+            cd ../
+            cp api/coverage.xml coverage.xml
+
+            echo "Uploading report"
+            ./api/test_reporter after-build --debug -r $CC_TEST_REPORTER_ID
+            
+            printenv
+            
+            echo "checking if github repo"
+            git status
+
+            echo "printing branch"
+            git rev-parse --abbrev-ref HEAD
+        else
+            echo "Test cases failed"
+            exit 1
+        fi
+
