@@ -39,59 +39,56 @@ const { TabPane } = Tabs;
 const { Option } = Select;
 
 export default function Workflows(props) {
+
+    const [limit, setLimit] = useState(25);
     const [sortedInfo, setSortedInfo] = useState({})
-    const [isAsc, setAsc] = useState()
-    const [onSort, setOnSort] = useState("");
+    const [sortOrder, setSortOrder] = useState('')
+    const [sortColumn, setSortColumn] = useState('');
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [notebooksLight, setNotebooksLight] = useState([])
-    const [total, setTotal] = useState('');
-    const [filterWorkflows, setFitlerWorkflows] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-
+    const [totalWokflows, setTotal] = useState('');
+    const [currentPage, setCurrentPage] = useState('');
     const [selectedWorkflow, setSelectedWorkflow] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [selectedNotebooks, setSelectedNotebooks] = useState([]);
-
     const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
     const [isEditCreateWorkflow, setIsEditCreateWorkflow] = useState(false);
-
     const [newWorkflowName, setNewWorkflowName] = useState('');
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
     const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState(STATUS_ALWAYS);
-
     const [assignTriggerWorkflowForId, setAssignTriggerWorkflowForId] = useState(false)         // stores id of parent workflow 
     // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
     const [assignSchedule, setAssignSchedule] = useState(false)
     // const [showSelectSchedule, setShowSelectSchedule] = useState(false)
     const [componentDidMount, setComponentDidMount] = useState(false)
-
+    const sortOrderRef = useRef(sortOrder);
+    sortOrderRef.current = sortOrder;
+    const sortColumnRef = useRef(sortColumn);
+    sortColumnRef.current = sortColumn;
     const currentPageRef = useRef(currentPage);
     currentPageRef.current = currentPage;
 
     const getWorkflows = async (offset) => {
       setLoading(true)
-      const response = await workflowsService.getWorkflows(offset);
+      const response = await workflowsService.getWorkflows(offset,limit, sortColumnRef.current, sortOrderRef.current);
       if(response){
         setWorkflows(response.workflows);
-        setTotal(response.Total)
+        setTotal(response.total)
       }
       setLoading(false)
       if(!offset) setCurrentPage(1)
     };
 
-    const getAllWorkflow = async (offset, columnToSort, order) => {
-      if(_.isEmpty(columnToSort)){
-        return 
-      }
-      setLoading(true)
-      const response = await workflowsService.getAllWorkflows(offset, columnToSort, order);
+    const refreshWorkflows = async (sortColumn = sortColumnRef.current, sortOrder = sortOrderRef.current, currentPage = currentPageRef.current) => {
+      if(currentPageRef.current){
+      const response = await workflowsService.getWorkflows((currentPage - 1)*limit, limit, sortColumn, sortOrder);
       if(response){
-        setFitlerWorkflows(response);
-        setTotal(response.Total)
+        setWorkflows(response.workflows);
+        setTotal(response.total)
       }
-      setLoading(false)
     };
+  }
 
     const openRunLogs = workflow => {
         setSelectedWorkflow(workflow)
@@ -105,6 +102,7 @@ export default function Workflows(props) {
     
     useEffect(() => {
       getNotebooksLight()
+      getWorkflows(0)
       if (!componentDidMount){ refreshWorkflows(); setComponentDidMount(true)}
       const refreshWorkflowsInterval = setInterval(refreshWorkflows, 3000);
 
@@ -113,28 +111,13 @@ export default function Workflows(props) {
       };
     }, []);
 
-    const refreshWorkflows = async () => {
-      const offset = (currentPageRef.current - 1)*25
-      const response = await workflowsService.getWorkflows(offset);
-      if(response){
-        setWorkflows(response.workflows);
-        setTotal(response.total);
-      }
-    };
-
     const handleTableChange = (event, filter, sorter) => {
       setSortedInfo(sorter)
+      setSortColumn(sorter.columnKey)
+      setSortOrder(sorter.order)
       setCurrentPage(event.current)
-      setOnSort(sorter.columnKey)
-      setAsc(sorter.order)
-      if(sorter.column)
-      {
-        getAllWorkflow((event.current - 1)*25, sorter.columnKey, sorter.order)
-      }
-      if(event)
-      {
-      getWorkflows((event.current - 1)*25)
-      }
+      refreshWorkflows(sorter.columnKey, sorter.order, event.current)
+
     }
 
     const getNotebooksLight = async () => {
@@ -319,7 +302,7 @@ export default function Workflows(props) {
         title: "Last run",
         dataIndex: "lastRun",
         key: "lastRunTime",
-        align:"center",
+        align:"left",
         sorter: ()=>{},
         sortOrder: sortedInfo.columnKey === 'lastRunTime' && sortedInfo.order,
         ellipsis: true,
@@ -364,7 +347,6 @@ export default function Workflows(props) {
         title: "Last run status",
         dataIndex: "lastRun",
         key: "lastRunStatus",
-        // sorter: ()=>{},
         sortOrder: sortedInfo.columnKey === 'lastRunStatus' && sortedInfo.order,
         ellipsis: true,
         render: lastRun => {
@@ -447,7 +429,6 @@ export default function Workflows(props) {
       if (response){settingInitialValues() }
       refreshWorkflows()
     }
-
     const workflowOptionElements = workflows.filter(workflow=>!((selectedWorkflow && workflow.id == selectedWorkflow.id) || (workflow.id == assignTriggerWorkflowForId))).map(workflow => 
       <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
     )
@@ -560,7 +541,7 @@ export default function Workflows(props) {
                 scroll={{ x: "100%" }}
                 columns={columns}
                 onChange={handleTableChange}
-                dataSource={filterWorkflows ? filterWorkflows.workflows:workflows}
+                dataSource={workflows}
                 // showHeader={false}
                 loading={loading}
                 size={"small"}
@@ -569,9 +550,9 @@ export default function Workflows(props) {
                 }}
                 pagination={{
                   current: currentPage,
-                  pageSize: 25,
+                  pageSize: limit,
                   showSizeChanger: false,
-                  total: filterWorkflows ? filterWorkflows.total : total ? total : 0
+                  total: workflows ? totalWokflows : 0
                 }}
             />
             <Drawer

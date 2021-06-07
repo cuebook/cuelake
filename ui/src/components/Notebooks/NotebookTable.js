@@ -542,8 +542,6 @@ export default function NotebookTable() {
     executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
   });
 
-console.log('notebook',notebooks.notebooks)
-
   return (
     <>
 

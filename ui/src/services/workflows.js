@@ -3,21 +3,14 @@ import { store } from 'react-notifications-component';
 import { message } from "antd";
 
 class WorkflowsService {
-    async getWorkflows(offset){
-        const response = await apiService.get("workflows/workflows/" + offset)
+    async getWorkflows(offset, limit, sortColumn, sortOrder){
+        const response = await apiService.get("workflows/workflows/" + offset + "?limit="+ limit +"&sortColumn=" + sortColumn + "&sortOrder=" + sortOrder)
         if(response.success == true)
             return response.data
         else
             return null
     }
 
-    async getAllWorkflows(offset, sortOn , order ){
-        const response = await apiService.get("workflows/workflows/" + offset +"?sortOn=" + sortOn + "&isAsc=" + order)
-        if(response.success == true)
-            return response.data
-        else
-            return null
-    }
 
     async getWorkflowRuns(workflowId, offset){
         const response = await apiService.get("workflows/workflowRuns/" + workflowId +"/"+ offset)

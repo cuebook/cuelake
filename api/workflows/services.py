@@ -39,18 +39,18 @@ class WorkflowServices:
     """
 
     @staticmethod
-    def getWorkflows(offset: int = 0, sortOn : str = None, isAsc : str = None):
+    def getWorkflows(offset: int = 0, limit: int = 25, sortColumn : str = None, sortOrder : str = None):
         """
         Service to fetch and serialize Workflows
         :param offset: Offset for fetching NotebookJob objects
         """
-        LIMIT = 25
         res = ApiResponse(message="Error retrieving workflows")
         workflows = Workflow.objects.filter(enabled=True).order_by("-id")
-        if(sortOn):
-            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortOn, isAsc)
         total = workflows.count()
-        data = WorkflowSerializer(workflows[offset:offset+LIMIT], many=True).data
+
+        if(sortColumn):
+            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortColumn, sortOrder)
+        data = WorkflowSerializer(workflows[offset : offset+limit], many=True).data
 
         res.update(
             True,
@@ -60,34 +60,34 @@ class WorkflowServices:
         return res
 
     @staticmethod
-    def sortingOnWorkflows(workflows, sortOn, isAsc):
-        if sortOn == 'name' and isAsc == "ascend":
+    def sortingOnWorkflows(workflows, sortColumn, sortOrder):
+        if sortColumn == 'name' and sortOrder == "ascend":
             workflows = Workflow.objects.filter(enabled=True).order_by("name")
 
-        if sortOn == 'name' and isAsc == "descend":
+        if sortColumn == 'name' and sortOrder == "descend":
             workflows = Workflow.objects.filter(enabled=True).order_by("-name")
 
-        if sortOn == 'triggerWorkflow' and isAsc == "ascend":
+        if sortColumn == 'triggerWorkflow' and sortOrder == "ascend":
             workflows = Workflow.objects.filter(enabled=True).order_by("triggerWorkflow__name")
 
-        if sortOn == 'triggerWorkflow' and isAsc == "descend":
+        if sortColumn == 'triggerWorkflow' and sortOrder == "descend":
             workflows = Workflow.objects.filter(enabled=True).order_by("-triggerWorkflow__name")
 
-        if sortOn == "schedule" and isAsc == "ascend":
+        if sortColumn == "schedule" and sortOrder == "ascend":
             workflows = Workflow.objects.filter(enabled=True).order_by("crontab__customschedule__name")
 
-        if sortOn == "schedule" and isAsc == "descend":
+        if sortColumn == "schedule" and sortOrder == "descend":
             workflows = Workflow.objects.filter(enabled=True).order_by("-crontab__customschedule__name")
 
-        if sortOn == "lastRunTime" and isAsc == "ascend":
+        if sortColumn == "lastRunTime" and sortOrder == "ascend":
             workflows = Workflow.objects.filter(enabled=True).order_by("last_run_at")
-        if sortOn == "lastRunTime" and isAsc == "descend":
+        if sortColumn == "lastRunTime" and sortOrder == "descend":
             workflows = Workflow.objects.filter(enabled=True).order_by("-last_run_at")
 
-        # if sortOn == "lastRunStatus" and isAsc == "ascend":
+        # if sortColumn == "lastRunStatus" and sortOrder == "ascend":
         #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
 
-        # if sortOn == "lastRunStatus" and isAsc == "descend":
+        # if sortColumn == "lastRunStatus" and sortOrder == "descend":
         #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
 
         return workflows
