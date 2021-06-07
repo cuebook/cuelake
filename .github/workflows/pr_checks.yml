@@ -44,10 +44,7 @@ jobs:
     - name: Run Test Cases
       run: |
         export GIT_COMMIT_SHA=${{ github.event.pull_request.head.sha }}
-        echo "testing ----"
-        echo $GITHUB_HEAD_REF
-        pwd
-        printenv
+        export GIT_BRANCH=$GITHUB_HEAD_REF
 
         cd api
         source .env.dev
