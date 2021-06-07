@@ -42,8 +42,6 @@ jobs:
 
 
     - name: Run Test Cases
-      with: 
-        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
       run: |
         export GIT_COMMIT_SHA=${{ github.event.pull_request.head.sha }}
         cd /usr/src/api
