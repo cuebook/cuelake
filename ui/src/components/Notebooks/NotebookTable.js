@@ -253,9 +253,7 @@ export default function NotebookTable() {
 
   const search = value => {
     setSearchText(value)
-    if (_.isEmpty(value) ){
       refreshNotebooks(value, sortColumn, sortOrder, currentPage)
-    }
   };
 
   const columns = [
@@ -324,7 +322,7 @@ export default function NotebookTable() {
       ellipsis: true,
       width: "10%",
       render: (text,record) => {
-        var listIndividuals = record && record.lastRun && record.lastRun.assignedWorkflow && record.lastRun.assignedWorkflow.map(e => {
+        var listIndividuals = record.assignedWorkflow.map(e => {
           return (
             <span
               style={{
@@ -543,6 +541,8 @@ export default function NotebookTable() {
   _.times(pendingExecutors, (i) => {
     executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
   });
+
+console.log('notebook',notebooks.notebooks)
 
   return (
     <>

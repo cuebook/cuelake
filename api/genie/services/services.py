@@ -9,7 +9,7 @@ import threading
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
@@ -76,11 +76,20 @@ class NotebookJobServices:
                     notebook["notebookJobId"] = notebookJob.id
                 else:
                     notebook["isScheduled"] = False
+            
+                assignedWorkflowId = WorkflowNotebookJob.objects.filter(notebookId = notebook["id"]).values_list("workflow_id", flat=True)
+                names= Workflow.objects.filter(id__in = assignedWorkflowId).values_list('name', flat= True)
+                workflowNames = []
+                for name in names:
+                    workflowNames.append(name)
+                notebook["assignedWorkflow"] = workflowNames
                 notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
                 if notebookRunStatus:
                     notebook["notebookStatus"] = notebookRunStatus.status if notebookRunStatus.status else None
                     notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
+        else:
+            res.update(True, "NotebookObjects retrieved successfully", [])
         return res
 
     @staticmethod
@@ -104,10 +113,10 @@ class NotebookJobServices:
                         notebooks.append(toAddNotebook)
 
         if sortColumn == 'name' and sortOrder == 'ascend':
-            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"])
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"].upper())
         
         if sortColumn == 'name' and sortOrder == 'descend':
-            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"], reverse=True)
+            notebooks = sorted(notebooks, key = lambda notebook: notebook["path"].upper(), reverse=True)
 
         if sortColumn == "assignedWorkflow"and sortOrder == 'ascend':
             workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
@@ -132,7 +141,7 @@ class NotebookJobServices:
 
         if sortColumn == "lastRun1" and sortOrder == "ascend":
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in reversedNotebookIds:
                 for notebook in notebooks:
@@ -141,7 +150,7 @@ class NotebookJobServices:
                         notebooks.insert(0,notebook)
         if sortColumn == "lastRun1" and sortOrder == "descend":
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("startTimestamp").values_list("notebookId", flat=True)
+            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in sortedNotebookIds:
                 for notebook in notebooks:
@@ -460,7 +469,11 @@ class NotebookJobServices:
         Service to stop notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
-        # Updating runStatus that the task was aborted
+        # Updating runStatus that the task is being aborted
+        notebookRunStatus = RunStatus.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
+        if(notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING):
+            notebookRunStatus.status = NOTEBOOK_STATUS_ABORTING
+            notebookRunStatus.save()
         thread = threading.Thread(target=Zeppelin.stopNotebookJob, args=[notebookId])
         thread.start()
         res.update(True, "Aborting notebook job", None)
