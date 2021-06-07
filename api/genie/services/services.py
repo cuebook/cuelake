@@ -9,7 +9,7 @@ import threading
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
 from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
 from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
@@ -461,7 +461,7 @@ class NotebookJobServices:
         # Updating runStatus that the task is being aborted
         notebookRunStatus = RunStatus.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
         if(notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING):
-            notebookRunStatus.status = NOTEBOOK_STATUS_ABORTING
+            notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
             notebookRunStatus.save()
         thread = threading.Thread(target=Zeppelin.stopNotebookJob, args=[notebookId])
         thread.start()
