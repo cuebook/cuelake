@@ -253,9 +253,7 @@ export default function NotebookTable() {
 
   const search = value => {
     setSearchText(value)
-    if (_.isEmpty(value) ){
       refreshNotebooks(value, sortColumn, sortOrder, currentPage)
-    }
   };
 
   const columns = [
