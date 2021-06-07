@@ -14,7 +14,7 @@ class Workflow(PeriodicTask):
 	"""
 	Subclass of django_celery_beat.models.PeriodicTask
 	"""
-	triggerWorkflow = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, db_index=True)
+	triggerWorkflow = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, db_index=True)
 	triggerWorkflowStatus = models.CharField(max_length=50, default=STATUS_SUCCESS)
 
 class WorkflowRun(models.Model):

@@ -1,0 +1,21 @@
+[
+  {
+    "model": "django_celery_beat.crontabschedule",
+    "pk": 1,
+    "fields": {
+      "minute": "*",
+      "hour": "*",
+      "day_of_week": "*",
+      "day_of_month": "*/30",
+      "month_of_year": "*/2",
+      "timezone": "Asia/Kolkata"
+    }
+  },
+  {
+    "model": "genie.customschedule",
+    "pk": 1,
+    "fields": {
+      "name": "No Schedule"
+    }
+  }
+]
