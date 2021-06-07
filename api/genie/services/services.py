@@ -63,12 +63,13 @@ class NotebookJobServices:
             notebooks = notebooks[offset: offset + GET_NOTEBOOKOJECTS_LIMIT]
             notebookIds = [notebook["id"] for notebook in notebooks]
             notebookObjects = NotebookObject.objects.filter(notebookZeppelinId__in=notebookIds)
+            notebookJobs = NotebookJob.objects.filter(notebookId__in=notebookIds)
             for notebook in notebooks:
                 notebook["name"] = notebook["path"]
                 notebookObj = next((notebookObj for notebookObj in notebookObjects if notebookObj.notebookZeppelinId == notebook["id"]), False)
                 if notebookObj:
                     notebook["notebookObjId"] = notebookObj.id
-                notebookJob = NotebookJob.objects.filter(notebookId=notebook["id"]).first()
+                notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.notebookId == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True
                     notebook["schedule"] = str(notebookJob.crontab.customschedule.name)
@@ -118,7 +119,7 @@ class NotebookJobServices:
         if sortColumn == 'name' and sortOrder == 'descend':
             notebooks = sorted(notebooks, key = lambda notebook: notebook["path"].upper(), reverse=True)
 
-        if sortColumn == "assignedWorkflow"and sortOrder == 'ascend':
+        if sortColumn == "assignedWorkflow" and sortOrder == 'ascend':
             workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
             sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
             notebookIds = WorkflowNotebookJob.objects.filter(workflow_id__in=sortedWorkflowIds).values_list("notebookId",flat=True)
@@ -128,6 +129,7 @@ class NotebookJobServices:
                     if notebookId == notebook["id"]:
                         notebooks.remove(notebook)
                         notebooks.insert(0, notebook)
+
         if sortColumn == "assignedWorkflow"and sortOrder == 'descend':
             workflowIds = WorkflowNotebookJob.objects.all().values_list("workflow_id", flat=True)
             sortedWorkflowIds = Workflow.objects.filter(id__in = workflowIds).order_by("name").values_list("id", flat=True)
@@ -139,42 +141,29 @@ class NotebookJobServices:
                         notebooks.remove(notebook)
                         notebooks.append(notebook)
 
-        if sortColumn == "lastRun1" and sortOrder == "ascend":
+        if sortColumn == "lastRun1":
+            isAscending = True if sortOrder == "ascend" else False
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
+            runStatusObjects = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "startTimestamp")
+            sortedNotebookIds = sorted(runStatusObjects, key = lambda i: i['startTimestamp'], reverse=isAscending)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in reversedNotebookIds:
                 for notebook in notebooks:
-                    if notebookId == notebook["id"]:
+                    if notebookId["notebookId"] == notebook["id"]:
                         notebooks.remove(notebook)
                         notebooks.insert(0,notebook)
-        if sortColumn == "lastRun1" and sortOrder == "descend":
+        
+        if sortColumn == "lastRun2":
+            isAscending = True if sortOrder == "ascend" else False
             notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("endTimestamp").values_list("notebookId", flat=True)
-            reversedNotebookIds = sortedNotebookIds[::-1]
-            for notebookId in sortedNotebookIds:
-                for notebook in notebooks:
-                    if notebookId == notebook["id"]:
-                        notebooks.remove(notebook)
-                        notebooks.append(notebook)
-        if sortColumn == "lastRun2" and sortOrder == "ascend":
-            notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
+            runStatusObjects = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "status")
+            sortedNotebookIds = sorted(runStatusObjects, key = lambda i: i['status'], reverse=isAscending)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookid in reversedNotebookIds:
                 for notebook in notebooks:
-                    if notebookid == notebook["id"]:
+                    if notebookid["notebookId"] == notebook["id"]:
                         notebooks.remove(notebook)
                         notebooks.insert(0,notebook)
-        if sortColumn == "lastRun2" and sortOrder == "descend":
-            notebookIds = [notebook["id"] for notebook in notebooks]
-            sortedNotebookIds = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("status").values_list("notebookId", flat=True)
-            reversedNotebookIds = sortedNotebookIds[::-1]
-            for notebookId in reversedNotebookIds:
-                for notebook in notebooks:
-                    if notebookId == notebook["id"]:
-                        notebooks.remove(notebook)
-                        notebooks.append(notebook)
 
         return notebooks
 
