@@ -176,35 +176,34 @@ def test_workflows(client, populate_seed_data, mocker):
 
 
     # sort on name
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=name&isAsc=descend"
+    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=name&sortOrder=descend"
     response = client.get(path)
     names = [ x['name'] for x in response.data['data']['workflows'] ] 
     assert names == sorted(names, reverse=True)
 
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=name&isAsc=ascend"
+    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=name&sortOrder=ascend"
     response = client.get(path)
     names = [ x['name'] for x in response.data['data']['workflows'] ] 
     assert names == sorted(names)
 
     # trigger workflow name
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=triggerWorkflow&isAsc=descend"
+    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=triggerWorkflow&sortOrder=descend"
     response = client.get(path)
     triggerWorkflows = [ x['triggerWorkflow']['name'] for x in response.data['data']['workflows'] if x['triggerWorkflow'] ] 
     assert triggerWorkflows == sorted(triggerWorkflows, reverse=True)
 
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=triggerWorkflow&isAsc=ascend"
+    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=triggerWorkflow&sortOrder=ascend"
     response = client.get(path)
     triggerWorkflows = [ x['triggerWorkflow']['name'] for x in response.data['data']['workflows'] if x['triggerWorkflow'] ] 
     assert triggerWorkflows == sorted(triggerWorkflows)
 
-
     # # last run time
-    # path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=lastRunTime&isAsc=descend"
+    # path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=lastRunTime&sortOrder=descend"
     # response = client.get(path)
     # lastRunTimestamps = [ x['lastRun']['startTimestamp'] for x in response.data['data']['workflows'] if x['lastRun']] 
     # assert lastRunTimestamps == sorted(lastRunTimestamps, reverse=True)
 
-    # path = reverse("workflows", kwargs={"offset": 0}) + "?sortOn=lastRunTime&isAsc=ascend"
+    # path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=lastRunTime&sortOrder=ascend"
     # response = client.get(path)
     # lastRunTimestamps = [ x['lastRun']['startTimestamp'] for x in response.data['data']['workflows'] if x['lastRun']] 
     # assert lastRunTimestamps == sorted(lastRunTimestamps)
