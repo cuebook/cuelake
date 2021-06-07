@@ -67,3 +67,4 @@ psycopg2==2.8.6
 pytest-cov==2.12.1
 pytest-django==4.3.0
 mixer==7.1.2
+pytest-mock==3.6.1

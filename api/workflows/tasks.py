@@ -22,7 +22,7 @@ def runWorkflowJob(workflowId: int, workflowRunId: int = None):
     :param workflowId: ID of Workflows.workflow model
 	"""
 	try:
-		workflowRunStatus = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunId=workflowRunId, taskId=runWorkflowJob.request.id)
+		workflowRunStatus = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunId=workflowRunId, taskId=runWorkflowJob.request.id if runWorkflowJob.request.id else "")
 		dependentWorkflowIds = list(
             Workflow.objects.filter(
                 triggerWorkflow_id=workflowId,

@@ -25,8 +25,8 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     """
     logger.info(f"Starting notebook job for: {notebookId}")
     taskId = runNotebookJob.request.id # Celery task id
+    taskId = taskId if taskId else ""
     runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType, taskId)
-
     try:
         # Check if notebook is already running
         isRunning, notebookName = __checkIfNotebookRunning(notebookId)
@@ -62,7 +62,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         runStatus.message = str(ex)
         runStatus.endTimestamp = dt.datetime.now()
         runStatus.save()
-        NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
+        NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
 
 def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, taskId: str):
     """
