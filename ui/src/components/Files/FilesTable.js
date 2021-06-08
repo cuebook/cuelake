@@ -133,16 +133,21 @@ export default function FilesTable(props) {
       },
       fileList: uploadFiles,
       onChange(info, fileList) {
-        setUploadFiles(fileList)
-        if (info.file.status !== 'uploading') {
-        }
         if (info.file.status === 'done') {
           message.success(`${info.file.name} file uploaded successfully`);
           refreshFiles()
         } else if (info.file.status === 'error') {
           message.error(`${info.file.name} file upload failed.`);
         }
+        if (info.file.status === 'uploading') {
+          setUploadFiles(info.fileList)
+        } else {
+          setUploadFiles([])
+        }
       },
+      showUploadList: {
+        showRemoveIcon: false
+      }
     };
 
     return <div>
