@@ -1272,7 +1272,7 @@
           "name": "spark.executor.extraJavaOptions\t",
           "value": "-Dcom.amazonaws.services.s3.enableV4\u003dtrue",
           "type": "textarea"
-        }
+        },
         "spark.sql.shuffle.partitions": {
           "name": "spark.sql.shuffle.partitions",
           "value": "1",
