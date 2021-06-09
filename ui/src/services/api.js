@@ -16,12 +16,16 @@ class ApiService {
   }
   
   async get(endpoint) {
-    let response = await fetch(this.base_url + endpoint, {
-      method: "GET",
-      headers: { "content-type": "application/json"}
-    });
-    let resBody = await response.json();
-    return resBody;
+    if (!document.hidden){
+      let response = await fetch(this.base_url + endpoint, {
+        method: "GET",
+        headers: { "content-type": "application/json"}
+      });
+      let resBody = await response.json();
+      return resBody;
+    } else {
+      return {};
+    }
   }
 
   async post(endpoint, data) {

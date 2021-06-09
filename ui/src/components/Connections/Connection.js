@@ -104,7 +104,7 @@ export default function Connection() {
     ];
 
     return (
-    <div>
+      <div>
         <div className={`d-flex flex-column justify-content-center text-right mb-2`}>
             <Button
                 key="createTag"

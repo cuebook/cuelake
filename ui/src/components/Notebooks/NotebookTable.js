@@ -47,6 +47,8 @@ export default function NotebookTable() {
   const [isNewNotebookDrawerVisible, setIsNewNotebookDrawerVisible] = useState(false);
   const [editNotebookDrawerId, setEditNotebookDrawer] = useState(null);
   const [isArchivedNotebookVisible, setIsArchivedNotebookVisible] = useState(null);
+  const [isNotebooksRequestCompleted, setisNotebooksRequestCompleted] = useState(true);
+  const [isDriverStatusRequestCompleted, setisDriverStatusRequestCompleted] = useState(true);
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
@@ -56,19 +58,24 @@ export default function NotebookTable() {
   searchTextRef.current = searchText;
   const sortColumnRef = useRef(sortColumn);
   sortColumnRef.current = sortColumn;
+  const isNotebooksRequestCompletedRef = useRef(isNotebooksRequestCompleted);
+  isNotebooksRequestCompletedRef.current = isNotebooksRequestCompleted;
+  const isDriverStatusRequestCompletedRef = useRef(isDriverStatusRequestCompleted);
+  isDriverStatusRequestCompletedRef.current = isDriverStatusRequestCompleted;
   
   useEffect(() => {
     if (!notebooks.length) {
         getNotebooks(0);
+        refreshDriverStatus();
     }
 
     const refreshNotebookInterval = setInterval(() => {
       refreshNotebooks()
-    }, 3000);
+    }, 5000);
 
     const refreshPodStatus = setInterval(() => {
       refreshDriverStatus()
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearInterval(refreshNotebookInterval);
@@ -87,9 +94,10 @@ export default function NotebookTable() {
   };
 
   const refreshNotebooks = async (searchText = searchTextRef.current, sortColumn = sortColumnRef.current, sortOrder = sortOrderRef.current, currentPage = currentPageRef.current) => {
-    if(currentPageRef.current){
-      
+    if(currentPageRef.current && isNotebooksRequestCompletedRef.current){
+      setisNotebooksRequestCompleted(false);
       const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sortColumn, sortOrder);
+      setisNotebooksRequestCompleted(true);
       if(response){
         setNotebooks(response);
       }
@@ -97,9 +105,13 @@ export default function NotebookTable() {
   };
 
   const refreshDriverStatus = async () => {
-    const response = await notebookService.getDriverAndExecutorStatus();
-    if(response){
-      setpodsDriver(response)
+    if(isDriverStatusRequestCompletedRef.current){
+      setisDriverStatusRequestCompleted(false);
+      const response = await notebookService.getDriverAndExecutorStatus();
+      setisDriverStatusRequestCompleted(true);
+      if(response){
+        setpodsDriver(response)
+      }
     }
   };
   const showScheduleDropDown = (notebookId) => {
