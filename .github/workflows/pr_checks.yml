@@ -38,18 +38,16 @@ jobs:
     - name: Install Requirements
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r api/requirements.txt
 
 
     - name: Run Test Cases
-      with: 
-        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
       run: |
         export GIT_COMMIT_SHA=${{ github.event.pull_request.head.sha }}
-        cd /usr/src/api
-        source .env.dev
+        export GIT_BRANCH=$GITHUB_HEAD_REF
 
-        printenv
+        cd api
+        source .env.dev
 
         export CC_TEST_REPORTER_ID=${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
 
@@ -72,8 +70,7 @@ jobs:
 
             echo "Uploading report"
             ./api/test_reporter after-build --debug -r $CC_TEST_REPORTER_ID
-            
-            printenv
+        
             
             echo "checking if github repo"
             git status
