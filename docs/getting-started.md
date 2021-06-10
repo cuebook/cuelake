@@ -41,7 +41,7 @@ If you don’t want to use Kubernetes and instead want to try it out on your loc
 4. Enter your access credentials and click `Add Connection`.
 
 ## Configure AWS
-### Provide access to S3 and Glue
+### Provide access to S3
 In your AWS console, go to Elastic Kubernetes Service.
 
 ![EKS Clusters](images/EKS_Clusters_s.png)
@@ -54,25 +54,25 @@ Select your Node Group. Click on the `Node IAM Role ARN` to go to the IAM Roles 
 
 ![Node IAM Role ARN](images/NodeIAMRoleARN_s.png)
 
-Attach two policies - `AmazonS3FullAccess` and `AWSGlueConsoleFullAccess`
+Attach `AmazonS3FullAccess` policy.
 
-### Create Glue database
-1. In your AWS console, go to AWS Glue.
-2. Click on Databases in the left menu.
-3. Click on Add database to create a database named "**cuelake**".
-
-### Setup S3 bucket as Warehouse
-In your AWS console, create a new S3 bucket. CueLake will use this bucket to store Iceberg tables.
+### Setup S3 buckets
+In your AWS console, create a new S3 bucket. CueLake will use this bucket to store Iceberg and Spark tables.
 
 Next setup this S3 bucket as the warehouse location in Spark.
 Go to the Settings screen in CueLake and click on Interpreter Settings tab. Search for **spark** interpreter. In the spark interpreter, click on `edit`.
 
 ![Node IAM Role ARN](images/Spark_Interpreter.png)
 
-Go to the bottom of the paragraph. For property `spark.sql.catalog.lakehouse.warehouse`, enter the S3 bucket's path as the value. For example, if your S3 bucket is cuelake2, your spark property must be as below. Click `Save` and restart the interpreter.
+Go to the bottom of the paragraph. Enter the S3 bucket path in two properties as below.
+`spark.sql.warehouse.dir` property is used for Spark tables. `spark.sql.catalog.cuelake.warehouse` property is used for iceberg tables.
 
-![Node IAM Role ARN](images/Warehouse.png)
+```
+spark.sql.warehouse.dir	                s3a://<YourBucketName>/warehouse
+spark.sql.catalog.cuelake.warehouse	    s3a://<YourBucketName>/cuelake
+```
 
+Click `Save` and restart the interpreter.
 
 ## Add New Notebook
 1. Go to the Notebooks screen and click on `New Notebook`
@@ -89,7 +89,7 @@ Go to the bottom of the paragraph. For property `spark.sql.catalog.lakehouse.war
 
 Now Run the notebook. This will create a new iceberg table in your S3 bucket. Note that first run will load the historical data as defined in the SQL query. 
 
-Once the run is successful, you can query data from the newly created table. Go to the Notebooks screen and click on `New Notebook`. Select `Blank` template, give a name to the notebook and click `Create Notebook`. In the Notebooks screen, click the `Notebook` icon for your notebook to open the Zeppelin notebook. Your iceberg table can be queried as `lakehouse.cuelake.<your-destination-table-name>`.
+Once the run is successful, you can query data from the newly created table. Go to the Notebooks screen and click on `New Notebook`. Select `Blank` template, give a name to the notebook and click `Create Notebook`. In the Notebooks screen, click the `Notebook` icon for your notebook to open the Zeppelin notebook. Your iceberg table can be queried as `cuelake.<your-destination-table-name>`.
 
 ### Merge Incremental data
 To upsert incremental data into your S3 table, run the above notebook again, after a few rows have been inserted or updated.

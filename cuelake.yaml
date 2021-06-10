@@ -240,7 +240,7 @@ metadata:
   name: default-role
 rules:
 - apiGroups: [""]
-  resources: ["configmaps"]
+  resources: ["pods", "configmaps"]
   verbs: ["create", "get", "update", "patch", "list", "delete", "watch"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]
