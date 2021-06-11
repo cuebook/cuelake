@@ -36,14 +36,13 @@ def test_schedules(client, populate_seed_data, mocker):
     path = reverse('scheduleView')
     response = client.get(path)
     assert response.status_code == 200
-    assert response.data['data'][0]["schedule"] == '0 4 * * * (m/h/dM/MY/d) Asia/Kolkata '
+    assert response.data["data"]
 
     # ======================= getSingleSchedule test =====================
     path = reverse("getSingleSchedule", kwargs={"scheduleId": scheduleId})
     response = client.get(path)
     assert response.status_code == 200
     assert response.data["data"]
-    assert response.data["data"][0]["schedule"] == '0 4 * * * (m/h/dM/MY/d) Asia/Kolkata '
     assert response.data["data"][0]["name"] == "Schedule at 4 AM "
 
     # ======================= delete SingleSchedule test =====================
