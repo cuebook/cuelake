@@ -147,7 +147,7 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
             }}
         />
         <Drawer
-          title={"Add Connection"}
+          title={"New Schedule"}
           width={720}
           onClose={closeAddConnectionDrawer}
           visible={isAddConnectionDrawerVisible}

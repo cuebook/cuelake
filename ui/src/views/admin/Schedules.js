@@ -1,6 +1,5 @@
 import React from 'react';
 
-import SchedulesView from 'components/Schedules/SchedulesView.js';
 
 import Schedule from "components/Schedules/Schedule.js"
 
