@@ -1,5 +1,5 @@
 aiobotocore==1.3.0
-aiohttp==3.7.4.post0
+aiohttp>=3.7.4
 aioitertools==0.7.1
 amqp==5.0.5
 anyjson==0.3.3
@@ -19,7 +19,7 @@ click-didyoumean==0.0.3
 click-plugins==1.1.1
 click-repl==0.1.6
 decorator==4.4.2
-Django==3.2.1
+Django==3.2.4
 django-celery-beat==2.2.0
 django-cors-headers==3.7.0
 django-timezone-field==4.1.1
