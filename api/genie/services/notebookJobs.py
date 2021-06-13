@@ -1,22 +1,18 @@
 import asyncio
 import json
-import os
 import pytz
 import time
 import logging
-import datetime as dt
 import threading
 from typing import List
 from django.template import Template, Context
 # from django_celery_beat.models import CrontabSchedule
-from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, ConnectionParam, ConnectionParamValue, NotebookTemplate, CustomSchedule as Schedule
-from genie.serializers import NotebookJobSerializer, NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer, ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer, NotebookTemplateSerializer
-from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
+from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, NotebookObject, NotebookJob, RunStatus, Connection, NotebookTemplate, CustomSchedule as Schedule
+from genie.serializers import NotebookObjectSerializer, ScheduleSerializer, RunStatusSerializer
+from workflows.models import Workflow, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin
-from utils.druidSpecGenerator import DruidIngestionSpecGenerator
 from genie.tasks import runNotebookJob as runNotebookJobTask
-from kubernetes import config, client
 from django.conf import settings
 
 # Get an instance of a logger
@@ -53,7 +49,7 @@ class NotebookJobServices:
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving notebooks")
-        notebooks = Zeppelin.getAllNotebooks()
+        notebooks =  Zeppelin.getAllNotebooks()
         if searchQuery:
             notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
         if sortColumn:
@@ -534,149 +530,3 @@ class NotebookJobServices:
 
         return filterNotebooks
 
-class Connections:
-
-    @staticmethod
-    def getConnections():
-        res = ApiResponse()
-        connections = Connection.objects.all()
-        serializer = ConnectionSerializer(connections, many=True)
-        res.update(True, "Connections retrieved successfully", serializer.data)
-        return res
-
-    @staticmethod
-    def getConnection(connection_id):
-        res = ApiResponse()
-        connections = Connection.objects.get(id=connection_id)
-        serializer = ConnectionDetailSerializer(connections)
-        res.update(True, "Connection retrieved successfully", serializer.data)
-        return res
-
-    @staticmethod
-    def addConnection(payload):
-        res = ApiResponse()
-        connectionType = ConnectionType.objects.get(id=payload["connectionType_id"])
-        connection = Connection.objects.create(
-            name=payload["name"], description=payload["description"], connectionType=connectionType
-        )
-        for param in payload["params"]:
-            cp = ConnectionParam.objects.get(name=param, connectionType=connectionType)
-            ConnectionParamValue.objects.create(
-                connectionParam=cp, value=payload["params"][param], connection=connection
-            )
-        res.update(True, "Connection added successfully")
-        return res
-
-    @staticmethod
-    def removeConnection(connection_id):
-        res = ApiResponse()
-        connection = Connection.objects.get(id=connection_id)
-        if connection.notebookobject_set.count() == 0:
-            Connection.objects.get(id=connection_id).delete()
-            res.update(True, "Connection deleted successfully")
-        else:
-            res.update(False, "Cannot delete connection because of dependent notebook")
-        return res
-
-    @staticmethod
-    def updateConnection(connection_id, payload):
-        res = ApiResponse()
-        Connection.objects.filter(id=connection_id).update(
-            name=payload.get("name", ""),
-            description=payload.get("description", ""),
-            connectionType=ConnectionType.objects.get(id=payload["connectionType_id"]),
-        )
-        connection = Connection.objects.get(id=connection_id)
-        # ToDo: delete params related to this & then update
-        for param in payload["params"]:
-            cp = ConnectionParam.objects.get(id=param["paramId"])
-            # if cp.isEncrypted:
-            #     encryptionObject= AESCipher()
-            #     param['paramValue'] = encryptionObject.encrypt(param['paramValue'])
-            ConnectionParamValue.objects.create(
-                connectionParam=cp, value=param["paramValue"], connection=connection
-            )
-
-        res.update(True, "Connection updated successfully")
-        return res
-
-    @staticmethod
-    def getConnectionTypes():
-        res = ApiResponse()
-        connectionTypes = ConnectionType.objects.all()
-        serializer = ConnectionTypeSerializer(connectionTypes, many=True)
-        res.update(True, "Successfully retrieved connection types", serializer.data)
-        return res
-
-
-class NotebookTemplateService:
-
-    @staticmethod
-    def getNotebookTemplates():
-        res = ApiResponse()
-        templates = NotebookTemplate.objects.all()
-        serializer = NotebookTemplateSerializer(templates, many=True)
-        res.update(True, "Connections retrieved successfully", serializer.data)
-        return res
-    
-    @staticmethod
-    def getDatasetDetails(datasetLocation):
-        """
-        Service to fetch S3 dataset details
-        :param datasetLocation: Location of the S3 bucket
-        """
-        res = ApiResponse()
-        schema = DruidIngestionSpecGenerator._getSchemaForDatasourceInS3(datasetLocation)
-        ingestionSpec = DruidIngestionSpecGenerator.getIngestionSpec(
-            datasetLocation=datasetLocation, datasetSchema=schema
-        )
-        s3DatasetSchema = list(map(lambda x: {"columnName": x.name, "dataType": "TIMESTAMP" if x.physical_type == "INT96" else x.logical_type.type}, schema))
-        datasetDetails = {
-            "dremioSchema": s3DatasetSchema,
-            "druidIngestionSpec": ingestionSpec
-        } 
-        res.update(True, "Dataset schema retrieved successfully", datasetDetails)
-        return res
-
-class KubernetesServices:
-
-    @staticmethod
-    def getDriversCount():
-        """
-        Gets Driver and executors count
-        """
-        res = ApiResponse()
-        if os.environ.get("POSTGRES_DB_HOST","") == "localhost":
-            config.load_kube_config()
-        else:
-            config.load_incluster_config()
-        runningDrivers = 0
-        runningExecutors = 0
-        pendingDrivers = 0
-        pendingExecutors = 0
-        v1 = client.CoreV1Api()
-        POD_NAMESPACE = os.environ.get("POD_NAMESPACE","cuelake")
-        ret = v1.list_namespaced_pod(POD_NAMESPACE, watch=False)
-        pods = ret.items
-        pods_name = [pod.metadata.name for pod in pods]
-        podLabels = [[pod.metadata.labels, pod.status.phase] for pod in pods] # list
-        podStatus = [pod.status for pod in pods]
-
-        for label in podLabels:
-            if "interpreterSettingName" in label[0] and label[0]["interpreterSettingName"] == "spark" and label[1]=="Running":
-                runningDrivers += 1
-            
-            if "interpreterSettingName" in label[0] and label[0]["interpreterSettingName"] == "spark" and label[1]=="Pending":
-                pendingDrivers += 1
-            if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Running":
-                runningExecutors += 1
-            
-            if "spark-role" in label[0] and label[0]["spark-role"] == "executor" and label[1]=="Pending":
-                pendingExecutors += 1
-        data = {"runningDrivers":runningDrivers,
-                "pendingDrivers":pendingDrivers,
-                "runningExecutors":runningExecutors,
-                "pendingExecutors":pendingExecutors
-                }
-        res.update(True, "Pods status retrieved successfully", data)
-        return res

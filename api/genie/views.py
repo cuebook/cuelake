@@ -51,7 +51,7 @@ class ArchiveNotebookView(APIView):
                 
 class UnarchiveNotebookView(APIView):
     """
-    Class to archive notebook
+    Class to unarchive notebook
     """
     def get(self, request, notebookId, notebookName):
         res = NotebookJobServices.unarchiveNotebook(notebookId, notebookName)
@@ -150,6 +150,8 @@ def schedule(request: HttpRequest, scheduleId: int) -> Response:
     if request.method == "DELETE":
         res = NotebookJobServices.deleteSchedule(scheduleId)
         return Response(res.json())
+
+
 class TimzoneView(APIView):
     """
     Class to get standard pytz timezones
