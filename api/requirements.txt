@@ -34,13 +34,11 @@ jedi==0.18.0
 jmespath==0.10.0
 kombu==5.0.2
 multidict==5.1.0
-numpy==1.20.2
 parso==0.8.1
 pexpect==4.8.0
 pickleshare==0.7.5
 polling==0.3.1
 prompt-toolkit==3.0.17
-psycopg2==2.8.6
 ptyprocess==0.7.0
 pyarrow==4.0.0
 Pygments==2.8.1
