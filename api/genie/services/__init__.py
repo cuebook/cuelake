@@ -1,2 +1,5 @@
-from .services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices
+from .notebookJobs import NotebookJobServices
 from .schemas import Schemas
+from .connections import Connections
+from .notebookTemplates import NotebookTemplateService
+from .kubernetes import KubernetesServices
