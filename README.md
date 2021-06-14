@@ -1,5 +1,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/maintainability)](https://codeclimate.com/github/cuebook/cuelake/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/test_coverage)](https://codeclimate.com/github/cuebook/cuelake/test_coverage)
+[![Tests](https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml/badge.svg)](https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml)
 
 
 # CueLake
