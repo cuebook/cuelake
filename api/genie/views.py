@@ -2,7 +2,7 @@ from django.http import HttpRequest
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices, Schemas
+from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices, Schemas, ScheduleService
 from rest_framework.decorators import api_view
 
 class NotebookOperationsView(APIView):
@@ -99,16 +99,6 @@ class NotebookJobView(APIView):
         scheduleId = request.data["scheduleId"]
         res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
         return Response(res.json())
-    
-    def put(self, request):
-        notebookId = request.data["notebookId"]
-        if "scheduleId" in request.data:
-            scheduleId = request.data["scheduleId"]
-            res = NotebookJobServices.updateNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
-        elif "enabled" in request.data:
-            enabled = request.data["enabled"]
-            res = NotebookJobServices.toggleNotebookJob(notebookId=notebookId, enabled=enabled)
-        return Response(res.json())
 
     def delete(self, request, notebookId=None):
         res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId)
@@ -119,14 +109,14 @@ class ScheduleView(APIView):
     Class to get and add available crontab schedules
     """
     def get(self, request):
-        res = NotebookJobServices.getSchedules()
+        res = ScheduleService.getSchedules()
         return Response(res.json())
 
     def post(self, request):
         name = request.data["name"]
         cron = request.data["crontab"]
         timezone = request.data["timezone"]
-        res = NotebookJobServices.addSchedule(cron=cron, timezone=timezone, name=name)
+        res = ScheduleService.addSchedule(cron=cron, timezone=timezone, name=name)
         return Response(res.json())
     
     def put(self,request):
@@ -134,7 +124,7 @@ class ScheduleView(APIView):
         name = request.data["name"]
         crontab = request.data["crontab"]
         timezone = request.data["timezone"]
-        res = NotebookJobServices.updateSchedule(id=id, crontab=crontab, timezone=timezone, name=name)
+        res = ScheduleService.updateSchedule(id=id, crontab=crontab, timezone=timezone, name=name)
         return Response(res.json())
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -145,10 +135,10 @@ def schedule(request: HttpRequest, scheduleId: int) -> Response:
     :param connection_id: Connection Id
     """
     if request.method == "GET":
-        res = NotebookJobServices.getSingleSchedule(scheduleId)
+        res = ScheduleService.getSingleSchedule(scheduleId)
         return Response(res.json())
     if request.method == "DELETE":
-        res = NotebookJobServices.deleteSchedule(scheduleId)
+        res = ScheduleService.deleteSchedule(scheduleId)
         return Response(res.json())
 
 
@@ -157,7 +147,7 @@ class TimzoneView(APIView):
     Class to get standard pytz timezones
     """
     def get(self, request):
-        res = NotebookJobServices.getTimezones()
+        res = ScheduleService.getTimezones()
         return Response(res.json())
 
 

@@ -99,26 +99,6 @@ def test_notebookJob(client, populate_seed_data, mocker):
     assert response.status_code == 200
     assert response.data['success'] == True
 
-    # TODO Test and fix update notebook job
-    # Test Update Notebook Schedule
-    # mixer.blend("genie.customSchedule", id=2)
-    # data = {"notebookId": "BX976MDDE", "scheduleId": 2}
-    # response = client.put(path, data=data, content_type="application/json")
-    # assert response.status_code == 200
-    # assert response.data['success'] == True
-
-    # Test disable notebook job
-    data = {"notebookId": "BX976MDDE", "enabled": False}
-    response = client.put(path, data=data, content_type="application/json")
-    assert response.status_code == 200
-    assert response.data['success'] == True
-
-    # Test enabled notebook job
-    data = {"notebookId": "BX976MDDE", "enabled": True}
-    response = client.put(path, data=data, content_type="application/json")
-    assert response.status_code == 200
-    assert response.data['success'] == True
-
     # Test delete notebook job
     response = client.delete(path, data=data, content_type="application/json")
     assert response.status_code == 200
