@@ -1,9 +1,29 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/maintainability)](https://codeclimate.com/github/cuebook/cuelake/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/test_coverage)](https://codeclimate.com/github/cuebook/cuelake/test_coverage)
-[![Tests](https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml/badge.svg)](https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml)
+<p align="center">
+  <a href="https://cuelake.cuebook.ai" target="_blank">
+    <img alt="Cuelake Logo" width="220" src="docs/images/cuelake.png">
+  </a>
+</p>
+<p align="center">
+  <a href="https://codeclimate.com/github/cuebook/cuelake/maintainability">
+    <img src="https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/maintainability" alt="Maintainability">
+  </a>
+  <a href="https://codeclimate.com/github/cuebook/cuelake/test_coverage">
+    <img src="https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/test_coverage" alt="Test Coverage">
+  </a>
+  <a href="https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml">
+    <img src="https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml/badge.svg" alt="Test Coverage">
+  </a>
+  <br>
+  <a href="https://github.com/cuebook/cuelake/blob/main/LICENSE.md">
+    <img src="https://img.shields.io/github/license/cuebook/cuelake" alt="License">
+  </a>
+  <a href="https://discord.gg/R7EABXwUnv">
+    <img src="https://discordapp.com/api/guilds/854395659431182366/widget.png" alt="Discord">
+  </a>
+</p>
+<br>
+<br>
 
-
-# CueLake
 With CueLake, you can use SQL to build `ELT` (Extract, Load, Transform) pipelines on a **data lakehouse**.
 
 You write **Spark SQL** statements in **Zeppelin** notebooks. You then schedule these notebooks using workflows (DAGs).
@@ -54,6 +74,9 @@ If you don’t want to use Kubernetes and instead want to try it out on your loc
 For general help using CueLake, read the [documentation](https://cuelake.cuebook.ai/), or go to [Github Discussions](https://github.com/cuebook/cuelake/discussions).
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
+
+# Community
+Join our [cuelake discord server](https://discord.gg/R7EABXwUnv) and ask your questions to the developers directly.
 
 # Contributing
 We'd love contributions to CueLake. Before you contribute, please first discuss the change you wish to make via an [issue](https://github.com/cuebook/cuelake/issues) or a [discussion](https://github.com/cuebook/cuelake/discussions). Contributors are expected to adhere to our [code of conduct](https://github.com/cuebook/cuelake/blob/main/CODE_OF_CONDUCT.md).
