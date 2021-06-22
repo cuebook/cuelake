@@ -72,7 +72,7 @@ class AccountSettingServices:
         """
         res = ApiResponse()
         try:
-            value = AccountSetting.objects.get(key=key).value
+            value = AccountSettingValue.objects.get(accountSetting__key=key).value
             res.update(True, "Fetched account setting value successfully", value)
         except:
             res.update(False, "Error in fetching account setting value")
