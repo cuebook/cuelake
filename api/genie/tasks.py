@@ -32,10 +32,10 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     taskId = runNotebookJob.request.id # Celery task id
     taskId = taskId if taskId else ""
     runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType, taskId)
-    zeppelinServerId = __allocateZeppelinServer(runStatus)
-    logger.info(f"Notebook {notebookId} sscheduled to run on {zeppelinServerId}")
-    __waitUntilServerReady(zeppelinServerId)
     try:
+        zeppelinServerId = __allocateZeppelinServer(runStatus)
+        logger.info(f"Notebook {notebookId} scheduled to run on {zeppelinServerId}")
+        __waitUntilServerReady(zeppelinServerId)
         zeppelin = ZeppelinAPI(zeppelinServerId)
         isRunning, notebookName = __checkIfNotebookRunning(notebookId, zeppelin) # change to get only notebook name
         # Clear notebook results
@@ -83,9 +83,9 @@ def __getZeppelinServerNotebookMap():
     notebookRuns = RunStatus.objects.filter(status__in=[NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_QUEUED])
     zeppelinServerNotebookMap = {} # this contains number of running jobs per zeppelinServerId
     for notebookRun in notebookRuns:
-        if notebookRun.zeppelinServerId and notebookRun.zeppelinServerId in zeppelinServerNotebookMap:
+        if notebookRun.zeppelinServerId != "" and notebookRun.zeppelinServerId in zeppelinServerNotebookMap:
             zeppelinServerNotebookMap[notebookRun.zeppelinServerId] += 1
-        else:
+        elif notebookRun.zeppelinServerId != "":
             zeppelinServerNotebookMap[notebookRun.zeppelinServerId] = 1
     return zeppelinServerNotebookMap
 
