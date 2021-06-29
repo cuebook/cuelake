@@ -1,12 +1,10 @@
 from typing import List
 import os
 import time
-import math
 import logging
 import datetime as dt
 import polling
 from workflows.models import (
-    Workflow,
     WorkflowRun,
     NotebookJob,
     STATUS_SUCCESS,
@@ -69,6 +67,7 @@ class TaskUtils:
             runStatus.taskId = response.id
             runStatus.save()
             notebookRunStatusIds.append(runStatus.id)
+            time.sleep(0.2) # Sleep for 200ms to make sure zeppelin server has been allocated to previous notebook
         return notebookRunStatusIds
     
     @staticmethod
