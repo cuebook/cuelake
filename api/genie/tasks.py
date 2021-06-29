@@ -35,8 +35,8 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     try:
         zeppelinServerId = __allocateZeppelinServer(runStatus)
         logger.info(f"Notebook {notebookId} scheduled to run on {zeppelinServerId}")
-        __waitUntilServerReady(zeppelinServerId)
         zeppelin = ZeppelinAPI(zeppelinServerId)
+        __waitUntilServerReady(zeppelinServerId)
         isRunning, notebookName = __checkIfNotebookRunning(notebookId, zeppelin) # change to get only notebook name
         # Clear notebook results
         zeppelin.clearNotebookResults(notebookId)
@@ -102,6 +102,9 @@ def __waitUntilServerReady(zeppelinServerId):
     polling.poll(
         lambda: Kubernetes.getPodStatus(zeppelinServerId) == 'Running', step=3, timeout=3600*6
     )
+    polling.poll(
+        lambda: Kubernetes.getPodStatus(zeppelinServerId) == 'Running', step=3, timeout=3600*6
+    )
 
 def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, taskId: str):
     """
@@ -134,6 +137,7 @@ def __checkIfNotebookRunningAndStoreLogs(notebookId: str, runStatus: RunStatus, 
     Checks if notebook is running and stores logs
     """
     response = zeppelin.getNotebookDetailsWithRetry(notebookId)
+    logger.info(response)
     if response:
         runStatus.logs = json.dumps(response)
         runStatus.save()
