@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 ZEPPELIN_API_RETRY_COUNT = 3
 ZEPPELIN_SERVER_CONCURRENCY = 3
+ZEPPELIN_JOB_SERVER_PREFIX = "zeppelin-job-server-"
 
 @shared_task
 def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Scheduled"):
@@ -32,6 +33,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
     taskId = taskId if taskId else ""
     runStatus = __getOrCreateRunStatus(runStatusId, notebookId, runType, taskId)
     zeppelinServerId = __allocateZeppelinServer(runStatus)
+    logger.info(f"Notebook {notebookId} sscheduled to run on {zeppelinServerId}")
     __waitUntilServerReady(zeppelinServerId)
     try:
         zeppelin = ZeppelinAPI(zeppelinServerId)
@@ -44,6 +46,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 polling.poll(
                     lambda: __checkIfNotebookRunningAndStoreLogs(notebookId, runStatus, zeppelin) != True, step=3, timeout=3600*6
                 )
+                __evaluateScaleDownZeppelin()
             except Exception as ex:
                 logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
                 runStatus.status = NOTEBOOK_STATUS_ERROR
@@ -66,28 +69,32 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
 
-def __allocateZeppelinServer(runStatus):
+def __allocateZeppelinServer(runStatus: RunStatus):
     """
     Creates or allocates a zeppelin server to run the notebook on
     """
-    notebookRuns = RunStatus.objects.filter(status__in=[NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_QUEUED]).exclude(id=runStatus.id)
-    zeppelinServerMap = {} # this contains number of running jobs per zeppelinServerId
-    for notebookRun in notebookRuns:
-        if notebookRun.zeppelinServerId in zeppelinServerMap:
-            zeppelinServerMap[notebookRun.zeppelinServerId] += 1
-        else:
-            zeppelinServerMap[notebookRun.zeppelinServerId] = 1
-    zeppelinServerId = __getOrCreateZeppelinServerId(zeppelinServerMap)
+    zeppelinServerNotebookMap = __getZeppelinServerNotebookMap()
+    zeppelinServerId = __getOrCreateZeppelinServerId(zeppelinServerNotebookMap)
     runStatus.zeppelinServerId = zeppelinServerId
     runStatus.save()
     return zeppelinServerId
+
+def __getZeppelinServerNotebookMap():
+    notebookRuns = RunStatus.objects.filter(status__in=[NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_QUEUED])
+    zeppelinServerNotebookMap = {} # this contains number of running jobs per zeppelinServerId
+    for notebookRun in notebookRuns:
+        if notebookRun.zeppelinServerId and notebookRun.zeppelinServerId in zeppelinServerNotebookMap:
+            zeppelinServerNotebookMap[notebookRun.zeppelinServerId] += 1
+        else:
+            zeppelinServerNotebookMap[notebookRun.zeppelinServerId] = 1
+    return zeppelinServerNotebookMap
 
 def __getOrCreateZeppelinServerId(zeppelinServerMap):
     for zeppelinServerId, runningNotebooks in zeppelinServerMap.items():
         if runningNotebooks < ZEPPELIN_SERVER_CONCURRENCY:
             return zeppelinServerId
-    randomId = uuid.uuid4().hex.lower()[0:8]
-    zeppelinServerId = "zeppelin-server-" + randomId
+    randomId = uuid.uuid4().hex.lower()[0:20]
+    zeppelinServerId = ZEPPELIN_JOB_SERVER_PREFIX + randomId
     Kubernetes.addZeppelinServer(zeppelinServerId)
     return zeppelinServerId
 
@@ -175,3 +182,15 @@ def __setNotebookStatus(response, runStatus: RunStatus):
     runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()
     NotificationServices.notify(notebookName=notebookName, isSuccess=True, message="Run successful")
+
+def __evaluateScaleDownZeppelin():
+    pods = Kubernetes.getPods()
+    zeppelinServerPods = []
+    for pod in pods:
+        if ZEPPELIN_JOB_SERVER_PREFIX in pod.metadata.name:
+            zeppelinServerPods.append(pod)
+    zeppelinServerNotebookMap = __getZeppelinServerNotebookMap()
+    for pod in zeppelinServerPods:
+        if pod.metadata.name not in zeppelinServerNotebookMap:
+            logger.info(f"Removing zeppelin server: {pod.metadata.name}")
+            Kubernetes.removeZeppelinServer(pod.metadata.name)

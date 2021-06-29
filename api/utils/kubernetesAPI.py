@@ -76,5 +76,11 @@ class KubernetesAPI:
         podResponse = v1.read_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
         return podResponse.status.phase
 
+    def getPods(self):
+        v1 = client.CoreV1Api()
+        pods = v1.list_namespaced_pod(namespace=self.POD_NAMESPACE)
+        return pods.items
+        
+
 # Export initalized class
 Kubernetes = KubernetesAPI()
