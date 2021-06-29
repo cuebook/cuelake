@@ -3,7 +3,7 @@ import yaml
 import logging
 from django.conf import settings
 from kubernetes import config, client
-from safeDict import SafeDict
+from utils.safeDict import SafeDict
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -71,6 +71,10 @@ class KubernetesAPI:
         v1.delete_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
         v1.delete_namespaced_service(name=podId, namespace=self.POD_NAMESPACE)
 
+    def getPodStatus(self, podId):
+        v1 = client.CoreV1Api()
+        podResponse = v1.read_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
+        return podResponse.status.phase
 
 # Export initalized class
 Kubernetes = KubernetesAPI()
