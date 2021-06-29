@@ -14,6 +14,7 @@ NOTEBOOKS_ENDPOINT = "api/notebook"
 NOTEBOOK_STATUS_ENDPOINT = "api/notebook/job"
 INTERPRETER_RESTART_ENDPOINT = "api/interpreter/setting/restart"
 ZEPPELIN_API_RETRY_COUNT = 3
+ZEPPELIN_VERSION_ENDPOINT = "api/version"
 
 class ZeppelinAPI:
     """
@@ -145,6 +146,10 @@ class ZeppelinAPI:
         Restarts interpreter
         """
         response = requests.put(f"{self.ZEPPELIN_ADDR}/{INTERPRETER_RESTART_ENDPOINT}/{interpreterName}")
+        return self.__parseResponse(response)
+
+    def healthCheck(self):
+        response = requests.get(f"{self.ZEPPELIN_ADDR}/{ZEPPELIN_VERSION_ENDPOINT}")
         return self.__parseResponse(response)
 
     def __parseResponse(self, response):

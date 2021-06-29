@@ -36,7 +36,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         zeppelinServerId = __allocateZeppelinServer(runStatus)
         logger.info(f"Notebook {notebookId} scheduled to run on {zeppelinServerId}")
         zeppelin = ZeppelinAPI(zeppelinServerId)
-        __waitUntilServerReady(zeppelinServerId)
+        __waitUntilServerReady(zeppelinServerId, zeppelin)
         isRunning, notebookName = __checkIfNotebookRunning(notebookId, zeppelin) # change to get only notebook name
         # Clear notebook results
         zeppelin.clearNotebookResults(notebookId)
@@ -98,12 +98,12 @@ def __getOrCreateZeppelinServerId(zeppelinServerMap):
     Kubernetes.addZeppelinServer(zeppelinServerId)
     return zeppelinServerId
 
-def __waitUntilServerReady(zeppelinServerId):
+def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
     polling.poll(
         lambda: Kubernetes.getPodStatus(zeppelinServerId) == 'Running', step=3, timeout=3600*6
     )
     polling.poll(
-        lambda: Kubernetes.getPodStatus(zeppelinServerId) == 'Running', step=3, timeout=3600*6
+        lambda: zeppelin.healthCheck() != False, step=3, timeout=3600*6
     )
 
 def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, taskId: str):
