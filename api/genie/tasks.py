@@ -1,3 +1,4 @@
+import os
 import json
 import uuid
 import datetime as dt
@@ -17,7 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 ZEPPELIN_API_RETRY_COUNT = 3
-ZEPPELIN_SERVER_CONCURRENCY = 3
+ZEPPELIN_SERVER_CONCURRENCY = os.environ.get("ZEPPELIN_SERVER_CONCURRENCY", 5)
 ZEPPELIN_JOB_SERVER_PREFIX = "zeppelin-job-server-"
 
 @shared_task

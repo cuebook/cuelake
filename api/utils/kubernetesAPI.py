@@ -68,8 +68,11 @@ class KubernetesAPI:
 
     def removeZeppelinServer(self, podId):
         v1 = client.CoreV1Api()
-        v1.delete_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
-        v1.delete_namespaced_service(name=podId, namespace=self.POD_NAMESPACE)
+        try:
+            v1.delete_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
+            v1.delete_namespaced_service(name=podId, namespace=self.POD_NAMESPACE)
+        except Exception as ex:
+            logger.error(f"Error removing zeppelin server: {podId}. Error: {str(ex)}")
 
     def getPodStatus(self, podId):
         v1 = client.CoreV1Api()
