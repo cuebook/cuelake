@@ -38,31 +38,19 @@ class TaskUtils:
         """
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
         workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
-        successFlag = True
-        for index in range(int(math.ceil(len(notebookIds) / NOTEBOOK_BATCH_COUNT))):
-            # processing one batch of notebooks at a time
-            batchNotebookIds = notebookIds[index * NOTEBOOK_BATCH_COUNT:(index + 1) * NOTEBOOK_BATCH_COUNT]
-            notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(batchNotebookIds, workflowRun.id)
-            workflowStatus = polling.poll(
-                lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds),
-                check_success= lambda x: x != "RUNNING",
-                step=3,
-                timeout=3600*6,
-            )
-            logger.info(f"Workflow status for batch {index + 1}: {str(workflowStatus)}")
-            if not workflowStatus and successFlag:
-                logger.info(f"Success flag set to False. WorkflowStatus: {str(workflowStatus)} SuccesFlag: {str(successFlag)}")
-                successFlag = False
-            logger.info(f"Finished batch {index + 1}. Restarting spark interpreter")
-            if not workflowStatus:
-                logger.info(f"Error occured in this batch. Notebook Ids: {batchNotebookIds}")
-            Zeppelin.restartInterpreter("spark")
-            time.sleep(5)
+        notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
+        workflowStatus = polling.poll(
+            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds),
+            check_success= lambda x: x != "RUNNING",
+            step=3,
+            timeout=3600*6,
+        )
+        logger.info(f"Workflow status : {str(workflowStatus)}")
 
         if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
             return STATUS_ABORTED
 
-        workflowRun.status = STATUS_SUCCESS if successFlag else STATUS_ERROR
+        workflowRun.status = STATUS_SUCCESS if workflowStatus else STATUS_ERROR
         workflowRun.endTimestamp = dt.datetime.now()
         workflowRun.save()
         return workflowRun.status
