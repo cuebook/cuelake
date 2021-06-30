@@ -74,6 +74,10 @@ spec:
       terminationMessagePath: /dev/termination-log
       terminationMessagePolicy: File
       imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "1024Mi"
+          cpu: "250m"
     - name: zeppelin-server-gateway
       image: 'nginx:1.14.0'
       command:
