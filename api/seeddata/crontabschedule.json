@@ -3,11 +3,11 @@
     "model": "django_celery_beat.crontabschedule",
     "pk": 1,
     "fields": {
-      "minute": "*",
-      "hour": "*",
-      "day_of_week": "*",
-      "day_of_month": "*/30",
-      "month_of_year": "*/2",
+      "minute": "0",
+      "hour": "0",
+      "day_of_week": "0",
+      "day_of_month": "30",
+      "month_of_year": "2",
       "timezone": "Asia/Kolkata"
     }
   },

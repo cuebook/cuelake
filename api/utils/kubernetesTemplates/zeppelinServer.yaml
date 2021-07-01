@@ -2,7 +2,7 @@ kind: Pod
 apiVersion: v1
 metadata:
   name: {podId}
-  namespace: cuelake
+  namespace: {podNamespace}
   labels:
     app.kubernetes.io/name: zeppelin-server
     statefulset.kubernetes.io/pod-name: {podId}

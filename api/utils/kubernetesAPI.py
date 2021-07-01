@@ -18,7 +18,7 @@ class KubernetesAPI:
     else:
         config.load_incluster_config()
 
-    POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "cuelake")
+    POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "default")
 
     def getDriversCount(self):
         """
@@ -57,12 +57,12 @@ class KubernetesAPI:
         v1 = client.CoreV1Api()
         podTemplateFile = open("utils/kubernetesTemplates/zeppelinServer.yaml", "r")
         podBody = podTemplateFile.read()
-        podBody = podBody.format_map(SafeDict(podId=podId))
+        podBody = podBody.format_map(SafeDict(podId=podId, podNamespace=self.POD_NAMESPACE))
         podBody = yaml.safe_load(podBody)
         v1.create_namespaced_pod(namespace=self.POD_NAMESPACE, body=podBody)
         serviceTemplateFile = open("utils/kubernetesTemplates/zeppelinService.yaml", "r")
         serviceBody = serviceTemplateFile.read()
-        serviceBody = serviceBody.format_map(SafeDict(podId=podId))
+        serviceBody = serviceBody.format_map(SafeDict(podId=podId, podNamespace=self.POD_NAMESPACE))
         serviceBody = yaml.safe_load(serviceBody)
         v1.create_namespaced_service(namespace=self.POD_NAMESPACE, body=serviceBody)
 

@@ -2,7 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: {podId}
-  namespace: cuelake
+  namespace: {podNamespace}
 spec:
   ports:
     - name: http
