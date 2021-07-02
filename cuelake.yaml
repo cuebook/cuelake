@@ -375,3 +375,18 @@ spec:
       port: 6379
   selector:
     app.kubernetes.io/name: redis
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: sparkui
+spec:
+  ports:
+    - name: spark-ui
+      protocol: TCP
+      port: 4040
+      targetPort: 4040
+  selector:
+    interpreterSettingName: spark
+  type: ClusterIP
+  sessionAffinity: None
