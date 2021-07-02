@@ -13,7 +13,7 @@ class KubernetesAPI:
     """
     Functionalities around zeppelin APIs
     """
-    if os.environ.get("POSTGRES_DB_HOST","") == "localhost":
+    if os.environ.get("ENVIRONMENT","") == "dev":
         config.load_kube_config()
     else:
         config.load_incluster_config()
