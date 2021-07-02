@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {podId}
+  namespace: {podNamespace}
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: rpc
+      protocol: TCP
+      port: 12320
+      targetPort: 12320
+  selector:
+    statefulset.kubernetes.io/pod-name: {podId}
+  type: ClusterIP

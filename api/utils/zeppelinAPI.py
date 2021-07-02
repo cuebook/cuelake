@@ -14,16 +14,23 @@ NOTEBOOKS_ENDPOINT = "api/notebook"
 NOTEBOOK_STATUS_ENDPOINT = "api/notebook/job"
 INTERPRETER_RESTART_ENDPOINT = "api/interpreter/setting/restart"
 ZEPPELIN_API_RETRY_COUNT = 3
+ZEPPELIN_VERSION_ENDPOINT = "api/version"
 
 class ZeppelinAPI:
     """
     Functionalities around zeppelin APIs
     """
+    ZEPPELIN_ADDR = settings.ZEPPELIN_HOST + ":" + settings.ZEPPELIN_PORT
+
+    def __init__(self, zeppelinServerId: str = None):
+        if(zeppelinServerId):
+            self.ZEPPELIN_ADDR = "http://" + zeppelinServerId + ":" + settings.ZEPPELIN_PORT
+
     def getAllNotebooks(self, folder=""):
         """
         Return all notebooks from zeppelin
         """
-        response = requests.get(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}")
+        response = requests.get(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}")
         data = self.__parseResponse(response)
         data = [ x for x in data if x['path'].split("/")[-2]==folder ]
         return data
@@ -32,7 +39,7 @@ class ZeppelinAPI:
         """
         Async method to return status of all paragraphs from a notebook
         """
-        url = f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOK_STATUS_ENDPOINT}/{notebookId}"
+        url = f"{self.ZEPPELIN_ADDR}/{NOTEBOOK_STATUS_ENDPOINT}/{notebookId}"
         defaultResponse = {"id": notebookId}
         try:
             async with aiohttp.ClientSession() as session:
@@ -50,7 +57,7 @@ class ZeppelinAPI:
         """
         Return all paragraphs from a notebook
         """
-        response = requests.get(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
+        response = requests.get(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
         return self.__parseResponse(response)
 
     def getNotebookDetailsWithRetry(self, notebookId: str, retryCount: int = 0):
@@ -67,7 +74,7 @@ class ZeppelinAPI:
         """
         Run all paragraphs from a notebook
         """
-        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+        response = requests.post(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
         return self.__parseResponse(response)
 
     def stopNotebookJob(self, notebookId: str):
@@ -76,7 +83,7 @@ class ZeppelinAPI:
         """
         isNotebookRunning = True
         while isNotebookRunning:
-            requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
+            requests.delete(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/job/{notebookId}")
             response = self.getNotebookDetailsWithRetry(notebookId)
             isNotebookRunning = response.get("info", {}).get("isRunning", False)
             time.sleep(3)
@@ -88,7 +95,7 @@ class ZeppelinAPI:
         """
         Clear all paragraph results from a notebook
         """
-        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/clear")
+        response = requests.put(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}/clear")
         logger.info(f"Clear notebook {notebookId}")
         logger.info(f"Clear notebook response {response.json()}")
         return self.__parseResponse(response)
@@ -97,21 +104,21 @@ class ZeppelinAPI:
         """
         Clear all paragraph results from a notebook
         """
-        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}", notebook)
+        response = requests.post(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}", notebook)
         return self.__parseResponse(response)
 
     def cloneNotebook(self, notebookId: str, payload: dict):
         """
         Clear all paragraph results from a notebook
         """
-        response = requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}", payload)
+        response = requests.post(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}", payload)
         return self.__parseResponse(response)
 
     def deleteNotebook(self, notebookId: str):
         """
         Clear all paragraph results from a notebook
         """
-        response = requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
+        response = requests.delete(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}")
         return self.__parseResponse(response)
     
     def updateNotebookParagraphs(self, notebookId: str, notebook: dict):
@@ -120,17 +127,17 @@ class ZeppelinAPI:
         """
         oldParagraphs = [para["id"] for para in self.getNotebookDetails(notebookId)["paragraphs"]]
         for paraId in oldParagraphs:
-            requests.delete(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph/{paraId}")
+            requests.delete(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph/{paraId}")
         newParagraphs = json.loads(notebook)["paragraphs"]
         for para in newParagraphs:
-            requests.post(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph", json.dumps(para))
+            requests.post(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}/paragraph", json.dumps(para))
         return True
     
     def renameNotebook(self, notebookId: str, newName: str):
         """
         Renames zeppelin notebook
         """
-        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{NOTEBOOKS_ENDPOINT}/{notebookId}/rename", json.dumps({"name": newName}))
+        response = requests.put(f"{self.ZEPPELIN_ADDR}/{NOTEBOOKS_ENDPOINT}/{notebookId}/rename", json.dumps({"name": newName}))
         x = self.__parseResponse(response)
         return x
 
@@ -138,7 +145,11 @@ class ZeppelinAPI:
         """
         Restarts interpreter
         """
-        response = requests.put(f"{settings.ZEPPELIN_HOST}:{settings.ZEPPELIN_PORT}/{INTERPRETER_RESTART_ENDPOINT}/{interpreterName}")
+        response = requests.put(f"{self.ZEPPELIN_ADDR}/{INTERPRETER_RESTART_ENDPOINT}/{interpreterName}")
+        return self.__parseResponse(response)
+
+    def healthCheck(self):
+        response = requests.get(f"{self.ZEPPELIN_ADDR}/{ZEPPELIN_VERSION_ENDPOINT}")
         return self.__parseResponse(response)
 
     def __parseResponse(self, response):

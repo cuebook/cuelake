@@ -34,6 +34,7 @@ class RunStatus(models.Model):
     message = models.CharField(max_length=5000, null=True, default=None)
     workflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.SET_NULL)
     taskId = models.CharField(max_length=200, default="")
+    zeppelinServerId = models.CharField(max_length=200, default="")
 
 
 # Connection Models

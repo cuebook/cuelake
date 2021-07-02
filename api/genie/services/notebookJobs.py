@@ -11,7 +11,7 @@ from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK
 from genie.serializers import NotebookObjectSerializer, RunStatusSerializer
 from workflows.models import Workflow, NotebookJob as WorkflowNotebookJob
 from utils.apiResponse import ApiResponse
-from utils.zeppelinAPI import Zeppelin
+from utils.zeppelinAPI import Zeppelin, ZeppelinAPI
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from django.conf import settings
 
@@ -340,7 +340,8 @@ class NotebookJobServices:
         if(notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING):
             notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
             notebookRunStatus.save()
-        thread = threading.Thread(target=Zeppelin.stopNotebookJob, args=[notebookId])
+        zeppelin = ZeppelinAPI(notebookRunStatus.zeppelinServerId)
+        thread = threading.Thread(target=zeppelin.stopNotebookJob, args=[notebookId])
         thread.start()
         res.update(True, "Aborting notebook job", None)
         return res
