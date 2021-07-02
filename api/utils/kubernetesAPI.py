@@ -15,7 +15,7 @@ class KubernetesAPI:
     """
     if os.environ.get("ENVIRONMENT","") == "dev":
         config.load_kube_config()
-    else:
+    elif os.environ.get("ENVIRONMENT","") != "test":
         config.load_incluster_config()
 
     POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "default")
