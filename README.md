@@ -20,6 +20,9 @@
   <a href="https://discord.gg/R7EABXwUnv">
     <img src="https://discordapp.com/api/guilds/854395659431182366/widget.png" alt="Discord">
   </a>
+  <a href="https://hub.docker.com/r/cuebook/lakehouse/tags">
+    <img src="https://img.shields.io/docker/pulls/cuebook/lakehouse" alt="Docker Pulls">
+  </a>
 </p>
 <br>
 <br>
