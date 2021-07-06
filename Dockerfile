@@ -3,7 +3,7 @@ FROM node:12-alpine as builder
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY ui/package.json /app/package.json
-RUN npm install --silent
+RUN npm install
 COPY ui /app
 
 RUN npm run build

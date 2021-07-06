@@ -117,7 +117,7 @@ spec:
             path: nginx.conf
       containers:
       - name: zeppelin-server
-        image: cuebook/zeppelin-server:0.9.0
+        image: cuebook/zeppelin-server:test
         command: ["sh", "-c"]
         args:
           - curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/interpreter.json -o $(ZEPPELIN_HOME)/conf/interpreter.json && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-env.sh -o $(ZEPPELIN_HOME)/conf/zeppelin-env.sh && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-site.xml -o $(ZEPPELIN_HOME)/conf/zeppelin-site.xml && $(ZEPPELIN_HOME)/bin/zeppelin.sh
@@ -211,7 +211,7 @@ metadata:
   name: zeppelin-server-role
 rules:
 - apiGroups: [""]
-  resources: ["pods", "services", "configmaps"]
+  resources: ["pods", "pods/exec", "services", "configmaps"]
   verbs: ["create", "get", "update", "patch", "list", "delete", "watch"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]
@@ -300,16 +300,23 @@ spec:
       labels:
         app.kubernetes.io/name: lakehouse
     spec:
+      serviceAccountName: zeppelin-server
       volumes:
       - name: lakehouse-db-volume
         persistentVolumeClaim:
           claimName: lakehouse-db-volume-pvc
       containers:
       - name: lakehouse
-        image: cuebook/lakehouse:latest
+        image: cuebook/lakehouse:0.2
         volumeMounts:
         - name: lakehouse-db-volume     # configure this to persist db
           mountPath: /code/db
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
             name: cuelake-conf-map
