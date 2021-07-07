@@ -156,7 +156,7 @@ ZEPPELIN_PORT = os.environ.get("ZEPPELIN_PORT", "80")
 REDIS_BROKER_URL = os.environ.get("REDIS_BROKER_URL", "redis://redis:6379/0")
 
 # s3 file settings
-S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", None)
+S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", "")
 S3_FILES_PREFIX = os.environ.get("S3_FILES_PREFIX", "files/")
 
 # Postgres configuration for Schema Browser

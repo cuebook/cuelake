@@ -149,8 +149,11 @@ class ZeppelinAPI:
         return self.__parseResponse(response)
 
     def healthCheck(self):
-        response = requests.get(f"{self.ZEPPELIN_ADDR}/{ZEPPELIN_VERSION_ENDPOINT}")
-        return self.__parseResponse(response)
+        try:
+            response = requests.get(f"{self.ZEPPELIN_ADDR}/{ZEPPELIN_VERSION_ENDPOINT}")
+            return self.__parseResponse(response)
+        except Exception as ex:
+            return False
 
     def __parseResponse(self, response):
         """

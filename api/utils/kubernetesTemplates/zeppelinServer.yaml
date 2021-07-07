@@ -9,21 +9,26 @@ metadata:
 spec:
   serviceAccountName: zeppelin-server
   volumes:
-    - name: zeppelin-server-notebook-volume
-      persistentVolumeClaim:
-        claimName: cuelake-notebook-efs-pvc
-    - name: zeppelin-server-conf
-      persistentVolumeClaim:
-        claimName: cuelake-conf-efs-pvc
-    - name: nginx-conf
-      configMap:
-        name: zeppelin-server-conf
-        items:
-          - key: nginx.conf
-            path: nginx.conf
+    - name: shared-notebook
+      emptyDir:
+    - name: shared-conf
+      emptyDir:
+  initContainers:
+    - name: init
+      image: bitnami/kubectl
+      command: ['sh', '-c']
+      volumeMounts:
+        - name: shared-notebook
+          mountPath: /shared-notebook
+        - name: shared-conf
+          mountPath: /shared-conf
+      args:
+        - >-
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
   containers:
     - name: zeppelin-server
-      image: 'cuebook/zeppelin-server:0.9.0'
+      image: 'cuebook/zeppelin-server-lite:0.2'
       command:
         - sh
         - '-c'
@@ -58,9 +63,9 @@ spec:
               apiVersion: v1
               fieldPath: metadata.name
       volumeMounts:
-        - name: zeppelin-server-notebook-volume
+        - name: shared-notebook
           mountPath: /zeppelin/notebook
-        - name: zeppelin-server-conf
+        - name: shared-conf
           mountPath: /zeppelin/conf
       lifecycle:
         preStop:
@@ -78,46 +83,3 @@ spec:
         requests:
           memory: "1024Mi"
           cpu: "250m"
-    - name: zeppelin-server-gateway
-      image: 'nginx:1.14.0'
-      command:
-        - /bin/sh
-        - '-c'
-      args:
-        - >-
-          cp -f /tmp/conf/nginx.conf /etc/nginx/nginx.conf; sed -i -e
-          "s/SERVICE_DOMAIN/$SERVICE_DOMAIN/g" /etc/nginx/nginx.conf; sed -i -e
-          "s/NAMESPACE/$(cat
-          /var/run/secrets/kubernetes.io/serviceaccount/namespace)/g"
-          /etc/nginx/nginx.conf; cat /etc/nginx/nginx.conf; /usr/sbin/nginx
-      env:
-        - name: SERVICE_DOMAIN
-          valueFrom:
-            configMapKeyRef:
-              name: zeppelin-server-conf-map
-              key: SERVICE_DOMAIN
-      volumeMounts:
-        - name: nginx-conf
-          mountPath: /tmp/conf
-      lifecycle:
-        preStop:
-          exec:
-            command:
-              - /usr/sbin/nginx
-              - '-s'
-              - quit
-      terminationMessagePath: /dev/termination-log
-      terminationMessagePolicy: File
-      imagePullPolicy: IfNotPresent
-    - name: dnsmasq
-      image: 'janeczku/go-dnsmasq:release-1.0.5'
-      args:
-        - '--listen'
-        - '127.0.0.1:53'
-        - '--default-resolver'
-        - '--append-search-domains'
-        - '--hostsfile=/etc/hosts'
-        - '--verbose'
-      terminationMessagePath: /dev/termination-log
-      terminationMessagePolicy: File
-      imagePullPolicy: IfNotPresent
