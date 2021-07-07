@@ -308,6 +308,10 @@ spec:
       containers:
       - name: lakehouse
         image: cuebook/lakehouse:0.2
+        resources:
+          requests:
+            memory: "2560Mi"
+            cpu: "250m"
         volumeMounts:
         - name: lakehouse-db-volume     # configure this to persist db
           mountPath: /code/db
