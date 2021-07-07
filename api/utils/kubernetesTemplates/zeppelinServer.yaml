@@ -28,7 +28,7 @@ spec:
           kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
   containers:
     - name: zeppelin-server
-      image: 'cuebook/zeppelin-server:test'
+      image: 'cuebook/zeppelin-server-lite:0.2'
       command:
         - sh
         - '-c'
