@@ -117,7 +117,7 @@ spec:
             path: nginx.conf
       containers:
       - name: zeppelin-server
-        image: cuebook/zeppelin-server:test
+        image: cuebook/zeppelin-server-lite:0.2
         command: ["sh", "-c"]
         args:
           - curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/interpreter.json -o $(ZEPPELIN_HOME)/conf/interpreter.json && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-env.sh -o $(ZEPPELIN_HOME)/conf/zeppelin-env.sh && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-site.xml -o $(ZEPPELIN_HOME)/conf/zeppelin-site.xml && $(ZEPPELIN_HOME)/bin/zeppelin.sh
