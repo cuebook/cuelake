@@ -13,7 +13,6 @@ import Settings from "views/admin/Settings.js";
 import Notebooks from "views/admin/Notebooks.js";
 import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
-import Files from "views/admin/Files.js";
 import SchedulesView from "views/admin/Schedules.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
@@ -40,7 +39,6 @@ export default function Admin() {
               <Route path="/connections" exact component={Connections} />
               <Route path="/schedules" exact component={SchedulesView} />
               <Route path="/workflows" exact component={WorkflowsMain} />
-              <Route path="/files" exact component={Files} />
               <Route path="/spark" exact component={SparkUI} />
               <Route path="/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
               <Redirect from="/" to="/notebooks" />

@@ -1,11 +1,7 @@
-import boto3
 import psycopg2 as pg
 import pandas as pd
 from django.conf import settings
 from utils.apiResponse import ApiResponse
-
-
-SQL_ROWS_LIMIT = 50
 
 class Postgres():
     """
@@ -33,25 +29,6 @@ class Postgres():
             raise(error)
             pass
             # logger.error(str(error))
-
-    def fetchData(self, query, limitResults: bool = True):
-        """
-        Fetch data for query from self.connection
-        :param query: str
-        :param limitResults: bool if true will limit results to SQL_ROWS_LIMIT
-        """
-        if self.connection:
-            chunksize = SQL_ROWS_LIMIT if limitResults else None
-            dataframe = pd.read_sql(query, self.connection, chunksize=chunksize)
-            if limitResults:
-                for df in dataframe:
-                    return df
-                    break
-            else:
-                return dataframe
-        else:
-            # logger.info("DB connection inactive")
-            return
 
     def fetchCompleteData(self, query):
         """
@@ -94,12 +71,6 @@ class Schemas:
         tablesQuery = 'SELECT "TBLS"."TBL_ID", "TBLS"."TBL_NAME", "TBLS"."TBL_TYPE", "TBLS"."VIEW_ORIGINAL_TEXT", "DBS"."NAME" FROM "TBLS" INNER JOIN "DBS" ON "TBLS"."DB_ID" = "DBS"."DB_ID"'
         tablesDf = Postgres(connectionParams).fetchCompleteData(tablesQuery)
         tablesDf = tablesDf.merge(tableParamsDf, how="left", on="TBL_ID")
-
-        # getting & merging iceberg tables
-        s3Df = pd.DataFrame(data=Schemas.getS3FileNames())
-        s3Df.rename(columns={'Key': 'TBL_NAME', 'Size': 'totalSize'}, inplace=True)
-        s3Df['NAME'] = "Iceberg Tables"
-        tablesDf = tablesDf.append(s3Df, ignore_index=True)
         
         tablesDf = tablesDf.fillna(value="NULL")
         databasesDf = tablesDf.groupby("NAME").apply(lambda grp: grp.to_dict("records")).reset_index(name="tables")
@@ -114,26 +85,3 @@ class Schemas:
         data = {"databases": databasesDf.to_dict("records"), "columns": columnsDf.to_dict()["columns"]}
         res.update(True, "Schemas retrieved successfully", data)
         return res
-
-
-    def getS3FileNames():
-        """ S3 file names"""
-
-        s3 = boto3.client("s3")
-        response = s3.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, Prefix=settings.HADOOP_S3_PREFIX, Delimiter="/")
-        contents: list = response.get('CommonPrefixes', [])
-
-        for content in contents:
-            if 'ETag' in content:
-                del content['ETag']
-            if 'StorageClass' in content:
-                del content['StorageClass']
-            if 'Owner' in content:
-                del content['Owner']
-
-            content['Key'] = content['Prefix'][len(settings.HADOOP_S3_PREFIX):-1]
-
-        return contents
-
-
-

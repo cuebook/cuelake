@@ -1,12 +1,6 @@
-import logging
-from typing import List
-# from django_celery_beat.models import CrontabSchedule
-from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_ABORTING, Connection, ConnectionType, ConnectionParam, ConnectionParamValue
+from genie.models import Connection, ConnectionType, ConnectionParam, ConnectionParamValue
 from genie.serializers import ConnectionSerializer, ConnectionDetailSerializer, ConnectionTypeSerializer
 from utils.apiResponse import ApiResponse
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
 
 class Connections:
 
