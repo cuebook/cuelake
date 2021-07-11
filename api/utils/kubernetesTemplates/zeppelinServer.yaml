@@ -24,6 +24,8 @@ spec:
           mountPath: /shared-notebook
         - name: shared-conf
           mountPath: /shared-conf
+        - name: shared-k8s
+          mountPath: /shared-k8s
       args:
         - >-
           kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
