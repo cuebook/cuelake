@@ -86,20 +86,20 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zeppelin-server
+  name: zeppelin-server-main
   labels:
-    app.kubernetes.io/name: zeppelin-server
+    app.kubernetes.io/name: zeppelin-server-main
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: zeppelin-server
+      app.kubernetes.io/name: zeppelin-server-main
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: zeppelin-server
+        app.kubernetes.io/name: zeppelin-server-main
     spec:
       serviceAccountName: zeppelin-server
       volumes:
@@ -198,7 +198,7 @@ spec:
     - name: rpc            # port name is referenced in the code. So it shouldn't be changed.
       port: 12320
   selector:
-    app.kubernetes.io/name: zeppelin-server
+    app.kubernetes.io/name: zeppelin-server-main
 ---
 apiVersion: v1
 kind: ServiceAccount

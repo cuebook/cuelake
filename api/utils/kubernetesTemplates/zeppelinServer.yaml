@@ -13,6 +13,8 @@ spec:
       emptyDir:
     - name: shared-conf
       emptyDir:
+    - name: shared-k8s
+      emptyDir:
   initContainers:
     - name: init
       image: bitnami/kubectl
@@ -25,6 +27,7 @@ spec:
       args:
         - >-
           kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/k8s /shared-k8s &&
           kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
   containers:
     - name: zeppelin-server
@@ -67,6 +70,8 @@ spec:
           mountPath: /zeppelin/notebook
         - name: shared-conf
           mountPath: /zeppelin/conf
+        - name: shared-k8s
+          mountPath: /zeppelin/k8s
       lifecycle:
         preStop:
           exec:
