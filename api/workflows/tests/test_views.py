@@ -39,7 +39,7 @@ def test_workflows(client, populate_seed_data, mocker):
              'triggerWorkflowStatus': 'ALWAYS'}
     response = client.post(path, data=data, content_type="application/json")
     assert response.status_code == 200
-    assert response.data['data']
+    assert response.data['success']
 
     # Get workflows test
     path = reverse('workflows', kwargs={"offset": 0})

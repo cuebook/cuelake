@@ -1,37 +1,16 @@
 from typing import List
-import asyncio
-import json
-import pytz
-import time
-import datetime as dt
 from django.db import transaction
-import polling
 
 from app.celery import app
 
 from workflows.models import (
     Workflow,
     WorkflowRun,
-    WorkflowNotebookMap,
-    STATUS_SUCCESS,
-    STATUS_ERROR,
-    STATUS_ALWAYS,
-    STATUS_RUNNING,
-    STATUS_QUEUED,
-    STATUS_ABORTED
+    WorkflowNotebookMap
 )
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
 from utils.apiResponse import ApiResponse
-from utils.zeppelinAPI import Zeppelin
-
-from genie.tasks import runNotebookJob as runNotebookJobTask
-from genie.services import NotebookJobServices
-from genie.models import CustomSchedule, RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
-
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
-# Name of the celery task which calls the zeppelin api
-CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
-
+from django_celery_beat.models import PeriodicTask
 
 class WorkflowServices:
     """
@@ -62,27 +41,28 @@ class WorkflowServices:
     @staticmethod
     def sortingOnWorkflows(workflows, sortColumn, sortOrder):
         if sortColumn == 'name' and sortOrder == "ascend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("name")
+            workflows = Workflow.objects.all().order_by("name")
 
         if sortColumn == 'name' and sortOrder == "descend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("-name")
+            workflows = Workflow.objects.all().order_by("-name")
 
         if sortColumn == 'triggerWorkflow' and sortOrder == "ascend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("triggerWorkflow__name")
+            workflows = Workflow.objects.all().order_by("triggerWorkflow__name")
 
         if sortColumn == 'triggerWorkflow' and sortOrder == "descend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("-triggerWorkflow__name")
+            workflows = Workflow.objects.all().order_by("-triggerWorkflow__name")
 
         if sortColumn == "schedule" and sortOrder == "ascend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("crontab__customschedule__name")
+            workflows = Workflow.objects.all().order_by("periodictask__crontab__customschedule__name")
 
         if sortColumn == "schedule" and sortOrder == "descend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("-crontab__customschedule__name")
+            workflows = Workflow.objects.all().order_by("-periodictask__crontab__customschedule__name")
 
-        if sortColumn == "lastRunTime" and sortOrder == "ascend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("last_run_at")
-        if sortColumn == "lastRunTime" and sortOrder == "descend":
-            workflows = Workflow.objects.filter(enabled=True).order_by("-last_run_at")
+        # TODO Implement sorter for last run and last run status
+        # if sortColumn == "lastRunTime" and sortOrder == "ascend":
+        #     workflows = Workflow.objects.all().order_by("last_run_at")
+        # if sortColumn == "lastRunTime" and sortOrder == "descend":
+        #     workflows = Workflow.objects.all().order_by("-last_run_at")
 
         # if sortColumn == "lastRunStatus" and sortOrder == "ascend":
         #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
@@ -270,63 +250,4 @@ class WorkflowServices:
             workflow.periodictask = None
             workflow.save()
         res.update(True, "Workflow schedule updated successfully", True)
-        return res
-
-
-class WorkflowActions:
-    @staticmethod
-    def runWorkflow(workflowId: int):
-        """
-        Runs given workflow
-        """
-        from workflows.tasks import runWorkflowJob
-
-        res = ApiResponse(message="Error in running workflow")
-
-        existingWorkflows = WorkflowRun.objects.filter(workflow_id=workflowId).order_by(
-            "-startTimestamp"
-        )
-        if existingWorkflows.count() and existingWorkflows[0].status in [
-            STATUS_RUNNING,
-            STATUS_QUEUED,
-        ]:
-            res.update(False, "Can't run already running workflow")
-            return res
-
-        workflowRun = WorkflowRun.objects.create(
-            workflow_id=workflowId, status=STATUS_QUEUED
-        )
-        runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
-        res.update(True, "Ran workflow successfully")
-        return res
-
-    @staticmethod
-    def stopWorkflow(workflowRunId: int):
-        """
-        Stops given workflow
-        """
-        res = ApiResponse(message="Error in stopping workflow")
-        
-        # Stopping workflow task
-        workflowRun = WorkflowRun.objects.get(id=workflowRunId)
-        # Revoke celery task
-        app.control.revoke(workflowRun.taskId, terminate=True)
-        # Update workflow run status
-        workflowRun.status = STATUS_ABORTED
-        workflowRun.endTimestamp = dt.datetime.now()
-        workflowRun.save()
-
-        # Stopping notebook tasks
-        notebookRunStatuses = RunStatus.objects.filter(workflowRun=workflowRunId)
-        for notebookRunStatus in notebookRunStatuses:
-            if notebookRunStatus.status == NOTEBOOK_STATUS_QUEUED:
-                app.control.revoke(notebookRunStatus.taskId, terminate=True)
-                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
-                notebookRunStatus.save()
-            elif notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING:
-                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
-                notebookRunStatus.save()
-                NotebookJobServices.stopNotebookJob(notebookRunStatus.notebookId)
-
-        res.update(True, "Stopped workflow successfully")
         return res
