@@ -26,11 +26,6 @@ export default function Sidebar(props) {
       "icon": "fa-tasks"
     },
     {
-      "label": "Files",
-      "path": "/files",
-      "icon": "fa-folder"
-    },
-    {
       "label": "Schedules",
       "path": "/schedules",
       "icon": "fa-calendar"
