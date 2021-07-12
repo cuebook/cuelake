@@ -31,7 +31,7 @@ class WorkflowsService {
     async setWorkflows(data){
         const response = await apiService.post("workflows/workflows", data)
         if(response.success == true)
-            return response.data
+            return response.success
         else
             message.error(response.message);
             return null

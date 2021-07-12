@@ -1,5 +1,5 @@
 from django.contrib import admin
-from workflows.models import Workflow, WorkflowRun, NotebookJob
+from workflows.models import Workflow, WorkflowRun, WorkflowNotebookMap
 
 class WorkflowRunAdmin(admin.ModelAdmin):
     # Adding starttimestamp in a new modelAdmin class as its a readonly field
@@ -9,4 +9,4 @@ class WorkflowRunAdmin(admin.ModelAdmin):
 
 admin.site.register(Workflow)
 admin.site.register(WorkflowRun, WorkflowRunAdmin)
-admin.site.register(NotebookJob)
+admin.site.register(WorkflowNotebookMap)

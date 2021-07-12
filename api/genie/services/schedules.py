@@ -15,7 +15,7 @@ class ScheduleService:
         Service to get all schedule objects
         """
         res = ApiResponse()
-        schedules = Schedule.objects.exclude(id=1)
+        schedules = Schedule.objects.all()
         data = ScheduleSerializer(schedules, many=True).data
         res.update(True, "Schedules fetched successfully", data)
         return res
@@ -52,7 +52,6 @@ class ScheduleService:
         Service to get singleSchedule
         :param scheduleId: int
         """
-
         res = ApiResponse()
         schedules = Schedule.objects.filter(crontabschedule_ptr_id=scheduleId)
         data = ScheduleSerializer(schedules, many=True).data

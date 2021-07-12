@@ -12,12 +12,12 @@ from app.celery import app
 from workflows.models import (
     Workflow,
     WorkflowRun,
-    NotebookJob,
+    WorkflowNotebookMap,
     STATUS_SUCCESS,
     STATUS_ERROR,
     STATUS_ALWAYS,
     STATUS_RUNNING,
-    STATUS_RECEIVED,
+    STATUS_QUEUED,
     STATUS_ABORTED
 )
 from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
@@ -26,9 +26,9 @@ from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.services import NotebookJobServices
-from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
+from genie.models import CustomSchedule, RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
 
-from django_celery_beat.models import CrontabSchedule
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 # Name of the celery task which calls the zeppelin api
 CELERY_TASK_NAME = "genie.tasks.runNotebookJob"
 
@@ -45,7 +45,7 @@ class WorkflowServices:
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving workflows")
-        workflows = Workflow.objects.filter(enabled=True).order_by("-id")
+        workflows = Workflow.objects.order_by("-id")
         total = workflows.count()
 
         if(sortColumn):
@@ -113,24 +113,28 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in creating workflow")
-        # cronTab Id 1 is schedule that never runs
-
+        periodictask = None
         workflow = Workflow.objects.create(
             name=name,
-            crontab_id=scheduleId if scheduleId else 1,
+            periodictask=periodictask,
             triggerWorkflow_id=triggerWorkflowId,
-            triggerWorkflowStatus=triggerWorkflowStatus,
-            task="workflows.tasks.runWorkflowJob"
+            triggerWorkflowStatus=triggerWorkflowStatus
         )
-        workflow.args = str([workflow.id])
-        workflow.save()
+        if scheduleId:
+            periodictask = PeriodicTask.objects.create(
+                crontab_id=scheduleId,
+                name=name,
+                task="workflows.tasks.runWorkflowJob",
+                args = str([workflow.id])
+            )
+            workflow.periodictask = periodictask
+            workflow.save()
         
         notebookJobs = [
-            NotebookJob(workflow_id=workflow.id, notebookId=notebookId)
+            WorkflowNotebookMap(workflow_id=workflow.id, notebookId=notebookId)
             for notebookId in notebookIds
         ]
-        NotebookJob.objects.bulk_create(notebookJobs)
-
+        WorkflowNotebookMap.objects.bulk_create(notebookJobs)
         res.update(True, "Workflow created successfully", workflow.id)
         return res
 
@@ -154,24 +158,40 @@ class WorkflowServices:
         :param notebookIds: notebookIds for workflow
         """
         res = ApiResponse(message="Error in updating workflow")
-        workflow = Workflow.objects.filter(id=id).update(
-            name=name,
-            crontab_id=scheduleId if scheduleId else 1,
-            triggerWorkflow_id=triggerWorkflowId,
-            triggerWorkflowStatus=triggerWorkflowStatus,
-        )
-        NotebookJob.objects.filter(workflow_id=id).delete()
+        workflow = Workflow.objects.get(id=id)
+        if not workflow:
+            return res
+
+        workflow.name = name
+        workflow.triggerWorkflow_id = triggerWorkflowId
+        workflow.triggerWorkflowStatus = triggerWorkflowStatus
+        workflow.save()
+        if scheduleId:
+            if workflow.periodictask:
+                workflow.periodictask.crontab_id = scheduleId
+                workflow.periodictask.save()
+            else:
+                periodictask = PeriodicTask.objects.create(
+                    crontab_id=scheduleId,
+                    name=name,
+                    task="workflows.tasks.runWorkflowJob",
+                    args = str([workflow.id])
+                )
+                workflow.periodictask = periodictask
+                workflow.save()
+        else:
+            if workflow.periodictask:
+                PeriodicTask.objects.get(id=workflow.periodictask).delete()
+                workflow.periodictask = None
+                workflow.save()
+            
+        WorkflowNotebookMap.objects.filter(workflow_id=id).delete()
         notebookJobs = [
-            NotebookJob(workflow_id=id, notebookId=notebookId)
+            WorkflowNotebookMap(workflow_id=id, notebookId=notebookId)
             for notebookId in notebookIds
         ]
-        NotebookJob.objects.bulk_create(notebookJobs)
-
-        try:
-            if workflow:
-                res.update(True, "Workflow updated successfully", workflow)
-        except:
-            res.update(False, "Error in updating workflow")
+        WorkflowNotebookMap.objects.bulk_create(notebookJobs)
+        res.update(True, "Workflow updated successfully", None)
         return res
 
     @staticmethod
@@ -181,7 +201,7 @@ class WorkflowServices:
         :param workflowId: id of Workflows.Workflow
         """
         res = ApiResponse(message="Error in deleting workflow logs")
-        count = Workflow.objects.filter(id=workflowId).delete()
+        Workflow.objects.filter(id=workflowId).delete()
         res.update(True, "Workflow deleted successfully")
         return res
 
@@ -232,7 +252,23 @@ class WorkflowServices:
     def updateSchedule(workflowId: int, scheduleId: int):
         """Update given workflow's schedule"""
         res = ApiResponse(message="Error in updating workflow schedule")
-        updateStatus = Workflow.objects.filter(id=workflowId).update(crontab_id=scheduleId if scheduleId else 1)
+        workflow = Workflow.objects.filter(id=workflowId).first()
+        if scheduleId and workflow.periodictask is not None:
+            workflow.periodictask.crontab_id=scheduleId
+            workflow.periodictask.save()
+        elif scheduleId and workflow.periodictask is None:
+            periodictask = PeriodicTask.objects.create(
+                crontab_id=scheduleId,
+                name=workflow.name,
+                task="workflows.tasks.runWorkflowJob",
+                args = str([workflow.id])
+            )
+            workflow.periodictask = periodictask
+            workflow.save()
+        else:
+            PeriodicTask.objects.get(id=workflow.periodictask.id).delete()
+            workflow.periodictask = None
+            workflow.save()
         res.update(True, "Workflow schedule updated successfully", True)
         return res
 
@@ -252,13 +288,13 @@ class WorkflowActions:
         )
         if existingWorkflows.count() and existingWorkflows[0].status in [
             STATUS_RUNNING,
-            STATUS_RECEIVED,
+            STATUS_QUEUED,
         ]:
             res.update(False, "Can't run already running workflow")
             return res
 
         workflowRun = WorkflowRun.objects.create(
-            workflow_id=workflowId, status=STATUS_RECEIVED
+            workflow_id=workflowId, status=STATUS_QUEUED
         )
         runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
         res.update(True, "Ran workflow successfully")
@@ -288,7 +324,7 @@ class WorkflowActions:
                 notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
                 notebookRunStatus.save()
             elif notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING:
-                notebookRunStatus.status = "ABORTING"
+                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
                 notebookRunStatus.save()
                 NotebookJobServices.stopNotebookJob(notebookRunStatus.notebookId)
 
