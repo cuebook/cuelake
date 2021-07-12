@@ -40,38 +40,24 @@ class WorkflowServices:
 
     @staticmethod
     def sortingOnWorkflows(workflows, sortColumn, sortOrder):
-        if sortColumn == 'name' and sortOrder == "ascend":
-            workflows = Workflow.objects.all().order_by("name")
+        sortPrefix = "" if sortOrder == "ascend" else "-"
+        isAscending = True if sortOrder == "ascend" else False
+        if sortColumn == 'name':
+            workflows = Workflow.objects.all().order_by(sortPrefix + "name")
 
-        if sortColumn == 'name' and sortOrder == "descend":
-            workflows = Workflow.objects.all().order_by("-name")
+        if sortColumn == 'triggerWorkflow':
+            workflows = Workflow.objects.all().order_by(sortPrefix + "triggerWorkflow__name")
 
-        if sortColumn == 'triggerWorkflow' and sortOrder == "ascend":
-            workflows = Workflow.objects.all().order_by("triggerWorkflow__name")
+        if sortColumn == "schedule":
+            workflows = Workflow.objects.all().order_by(sortPrefix + "periodictask__crontab__customschedule__name")
 
-        if sortColumn == 'triggerWorkflow' and sortOrder == "descend":
-            workflows = Workflow.objects.all().order_by("-triggerWorkflow__name")
-
-        if sortColumn == "schedule" and sortOrder == "ascend":
-            workflows = Workflow.objects.all().order_by("periodictask__crontab__customschedule__name")
-
-        if sortColumn == "schedule" and sortOrder == "descend":
-            workflows = Workflow.objects.all().order_by("-periodictask__crontab__customschedule__name")
-
-        # TODO Implement sorter for last run and last run status
-        # if sortColumn == "lastRunTime" and sortOrder == "ascend":
-        #     workflows = Workflow.objects.all().order_by("last_run_at")
-        # if sortColumn == "lastRunTime" and sortOrder == "descend":
-        #     workflows = Workflow.objects.all().order_by("-last_run_at")
-
-        # if sortColumn == "lastRunStatus" and sortOrder == "ascend":
-        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
-
-        # if sortColumn == "lastRunStatus" and sortOrder == "descend":
-        #     workflows = Workflow.objects.filter(enabled=True).order_by("workflowrun__status")
+        if sortColumn == "lastRunTime":
+            workflowRuns = WorkflowRun.objects.all().order_by("workflow_id", "-startTimestamp").distinct("workflow_id").values("workflow_id", "startTimestamp")
+            sortedWorkflowRuns = sorted(workflowRuns, key = lambda i: i['startTimestamp'], reverse=isAscending)
+            sortedWorkflowIds = [workflowRun["workflow_id"] for workflowRun in sortedWorkflowRuns]
+            workflows = Workflow.objects.filter(id__in=sortedWorkflowIds)
 
         return workflows
-
 
 
     @staticmethod
