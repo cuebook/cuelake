@@ -73,9 +73,9 @@ class NotebookView(APIView):
     def get(self, request, offset: int ):
         limit = request.GET.get('limit', 25)
         searchQuery = request.GET.get('searchText', '')
-        sortColumn = request.GET.get('sortColumn', '')
-        sortOrder = request.GET.get('sortOrder', '')
-        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sortColumn, sortOrder)
+        sorter = json.loads(request.GET.get('sorter', '{}'))
+        _filter = json.loads(request.GET.get('filter', '{}'))
+        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sorter, _filter)
         return Response(res.json())
 
     def post(self, request):
