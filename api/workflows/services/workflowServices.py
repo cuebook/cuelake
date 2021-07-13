@@ -28,7 +28,8 @@ class WorkflowServices:
         total = workflows.count()
 
         if(sortColumn):
-            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortColumn, sortOrder)
+            isAscending = True if sortOrder == "ascend" else False
+            workflows = WorkflowServices.sortingOnWorkflows(workflows, sortColumn, isAscending)
         data = WorkflowSerializer(workflows[offset : offset+limit], many=True).data
 
         res.update(
@@ -39,24 +40,19 @@ class WorkflowServices:
         return res
 
     @staticmethod
-    def sortingOnWorkflows(workflows, sortColumn, sortOrder):
-        sortPrefix = "" if sortOrder == "ascend" else "-"
-        isAscending = True if sortOrder == "ascend" else False
+    def sortingOnWorkflows(workflows: List[Workflow], sortColumn: str, isAscending: bool):
+        sortPrefix = "" if isAscending else "-"
         if sortColumn == 'name':
             workflows = Workflow.objects.all().order_by(sortPrefix + "name")
-
         if sortColumn == 'triggerWorkflow':
             workflows = Workflow.objects.all().order_by(sortPrefix + "triggerWorkflow__name")
-
         if sortColumn == "schedule":
             workflows = Workflow.objects.all().order_by(sortPrefix + "periodictask__crontab__customschedule__name")
-
         if sortColumn == "lastRunTime":
             workflowRuns = WorkflowRun.objects.all().order_by("workflow_id", "-startTimestamp").distinct("workflow_id").values("workflow_id", "startTimestamp")
             sortedWorkflowRuns = sorted(workflowRuns, key = lambda i: i['startTimestamp'], reverse=isAscending)
             sortedWorkflowIds = [workflowRun["workflow_id"] for workflowRun in sortedWorkflowRuns]
             workflows = Workflow.objects.filter(id__in=sortedWorkflowIds)
-
         return workflows
 
 
