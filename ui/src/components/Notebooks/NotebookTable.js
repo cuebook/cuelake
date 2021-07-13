@@ -32,11 +32,10 @@ const {Search} = Input
 
 export default function NotebookTable() {
 
-  const [sortedInfo , setSortedInfo] = useState({});
+  const [sorter, setSorter] = useState({});
   const [limit, setLimit] = useState(25);
-  const [sortOrder, setSortOrder] = useState('')
   const [searchText, setSearchText] = useState('');
-  const [sortColumn, setSortColumn] = useState('');
+  const [filter, setFilter] = useState({});
   const [notebooks, setNotebooks] = useState([]);
   const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -52,12 +51,12 @@ export default function NotebookTable() {
   const history = useHistory();
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
-  const sortOrderRef = useRef(sortOrder);
-  sortOrderRef.current = sortOrder;
+  const sorterRef = useRef(sorter);
+  sorterRef.current = sorter;
   const searchTextRef = useRef(searchText);
   searchTextRef.current = searchText;
-  const sortColumnRef = useRef(sortColumn);
-  sortColumnRef.current = sortColumn;
+  const filterRef = useRef(filter);
+  filterRef.current = filter;
   const isNotebooksRequestCompletedRef = useRef(isNotebooksRequestCompleted);
   isNotebooksRequestCompletedRef.current = isNotebooksRequestCompleted;
   const isDriverStatusRequestCompletedRef = useRef(isDriverStatusRequestCompleted);
@@ -85,7 +84,7 @@ export default function NotebookTable() {
 
   const getNotebooks = async (offset) => {
     setLoading(true)
-    const response = await notebookService.getNotebooks(offset, limit, searchTextRef.current, sortColumnRef.current, sortOrderRef.current);
+    const response = await notebookService.getNotebooks(offset, limit, searchTextRef.current, sorterRef.current, filterRef.current);
     if(response){
       setNotebooks(response);
     }
@@ -93,10 +92,10 @@ export default function NotebookTable() {
     if(!offset) setCurrentPage(1)
   };
 
-  const refreshNotebooks = async (searchText = searchTextRef.current, sortColumn = sortColumnRef.current, sortOrder = sortOrderRef.current, currentPage = currentPageRef.current) => {
+  const refreshNotebooks = async (searchText = searchTextRef.current, sorter = sorterRef.current, filter = filterRef.current, currentPage = currentPageRef.current) => {
     if(currentPageRef.current && isNotebooksRequestCompletedRef.current){
       setisNotebooksRequestCompleted(false);
-      const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sortColumn, sortOrder);
+      const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sorter, filter);
       setisNotebooksRequestCompleted(true);
       if(response){
         setNotebooks(response);
@@ -137,11 +136,10 @@ export default function NotebookTable() {
   }
 
   const handleTableChange = (event, filter, sorter) => {
-    setSortedInfo(sorter)
-    setSortColumn(sorter.columnKey)
-    setSortOrder(sorter.order)
+    setSorter({columnKey: sorter.columnKey, order: sorter.order})
+    setFilter(filter)
     setCurrentPage(event.current)
-    refreshNotebooks(searchText, sorter.columnKey, sorter.order, event.current)
+    refreshNotebooks(searchText, sorter, filter, event.current)
   }
 
   const navigateToNotebook = (record) => {
@@ -265,7 +263,7 @@ export default function NotebookTable() {
 
   const search = value => {
     setSearchText(value)
-      refreshNotebooks(value, sortColumn, sortOrder, currentPage)
+      refreshNotebooks(value, sorter, filter, currentPage)
   };
 
   const columns = [
@@ -275,7 +273,7 @@ export default function NotebookTable() {
       key: "name",
       width: "20%",
       sorter: ()=>{},
-      sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
+      sortOrder: sorter.columnKey === 'name' && sorter.order,
       ellipsis: true,
 
       render: text => {
@@ -292,7 +290,7 @@ export default function NotebookTable() {
       key: "schedule",
       width: "10%",
       sorter: ()=>{},
-      sortOrder: sortedInfo.columnKey === 'schedule' && sortedInfo.order,
+      sortOrder: sorter.columnKey === 'schedule' && sorter.order,
       ellipsis: true,
       render: (schedule, notebook) => {
         if(schedule && selectedNotebook != notebook.id){
@@ -330,7 +328,7 @@ export default function NotebookTable() {
       assign:"left",
 
       sorter: ()=>{},
-      sortOrder: sortedInfo.columnKey === 'assignedWorkflow' && sortedInfo.order,
+      sortOrder: sorter.columnKey === 'assignedWorkflow' && sorter.order,
       ellipsis: true,
       width: "10%",
       render: (text,record) => {
@@ -363,7 +361,7 @@ export default function NotebookTable() {
       key: "lastRun1",
       width: "10%",
       sorter: ()=>{},
-      sortOrder: sortedInfo.columnKey === 'lastRun1' && sortedInfo.order,
+      sortOrder: sorter.columnKey === 'lastRun1' && sorter.order,
       ellipsis: true,
       render: lastRun => {
         let timeDiff;
@@ -402,9 +400,13 @@ export default function NotebookTable() {
       dataIndex: "lastRun",
       key: "lastRun2",
       width: "11%",
-
-      sorter: ()=>{},
-      sortOrder: sortedInfo.columnKey === 'lastRun2' && sortedInfo.order,
+      filters: [
+        { text: 'ERROR', value: 'ERROR' },
+        { text: 'RUNNING', value: 'RUNNING' },
+        { text: 'QUEUED', value: 'QUEUED' },
+        { text: 'ABORT', value: 'ABORT' },
+        { text: 'SUCCESS', value: 'SUCCESS' }
+      ],
       ellipsis: true,
       render: (lastRun) => {
         return (

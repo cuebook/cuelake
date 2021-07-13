@@ -10,8 +10,8 @@ class NotebookService {
             return null
     }
 
-    async getNotebooks(offset, limit, searchText, sortColumn, sortOrder){
-        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sortColumn="+ sortColumn + "&sortOrder=" + sortOrder)
+    async getNotebooks(offset, limit, searchText, sorter, filter){
+        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
         if(response.success == true)
             return response.data
         else
