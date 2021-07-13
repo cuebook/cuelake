@@ -6,10 +6,9 @@ import datetime as dt
 import polling
 from workflows.models import (
     WorkflowRun,
-    NotebookJob,
+    WorkflowNotebookMap,
     STATUS_SUCCESS,
     STATUS_ERROR,
-    STATUS_ALWAYS,
     STATUS_RUNNING,
     STATUS_ABORTED
 )
@@ -76,7 +75,7 @@ class TaskUtils:
         Returns list of notebook ids in a workflow
         """
         notebookIds = list(
-            NotebookJob.objects.filter(workflow_id=workflowId).values_list(
+            WorkflowNotebookMap.objects.filter(workflow_id=workflowId).values_list(
                 "notebookId", flat=True
             )
         )

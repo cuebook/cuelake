@@ -1,7 +1,5 @@
 import json
 from rest_framework import serializers
-from django_celery_beat.models import CrontabSchedule
-from workflows.models import Workflow, WorkflowRun, NotebookJob as WorkflowNotebookJob
 from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
 
 class NotebookJobSerializer(serializers.ModelSerializer):

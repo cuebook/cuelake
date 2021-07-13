@@ -10,7 +10,6 @@ NOTEBOOK_STATUS_ERROR = "ERROR"
 NOTEBOOK_STATUS_RUNNING = "RUNNING"
 NOTEBOOK_STATUS_FINISHED = "FINISHED"
 NOTEBOOK_STATUS_ABORT = "ABORT"
-NOTEBOOK_STATUS_ABORTING = "ABORTING"
 NOTEBOOK_STATUS_QUEUED = "QUEUED"
 
 
@@ -91,3 +90,13 @@ class NotebookObject(models.Model):
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=NotebookJob)
 signals.pre_save.connect(PeriodicTasks.changed, sender=NotebookJob)
+signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
+signals.pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
+signals.post_delete.connect(
+    PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_delete.connect(
+    PeriodicTasks.update_changed, sender=CustomSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=CustomSchedule)

@@ -1,7 +1,5 @@
-import json
 from rest_framework import serializers
-# from django_celery_beat.models import CrontabSchedule
-from workflows.models import Workflow, WorkflowRun, NotebookJob
+from workflows.models import Workflow, WorkflowRun, WorkflowNotebookMap
 
 class WorkflowSerializer(serializers.ModelSerializer):
     """
@@ -37,13 +35,13 @@ class WorkflowSerializer(serializers.ModelSerializer):
 
     def get_schedule(self, obj):
         """ Get schedule"""
-        if obj.crontab.id == 1:
+        if obj.periodictask == None:
             return None
-        return {'id': obj.crontab.id, 'name': obj.crontab.customschedule.name}
+        return {'id': obj.periodictask.crontab.id, 'name': obj.periodictask.crontab.customschedule.name}
 
     def get_notebooks(self, obj):
         """Gets notebooks in workflow"""
-        return list(NotebookJob.objects.filter(workflow=obj).values_list("notebookId", flat=True))
+        return list(WorkflowNotebookMap.objects.filter(workflow=obj).values_list("notebookId", flat=True))
 
     class Meta:
         model = Workflow
