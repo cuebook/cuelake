@@ -1,9 +1,13 @@
 import os
+from time import sleep
+import time
 import yaml
 import logging
 from django.conf import settings
 from kubernetes import config, client
 from utils.safeDict import SafeDict
+import random
+import subprocess
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -83,7 +87,12 @@ class KubernetesAPI:
         v1 = client.CoreV1Api()
         pods = v1.list_namespaced_pod(namespace=self.POD_NAMESPACE)
         return pods.items
-        
+
+    def portForward(self, zeppelinServerId):
+        port = str(random.randint(10000,65000))
+        time.sleep(3) 
+        subprocess.Popen(["kubectl", "port-forward", "pod/" + zeppelinServerId, port + ":8080", "-n", self.POD_NAMESPACE])
+        return port
 
 # Export initalized class
 Kubernetes = KubernetesAPI()

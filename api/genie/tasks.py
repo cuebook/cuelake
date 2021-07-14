@@ -103,6 +103,11 @@ def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
     polling.poll(
         lambda: Kubernetes.getPodStatus(zeppelinServerId) == 'Running', step=3, timeout=3600*6
     )
+    if os.environ.get("ENVIRONMENT","") == "dev": 
+        # To port forward zeppelin job server for local devlopment
+        port =  Kubernetes.portForward(zeppelinServerId)
+        zeppelin.setZeppelinAddress("localhost", port)
+        
     polling.poll(
         lambda: zeppelin.healthCheck() != False, step=3, timeout=3600*6
     )
