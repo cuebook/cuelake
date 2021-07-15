@@ -9,6 +9,18 @@ data:
   # POSTGRES_DB_PASSWORD: postgres
   # POSTGRES_DB_SCHEMA: cuelake
   # POSTGRES_DB_PORT: 5432
+  
+  ## S3 Settings
+  # export S3_BUCKET_NAME="YourBucketName"
+  # export S3_FILES_PREFIX="files/"
+  # export HADOOP_S3_PREFIX="cuelake/"
+
+  ## Change below properties to point to your metastore database
+  # METASTORE_POSTGRES_HOST="localhost"
+  # METASORE_POSTGRES_PORT=5432
+  # METASORE_POSTGRES_USERNAME="postgres"
+  # METASORE_POSTGRES_PASSWORD="postgres"
+  # METASORE_POSTGRES_DATABASE="cuelake_metastore"
 ---
 apiVersion: v1
 kind: ConfigMap
