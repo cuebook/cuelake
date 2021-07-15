@@ -12,7 +12,7 @@ permalink: /installation
 ### Add Cuebook helm repo
 
 ```bash
-helm repo add https://cuebook.github.io/helm-charts/
+helm repo add cuebook https://cuebook.github.io/helm-charts/ 
 helm repo update
 ```
 
@@ -44,7 +44,7 @@ helm install cuelake cuelake/cuelake -f values.yaml
 After installation is complete, CueLake UI can be acceseed via port forward:
 
 ```bash
-kubectl port-forward services/lakehouse 8080:80 -n cuelake
+kubectl port-forward services/lakehouse 8080:80 -n <NAMESPACE>
 ```
 
 ## Install via Kubectl
