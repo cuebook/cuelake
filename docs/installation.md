@@ -20,13 +20,13 @@ helm repo update
 Install CueLake with default configuration:
 
 ```bash
-helm install cuelake cuelake/cuelake
+helm install cuelake cuebook/cuelake
 ```
 
 Install CueLake in a specific namespace:
 
 ```bash
-helm install cuelake cuelake/cuelake -n <NAMESPACE>
+helm install cuelake cuebook/cuelake -n <NAMESPACE>
 ```
 
 To install CueLake with custom configuration, download the values.yaml file for CueLake.
