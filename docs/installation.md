@@ -38,7 +38,7 @@ wget https://raw.githubusercontent.com/cuebook/helm-charts/main/helm-chart-sourc
 Edit the file and install CueLake:
 
 ```bash
-helm install cuelake cuelake/cuelake -f values.yaml
+helm install cuelake cuebook/cuelake -f values.yaml
 ```
 
 After installation is complete, CueLake UI can be acceseed via port forward:
