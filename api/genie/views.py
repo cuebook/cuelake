@@ -2,7 +2,7 @@ from django.http import HttpRequest
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices, Schemas, ScheduleService
+from genie.services import NotebookJobServices, Connections, NotebookTemplateService, KubernetesServices, Metastore, ScheduleService
 from rest_framework.decorators import api_view
 
 class NotebookOperationsView(APIView):
@@ -233,10 +233,18 @@ class DriverAndExecutorStatus(APIView):
         res = KubernetesServices.getDriversCount()
         return Response(res.json())
 
-class SchemasView(APIView):
+class MetastoreTablesView(APIView):
     def get(self, request):
         """
-        Method to get Tables and schemas
+        Method to get metastore tables
         """
-        res = Schemas.getSchemas()
+        res = Metastore().getTables()
+        return Response(res.json())
+
+class MetastoreColumnsView(APIView):
+    def get(self, request):
+        """
+        Method to get columns of a metastore table
+        """
+        res = Metastore().getColumns()
         return Response(res.json())

@@ -32,5 +32,6 @@ urlpatterns = [
     # =====================================================================================================
     # Tables & Schemas
     # =====================================================================================================
-    path("schemas", views.SchemasView.as_view(), name="schemas")
+    path("metastoreTables", views.MetastoreTablesView.as_view(), name="metastoreTables"),
+    path("metastoreColumns" , views.MetastoreColumnsView.as_view(), name="metastoreColumns")
 ]

@@ -6,7 +6,7 @@ class ApiService {
       // Development Settings
       this.host = "http://localhost:8000";
       this.base_url = this.host + basePath + "/api/";
-      this.zeppelin_base_url = "http://localhost:8081";
+      this.zeppelin_base_url = "http://localhost:8080";
       this.spark_base_url = "http://localhost:4040";
     }
     else{

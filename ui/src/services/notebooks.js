@@ -66,7 +66,6 @@ class NotebookService {
             return null
     }
     
-
     async getSingleSchedule(scheduleId){
         const response = await apiService.get("genie/schedules/" + scheduleId)
         if(response.success == true)
@@ -75,8 +74,6 @@ class NotebookService {
             return null
     }
     
-
-
     async addNotebookSchedule(notebookId, scheduleId){
         const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId})
         return response
@@ -159,8 +156,13 @@ class NotebookService {
         return response
     }
 
-    async getSchemas(){
-        const response = await apiService.get("genie/schemas")
+    async getMetastoreTables(){
+        const response = await apiService.get("genie/metastoreTables")
+        return response
+    }
+
+    async getMetastoreColumns(tableId){
+        const response = await apiService.get("genie/metastoreColumns/" + tableId)
         return response
     }
 }

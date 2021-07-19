@@ -11,135 +11,110 @@ import { formatBytes } from "utils";
 
 const { DirectoryTree } = Tree;
 
-export default function SchemaTree(props) {
-    const [databases, setDatabases] = useState([]);
-    let {schemaData, updateSchemaData} = useContext(GlobalContext)
-
+export default function SchemaTree() {
+    const { metastoreTables, setMetastoreTables } = useContext(GlobalContext)
     const [columns, setColumns] = useState({});
     const [loading, setLoading] = useState(false);
 
-    const getSchemas = async () => {
-        const response = await notebookService.getSchemas();
+    const getMetastoreTables = async () => {
+        const response = await notebookService.getMetastoreTables();
         if(response.success){
-            setColumns(response.data.columns)
-            setDatabases(response.data.databases)
-            updateSchemaData({databases: response.data.databases, columns: response.data.columns})
+            console.log(response.data)
+            setMetastoreTables(response.data)
         }
+        console.log(metastoreTables)
     }
 
     useEffect(() => {
-        if (!databases.length && !loading){
-            if (!schemaData.databases){
-                setLoading(true)
-                getSchemas()
-                setLoading(false)
-            }
-            else {
-                setColumns(schemaData.columns)
-                setDatabases(schemaData.databases)
-            }
+        if (!metastoreTables.length){
+            setLoading(true)
+            getMetastoreTables()
+            setLoading(false)
         }
     }, []);
 
     const getTreeData = () => {
-        return databases.map(database=>{
-            if (database.database == "Iceberg Tables"){
-               return {
-                    title: database.database,
-                    key: database.database,
-                    icon: <DatabaseOutlined />,
-                    children: database.tables.map(table=>{
-                        return {
-                            title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME}</div></div>,
-                            key: table.TBL_NAME,
-                            showLine: false,
-                            showIcon: false,
-                            icon: <TableOutlined />,
-                        }
-                    })
-               } 
+        return Object.keys(metastoreTables).map(database=>{
+            return {
+                title: database,
+                key: database,
+                icon: <DatabaseOutlined />,
+                children: [
+                    {
+                        title: "TABLES",
+                        key: "TABLES",
+                        children: metastoreTables[database].tables.map(table=>{
+                            const last_updated = new Date(Number(table.last_updated)*1000).toISOString()
+                            return {
+                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
+                                key: table.TBL_ID,
+                                icon: <TableOutlined />,
+                                children: [
+                                    {
+                                        title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{last_updated}</Moment> </>,
+                                        key: table.TBL_ID + " Last Updated",
+                                        icon: null
+                                    },
+                                    {
+                                        title: "Size: " + formatBytes(table.totalSize,2),
+                                        key: table.TBL_ID + " Size",
+                                    },
+                                    // {
+                                    //     title: "Columns",
+                                    //     key: table.TBL_ID + " Columns",
+                                    //     children: columns[table.TBL_ID].map((column, index)=>{
+                                    //         return {
+                                    //             key: column.CD_ID + "_" + index,
+                                    //             title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
+                                    //             type: column.COLUMN_NAME,
+                                    //             isLeaf: true
+                                    //         }
+                                    //     })
+                                    // }
+                                ] 
+                            }
+                        })
+                    },
+                    {
+                        title: "VIEWS",
+                        key: "VIEWS",
+                        children: metastoreTables[database].views.map(table=>{
+                            const last_updated = new Date(Number(table.last_updated)*1000).toISOString()
+                            return {
+                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
+                                key: table.TBL_ID,
+                                icon: <BorderlessTableOutlined />,
+                                children: [
+                                    {
+                                        title: "Definition: " + table.VIEW_ORIGINAL_TEXT,
+                                        key: table.TBL_ID + " Size",
+                                    },
+                                    {
+                                        title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{last_updated}</Moment> </>,
+                                        key: table.TBL_ID + " Last Updated",
+                                    },
+                                    // {
+                                    //     title: "Columns",
+                                    //     key: table.TBL_ID + " Columns",
+                                    //     children: columns[table.TBL_ID].map((column, index)=>{
+                                    //         return {
+                                    //             key: column.CD_ID + "_" + index,
+                                    //             title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
+                                    //             type: column.COLUMN_NAME,
+                                    //             isLeaf: true
+                                    //         }
+                                    //     })
+                                    // }
+                                ]
+                            }
+                        })
+                    }
+                ]
             }
-            else {
-                return {
-                    title: database.database,
-                    key: database.database,
-                    icon: <DatabaseOutlined />,
-                    children: [
-                        {
-                            title: "TABLES",
-                            key: "TABLES",
-                            children: database.tables.filter(table=>table.TBL_TYPE==="EXTERNAL_TABLE").map(table=>{
-                                const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
-                                return {
-                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
-                                    key: table.TBL_ID,
-                                    icon: <TableOutlined />,
-                                    children: [
-                                        {
-                                            title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
-                                            key: table.TBL_ID + " Last Updated",
-                                            icon: null
-                                        },
-                                        {
-                                            title: "Size: " + formatBytes(table.totalSize,2),
-                                            key: table.TBL_ID + " Size",
-                                        },
-                                        {
-                                            title: "Columns",
-                                            key: table.TBL_ID + " Columns",
-                                            children: columns[table.TBL_ID].map((column, index)=>{
-                                                return {
-                                                    key: column.CD_ID + "_" + index,
-                                                    title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                                    type: column.COLUMN_NAME,
-                                                    isLeaf: true
-                                                }
-                                            })
-                                        }
-                                    ] 
-                                }
-                            })
-                        },
-                        {
-                            title: "VIEWS",
-                            key: "VIEWS",
-                            children: database.tables.filter(table=>table.TBL_TYPE==="VIRTUAL_VIEW").map(table=>{
-                                const transient_lastDdlTimeISO = new Date(Number(table.transient_lastDdlTime)*1000).toISOString()
-                                return {
-                                    title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={transient_lastDdlTimeISO}/></div></div>,
-                                    key: table.TBL_ID,
-                                    icon: <BorderlessTableOutlined />,
-                                    children: [
-                                        {
-                                            title: "Definition: " + table.VIEW_ORIGINAL_TEXT,
-                                            key: table.TBL_ID + " Size",
-                                        },
-                                        {
-                                            title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{transient_lastDdlTimeISO}</Moment> </>,
-                                            key: table.TBL_ID + " Last Updated",
-                                        },
-                                        {
-                                            title: "Columns",
-                                            key: table.TBL_ID + " Columns",
-                                            children: columns[table.TBL_ID].map((column, index)=>{
-                                                return {
-                                                    key: column.CD_ID + "_" + index,
-                                                    title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                                    type: column.COLUMN_NAME,
-                                                    isLeaf: true
-                                                }
-                                            })
-                                        }
-                                    ]
-                                }
-                            })
-                        }
-                    ]
-                }
-            }
+            
         })
     }
-
+    console.log(metastoreTables)
     return (
     <div>
       <Tree
