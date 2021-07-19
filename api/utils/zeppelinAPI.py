@@ -26,6 +26,9 @@ class ZeppelinAPI:
         if(zeppelinServerId):
             self.ZEPPELIN_ADDR = "http://" + zeppelinServerId + ":" + settings.ZEPPELIN_PORT
 
+    def setZeppelinAddress(self, host: str, port: str):
+        self.ZEPPELIN_ADDR = "http://"+ host + ":" + port
+
     def getAllNotebooks(self, folder=""):
         """
         Return all notebooks from zeppelin
