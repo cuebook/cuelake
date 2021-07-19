@@ -18,7 +18,6 @@ class Metastore:
 
     def getTables(self):
         res = ApiResponse(message="Error retrieving tables")
-        cur = self.connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
         tableSQL = """
             SELECT 
                 "TBLS"."TBL_ID" as "id", 
@@ -32,24 +31,26 @@ class Metastore:
 			LEFT JOIN "TABLE_PARAMS" as "size" ON "TBLS"."TBL_ID" = "size"."TBL_ID" AND "size"."PARAM_KEY" = 'totalSize'
 			LEFT JOIN "TABLE_PARAMS" as "last_updated" ON "TBLS"."TBL_ID" = "last_updated"."TBL_ID" AND "last_updated"."PARAM_KEY" = 'transient_lastDdlTime'
             """
-        cur.execute(tableSQL)
-        response = cur.fetchall()
+        response = self.executeSQL(tableSQL)
         tablesData = self.__convertTablesToTreeStructure(response)
-        cur.close()
         res.update(True, "Tables retrieved successfully", tablesData)
         return res
 
     def getColumns(self, tableId: int):
         res = ApiResponse(message="Error retrieving columns")
-        cur = self.connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
         columnSQL = f"""
             SELECT "CD_ID" as "tableId", "COLUMN_NAME" as "name", "TYPE_NAME" as "type" FROM "COLUMNS_V2" WHERE "CD_ID"={tableId}
         """
-        cur.execute(columnSQL)
-        response = cur.fetchall()
-        cur.close()
+        response = self.executeSQL(columnSQL)
         res.update(True, "Columns retrieved successfully", response)
         return res
+
+    def executeSQL(self, sql: str):
+        cur = self.connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+        cur.execute(sql)
+        response = cur.fetchall()
+        cur.close()
+        return response
 
     def __convertTablesToTreeStructure(self, tables: List):
         treeStructure = {}
