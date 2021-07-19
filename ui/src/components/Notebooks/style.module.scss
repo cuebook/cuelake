@@ -1,5 +1,5 @@
 .iframe{
-    height: calc(100vh - 28px);
+    height: calc(100vh + 52px);
     width: 100%;
     margin-top: -68px;
 }
@@ -97,7 +97,7 @@
 .flexContainer{
     display: flex;
     flex-direction: row-reverse;
-    justify-content: end;
+    justify-content: flex-end;
     text-align: start;
 }
 

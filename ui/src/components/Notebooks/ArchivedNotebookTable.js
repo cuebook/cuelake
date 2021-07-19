@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import _ from "lodash";
 import notebookService from "services/notebooks.js";
 import style from "./style.module.scss";
 import {
@@ -26,6 +25,7 @@ export default function NotebookTable(props) {
     return () => {
       clearInterval(refreshNotebookInterval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getNotebooks = async () => {
@@ -90,7 +90,7 @@ export default function NotebookTable(props) {
       render: (text, notebook) => {
         return (
           <div className={style.actions}>
-            {unarchivingNotebook && unarchivingNotebook == notebook.id ? 
+            {unarchivingNotebook && unarchivingNotebook === notebook.id ? 
             <LoadingOutlined />
             : 
             <Tooltip title={"Unarchive Notebook"}>
@@ -108,7 +108,7 @@ export default function NotebookTable(props) {
 
   return (
       <>
-        <a className={style.notebookLinkText} onClick={() => props.hideArchivedNotebooksTable() }><BackwardFilled />  Notebooks</a>
+        <a href={() => false} className={style.notebookLinkText} onClick={() => props.hideArchivedNotebooksTable() }><BackwardFilled />  Notebooks</a>
         <Table
           rowKey={"id"}
           scroll={{ x: "100%" }}

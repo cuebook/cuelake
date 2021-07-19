@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import style from "./style.module.scss";
 import { Form, Input, Switch, Button, message } from 'antd';
 import settingsService from "services/settings.js";
@@ -13,6 +13,7 @@ export default function AlertSettings(){
     if (!accountSettings.length) {
         fetchAccountSettings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAccountSettings = async () => {

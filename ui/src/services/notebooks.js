@@ -1,10 +1,9 @@
 import apiService from "./api";
-import { store } from 'react-notifications-component';
 
 class NotebookService {
     async getNotebookObject(notebookObjId){
         const response = await apiService.get("genie/notebookObject/" + notebookObjId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -12,7 +11,7 @@ class NotebookService {
 
     async getNotebooks(offset, limit, searchText, sorter, filter){
         const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -20,7 +19,7 @@ class NotebookService {
 
     async getArchivedNotebooks(){
         const response = await apiService.get("genie/notebooks/archive")
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -28,7 +27,7 @@ class NotebookService {
 
     async getDriverAndExecutorStatus(){
         const response = await apiService.get("genie/driverAndExecutorStatus/" )
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -36,7 +35,7 @@ class NotebookService {
 
     async getNotebooksLight(){
         const response = await apiService.get("genie/notebooksLight")
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -44,7 +43,7 @@ class NotebookService {
 
     async getNotebookLogs(notebookJobId, offset){
         const response = await apiService.get("genie/notebookjob/" + notebookJobId + "?offset=" + offset)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -52,7 +51,7 @@ class NotebookService {
 
     async getSchedules(){
         const response = await apiService.get("genie/schedules/")
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else    
             return null
@@ -60,23 +59,20 @@ class NotebookService {
 
     async deleteSchedule(scheduleId){
         const response = await apiService.delete("genie/schedules/" + scheduleId)
-        if(response.success == true)
+        if(response.success === true)
             return response
         else    
             return null
     }
     
-
     async getSingleSchedule(scheduleId){
         const response = await apiService.get("genie/schedules/" + scheduleId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else    
             return null
     }
     
-
-
     async addNotebookSchedule(notebookId, scheduleId){
         const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId})
         return response
@@ -84,7 +80,7 @@ class NotebookService {
 
     async getTimezones(){
         const response = await apiService.get("genie/timezones/")
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else 
             return null
@@ -159,8 +155,13 @@ class NotebookService {
         return response
     }
 
-    async getSchemas(){
-        const response = await apiService.get("genie/schemas")
+    async getMetastoreTables(){
+        const response = await apiService.get("genie/metastoreTables")
+        return response
+    }
+
+    async getMetastoreColumns(tableId){
+        const response = await apiService.get("genie/metastoreColumns/" + tableId)
         return response
     }
 }

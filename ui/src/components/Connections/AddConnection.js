@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Input, Switch, message } from "antd";
 import { LeftOutlined } from '@ant-design/icons';
 
@@ -14,6 +14,7 @@ export default function AddConnection(props) {
     if (!connectionTypes.length) {
         fetchConnectionTypes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchConnectionTypes = async () => {

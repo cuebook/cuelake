@@ -1,66 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Input, Switch, message, Select } from "antd";
-import { LeftOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from "react";
+import { Button, Form, Input, message, Select } from "antd";
 
 import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
-import { setTokenSourceMapRange } from "typescript";
 
 const { Option } = Select;
 export default function AddSchedule(props) {
   const [form] = Form.useForm();
-
-  const [schedules, setSchedules] = useState([]);
   const [timezones, setTimezones] = useState('');
   const [scheduleName, setScheduleName] = useState('');
-  const [cronTabSchedule, setCronTabSchedule] = useState('');
+  const [cronTabSchedule, setCronTabSchedule] = useState('* * * * *');
   const [selectedTimezone, setSelectedTimezone] = useState('');
-  const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState(false);
 
 
   useEffect(() => {
-    
     if (!timezones) {
       getTimezones();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-
-  const getSchedules = async () => {
-    const response = await notebookService.getSchedules();
-    setSchedules(response);
-  };
 
   const getTimezones = async () => {
     const response = await notebookService.getTimezones();
     setTimezones(response);
   }
 
-
-  const saveSchedule = async (event) => {
-    if(cronTabSchedule, selectedTimezone, scheduleName){
-      const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone, scheduleName);
-      if(response.success){
-        setCronTabSchedule("")
-        setSelectedTimezone("")
-        setScheduleName("")
-        setIsAddScheduleModalVisible(false)
-        getSchedules()
-      }
-      else{
-        message.error(response.message);
-      }
-    }
-    else{
-      message.error('Please fill values');
-    }
-  }
-  const addConnectionFormSubmit = async (values) => {
-    let payload = {
-        name: scheduleName,
-        crontab: cronTabSchedule,
-        timezone: selectedTimezone,
-    };
+  const addScheduleFormSubmit = async (values) => {
     const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone, scheduleName)
     if(response.success){
         props.onAddScheduleSuccess()
@@ -77,6 +42,7 @@ export default function AddSchedule(props) {
       timezoneElements.push(<Option value={tz} key={tz}>{tz}</Option>)
     })
   }
+
   let scheduleParamElements = []
 
     let addScheduleFormElement = (
@@ -85,7 +51,7 @@ export default function AddSchedule(props) {
             layout="vertical" 
             className="mb-2" 
             form={form} 
-            onFinish={addConnectionFormSubmit}
+            onFinish={addScheduleFormSubmit}
             name="addSchedule"
             scrollToFirstError
             hideRequiredMark

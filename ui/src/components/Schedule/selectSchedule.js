@@ -1,15 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import style from "./style.module.scss";
+import React, { useState, useEffect } from "react";
 import {
-    Modal,
-    Input,
     Select,
-    Icon,
-    Tooltip,
-    Popover,
-    Form,
-    message,
-    Switch,
   } from "antd";
 import AddSchedule from "./addSchedule";
 
@@ -31,6 +22,7 @@ export default function SelectSchedule(props) {
       if (!schedules.length) {
         getSchedules();
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleScheduleChange = (value) => {

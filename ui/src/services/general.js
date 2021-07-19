@@ -35,7 +35,7 @@ export function search(data, keys, text) {
 export function timehumanize(temps){
   var obj = "";
   for (var temp of temps) {
-    if(temp.slice(-1) == "s"){
+    if(temp.slice(-1) === "s"){
       
       temp = temp.slice(0,-1)
     } 

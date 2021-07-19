@@ -45,7 +45,7 @@ export default function NotebookView() {
           <SchemaTree/>
         </div>
       </div>
-      <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
+      <iframe title="ZeppelinNotebook" className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );
 }

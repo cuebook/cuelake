@@ -1,27 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
-import TimeAgo from 'react-timeago';
 
 import {
     Table,
-    Button,
-    Modal,
-    Input,
-    Select,
-    Icon,
-    Tooltip,
     Popover,
-    Form,
-    message,
-    Drawer,
-    Row,
-    Col,
-    Switch
   } from "antd";
 
 import notebookService from "services/notebooks.js";
-import { RUNNING, ABORT, FINISHED, ERROR, SUCCESS, PENDING } from "./constants";
+import { RUNNING, ABORT, ERROR, SUCCESS, PENDING } from "./constants";
 import { timehumanize } from 'services/general';
 var moment = require("moment");
 
@@ -36,6 +23,7 @@ export default function NotebookRunLogs(props) {
         setCurrentPage(1)
         getNotebookLogs(props.notebook.id, 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getNotebookLogs = async (notebookJobId, offset) => {
@@ -193,7 +181,7 @@ export default function NotebookRunLogs(props) {
         width: "10%",
         render: (text, notebookJobRun) => {
           return (
-            <a onClick={() => viewLog(notebookJobRun)}>Logs</a>
+            <a href={() => false} onClick={() => viewLog(notebookJobRun)}>Logs</a>
           );
         }
     }

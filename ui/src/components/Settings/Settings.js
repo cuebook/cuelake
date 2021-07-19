@@ -1,5 +1,4 @@
 import React from "react";
-import style from "./style.module.scss";
 import { Tabs } from 'antd';
 import  ZeppelinInterpreterSettings from "./ZeppelinInterpreterSettings.js"
 import  AlertSettings from "./AlertSettings.js"
