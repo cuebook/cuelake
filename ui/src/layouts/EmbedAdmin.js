@@ -10,7 +10,6 @@ import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
 import SparkUI from "views/admin/sparkUI.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
-import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
 import SchedulesView from "views/admin/Schedules.js";
 import { GlobalContextProvider } from "./GlobalContext";
 
@@ -29,7 +28,6 @@ export default function Admin() {
               <Route path="/api/redirect/cuelake/connections" exact component={Connections} />
               <Route path="/api/redirect/cuelake/schedules" exact component={SchedulesView} />
               <Route path="/api/redirect/cuelake/workflows" exact component={WorkflowsMain} />
-              <Route path="/api/redirect/cuelake/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
               <Route path="/api/redirect/cuelake/spark" exact component={SparkUI} />
               <Redirect from="/" to="/api/redirect/cuelake/notebooks" />
             </Switch>

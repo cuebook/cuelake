@@ -168,20 +168,20 @@ def connections(request: HttpRequest) -> Response:
 
 
 @api_view(["GET", "PUT", "DELETE"])
-def connection(request: HttpRequest, connection_id: int) -> Response:
+def connection(request: HttpRequest, connectionId: int) -> Response:
     """
     Method for crud operations on a single connection
     :param request: HttpRequest
-    :param connection_id: Connection Id
+    :param connectionId: Connection Id
     """
     if request.method == "GET":
-        res = Connections.getConnection(connection_id)
+        res = Connections.getConnection(connectionId)
         return Response(res.json())
     elif request.method == "DELETE":
-        res = Connections.removeConnection(connection_id)
+        res = Connections.removeConnection(connectionId)
         return Response(res.json())
     elif request.method == "PUT":
-        res = Connections.updateConnection(connection_id, request.data)
+        res = Connections.updateConnection(connectionId, request.data)
         return Response(res.json())
 
 
@@ -242,9 +242,9 @@ class MetastoreTablesView(APIView):
         return Response(res.json())
 
 class MetastoreColumnsView(APIView):
-    def get(self, request):
+    def get(self, request, tableId: int):
         """
         Method to get columns of a metastore table
         """
-        res = Metastore().getColumns()
+        res = Metastore().getColumns(tableId)
         return Response(res.json())

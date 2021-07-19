@@ -23,7 +23,7 @@ urlpatterns = [
     # Connections
     # =====================================================================================================
     path("connections", views.connections, name="connections"),
-    path("connection/<int:connection_id>", views.connection, name="connection"),
+    path("connection/<int:connectionId>", views.connection, name="connection"),
     path("connectiontypes", views.connectionTypes, name="connectionTypes"),
     # =====================================================================================================
     # Connections
@@ -33,5 +33,5 @@ urlpatterns = [
     # Tables & Schemas
     # =====================================================================================================
     path("metastoreTables", views.MetastoreTablesView.as_view(), name="metastoreTables"),
-    path("metastoreColumns" , views.MetastoreColumnsView.as_view(), name="metastoreColumns")
+    path("metastoreColumns/<int:tableId>" , views.MetastoreColumnsView.as_view(), name="metastoreColumns")
 ]

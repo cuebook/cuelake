@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import style from "./style.module.scss";
+import React, { useState, useEffect } from "react";
 import {
     Modal,
     Input,
     Select,
-    Icon,
-    Tooltip,
-    Popover,
     Form,
     message,
-    Switch,
   } from "antd";
 import notebookService from "services/notebooks";
 
@@ -17,7 +12,7 @@ const { Option } = Select;
 
 export default function AddSchedule(props) {
     const [timezones, setTimezones] = useState('');
-    const [cronTabSchedule, setCronTabSchedule] = useState('');
+    const [cronTabSchedule, setCronTabSchedule] = useState('* * * * *');
     const [selectedTimezone, setSelectedTimezone] = useState('');
     const [scheduleName, setScheduleName] = useState('');
 
@@ -25,13 +20,14 @@ export default function AddSchedule(props) {
       if (!timezones) {
         getTimezones();
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const saveSchedule = async (event) => {
-      if(cronTabSchedule, selectedTimezone,scheduleName){
-        const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone,scheduleName);
+      if(cronTabSchedule && selectedTimezone && scheduleName){
+        const response = await notebookService.addSchedule(cronTabSchedule, selectedTimezone, scheduleName);
         if(response.success){
-          setCronTabSchedule("")
+          setCronTabSchedule("* * * * *")
           setSelectedTimezone("")
           props.onCompletion()
         }

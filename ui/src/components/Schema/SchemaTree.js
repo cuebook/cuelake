@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import TimeAgo from 'react-timeago';
 import style from "./style.module.scss";
 import { Tree } from 'antd';
@@ -8,33 +8,59 @@ import { GlobalContext } from "layouts/GlobalContext"
 import notebookService from "services/notebooks.js";
 import { formatBytes } from "utils";
 
-
-const { DirectoryTree } = Tree;
-
 export default function SchemaTree() {
     const { metastoreTables, setMetastoreTables } = useContext(GlobalContext)
-    const [columns, setColumns] = useState({});
-    const [loading, setLoading] = useState(false);
 
     const getMetastoreTables = async () => {
         const response = await notebookService.getMetastoreTables();
         if(response.success){
-            console.log(response.data)
-            setMetastoreTables(response.data)
+            setMetastoreTables(getTreeData(response.data))
         }
-        console.log(metastoreTables)
     }
 
     useEffect(() => {
         if (!metastoreTables.length){
-            setLoading(true)
             getMetastoreTables()
-            setLoading(false)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const getTreeData = () => {
-        return Object.keys(metastoreTables).map(database=>{
+    function updateTreeData(list, key, children) {
+        return list.map((node) => {
+          if (node.key === key) {
+            return { ...node, children };
+          }
+          if (node.children) {
+            return { ...node, children: updateTreeData(node.children, key, children) };
+          }
+          return node;
+        });
+    }
+
+    const onLoadData = async ({ key, children }) => {
+        if (children) {
+            return;
+        }
+        else{
+            let tableId = parseInt(key.split("-")[0])
+            if(tableId){
+                let response = await notebookService.getMetastoreColumns(tableId)
+                let columnMap = response.data.map(column => {
+                    return {
+                        title: <><span>{column.name}</span><span className={style.columnType}>({column.type})</span></>,
+                        key: column.name + "_" + column.tableId,
+                        isLeaf: true
+                    }
+                });
+                setMetastoreTables((origin) =>
+                  updateTreeData(origin, key, columnMap)
+                )
+            }
+        }
+    }
+
+    const getTreeData = (data) => {
+        return Object.keys(data).map(database=>{
             return {
                 title: database,
                 key: database,
@@ -42,69 +68,57 @@ export default function SchemaTree() {
                 children: [
                     {
                         title: "TABLES",
-                        key: "TABLES",
-                        children: metastoreTables[database].tables.map(table=>{
+                        key: database + "_TABLES",
+                        children: data[database].tables.map(table=>{
                             const last_updated = new Date(Number(table.last_updated)*1000).toISOString()
                             return {
-                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
-                                key: table.TBL_ID,
+                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.table + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
+                                key: table.id,
                                 icon: <TableOutlined />,
                                 children: [
                                     {
                                         title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{last_updated}</Moment> </>,
-                                        key: table.TBL_ID + " Last Updated",
-                                        icon: null
+                                        key: table.id + "-Last Updated",
+                                        icon: null,
+                                        isLeaf: true
                                     },
                                     {
-                                        title: "Size: " + formatBytes(table.totalSize,2),
-                                        key: table.TBL_ID + " Size",
+                                        title: "Size: " + formatBytes(table.size, 2),
+                                        key: table.id + "-Size",
+                                        isLeaf: true
                                     },
-                                    // {
-                                    //     title: "Columns",
-                                    //     key: table.TBL_ID + " Columns",
-                                    //     children: columns[table.TBL_ID].map((column, index)=>{
-                                    //         return {
-                                    //             key: column.CD_ID + "_" + index,
-                                    //             title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                    //             type: column.COLUMN_NAME,
-                                    //             isLeaf: true
-                                    //         }
-                                    //     })
-                                    // }
+                                    {
+                                        title: "Columns",
+                                        key: table.id + "-Columns",
+                                    }
                                 ] 
                             }
                         })
                     },
                     {
                         title: "VIEWS",
-                        key: "VIEWS",
-                        children: metastoreTables[database].views.map(table=>{
+                        key: database + "_VIEWS",
+                        children: data[database].views.map(table=>{
                             const last_updated = new Date(Number(table.last_updated)*1000).toISOString()
                             return {
-                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.TBL_NAME + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
-                                key: table.TBL_ID,
+                                title: <div style={{display: "inline-block"}}><div style={{float: "left"}}>{table.table + " - "}</div><div style={{fontSize: "10px", float:"right"}}><TimeAgo date={last_updated}/></div></div>,
+                                key: table.id,
                                 icon: <BorderlessTableOutlined />,
                                 children: [
                                     {
                                         title: "Definition: " + table.VIEW_ORIGINAL_TEXT,
-                                        key: table.TBL_ID + " Size",
+                                        key: table.id + "-Size",
+                                        isLeaf: true
                                     },
                                     {
                                         title: <>Last Updated: <Moment format="DD-MM-YYYY hh:mm:ss">{last_updated}</Moment> </>,
-                                        key: table.TBL_ID + " Last Updated",
+                                        key: table.id + "-Last Updated",
+                                        isLeaf: true
                                     },
-                                    // {
-                                    //     title: "Columns",
-                                    //     key: table.TBL_ID + " Columns",
-                                    //     children: columns[table.TBL_ID].map((column, index)=>{
-                                    //         return {
-                                    //             key: column.CD_ID + "_" + index,
-                                    //             title: column.COLUMN_NAME + "  (" + column.TYPE_NAME + ")",
-                                    //             type: column.COLUMN_NAME,
-                                    //             isLeaf: true
-                                    //         }
-                                    //     })
-                                    // }
+                                    {
+                                        title: "Columns",
+                                        key: table.id + "-Columns",
+                                    }
                                 ]
                             }
                         })
@@ -114,17 +128,21 @@ export default function SchemaTree() {
             
         })
     }
-    console.log(metastoreTables)
     return (
     <div>
+    { metastoreTables.length ?
       <Tree
-        showLine={{showLeafIcon: true}}
+        defaultExpandedKeys={['default', 'default_TABLES']}
+        showLine={{showLeafIcon: false}}
         showIcon={true}
-        treeData={getTreeData()}
+        treeData={metastoreTables}
+        loadData={onLoadData}
         multiple
-        defaultExpandedKeys={['default']}
-        blockNode={true}
+        selectable={false}
       />
+      :
+      null
+    }
     </div>
     );
 };

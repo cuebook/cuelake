@@ -1,22 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
-import Moment from 'react-moment';
 import TimeAgo from 'react-timeago';
 import {
     Table,
-    Button,
-    Modal,
-    Input,
-    Select,
-    Icon,
-    Tooltip,
-    Popover,
-    Form,
-    message,
-    Drawer,
-    Row,
-    Col,
-    Switch
   } from "antd";
 
 import workflowsService from "services/workflows.js";
@@ -45,7 +31,7 @@ export default function WorkflowRuns(props) {
     return () => {
       clearInterval(refreshWorkflowRunsInterval);
     };
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getWorkflowRuns = async (workflowId, offset) => {
@@ -142,13 +128,8 @@ export default function WorkflowRuns(props) {
         scroll={{ x: "100%" }}
         columns={columns}
         dataSource={workflowRuns}
-        // loading={loading}
+        loading={loading}
         size={"small"}
-        // expandable={{
-        //     expandedRowRender: notebookJobRun => parseNotebookLogs(notebookJobRun.logsJSON),
-        //     expandRowByClick: true,
-        //     expandIconColumnIndex: -1
-        // }}
         pagination={{
           current: currentPage,
           pageSize: 10,

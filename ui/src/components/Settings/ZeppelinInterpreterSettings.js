@@ -13,7 +13,7 @@ export default function ZeppelinInterpreterSettings() {
     iframeUrl = apiService.zeppelin_base_url + "/#/interpreter";
   return (
     <>
-      <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
+      <iframe title="zeppelinInterpreterSettings" className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );
 }

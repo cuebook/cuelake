@@ -8,21 +8,16 @@ import {
     Modal,
     Input,
     Select,
-    Icon,
     Tooltip,
-    Popover,
     Form,
     message,
     Drawer,
-    Row,
-    Col,
-    Switch,
     Tabs,
     Menu, 
     Dropdown,
     Popconfirm,
   } from "antd";
-import { MoreOutlined, EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined} from '@ant-design/icons';
+import { MoreOutlined, EditOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, DeleteOutlined, CloseOutlined} from '@ant-design/icons';
 import { Badge } from "reactstrap";
 import WorkflowRuns from "./WorkflowRuns"
 import SelectSchedule from "components/Schedule/selectSchedule"
@@ -30,8 +25,7 @@ import SelectSchedule from "components/Schedule/selectSchedule"
 import workflowsService from "services/workflows";
 import notebookService from "services/notebooks";
 import { timehumanize } from 'services/general';
-import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED, STATUS_ABORTED } from "./constants"
-import Moment from "react-moment";
+import { STATUS_ALWAYS, STATUS_ERROR, STATUS_SUCCESS, STATUS_RUNNING, STATUS_RECEIVED } from "./constants"
 
 var moment = require("moment");
 
@@ -40,7 +34,7 @@ const { Option } = Select;
 
 export default function Workflows(props) {
 
-    const [limit, setLimit] = useState(25);
+    const [limit] = useState(25);
     const [sortedInfo, setSortedInfo] = useState({})
     const [sortOrder, setSortOrder] = useState('')
     const [sortColumn, setSortColumn] = useState('');
@@ -58,9 +52,7 @@ export default function Workflows(props) {
     const [triggerWorkflow, setTriggerWorkflow] = useState(false);
     const [triggerWorkflowStatus, setTriggerWorkflowStatus] = useState(STATUS_ALWAYS);
     const [assignTriggerWorkflowForId, setAssignTriggerWorkflowForId] = useState(false)         // stores id of parent workflow 
-    // const [showSelectTriggerWorkflow, setShowSelectTriggerWorkflow] = useState(false)
     const [assignSchedule, setAssignSchedule] = useState(false)
-    // const [showSelectSchedule, setShowSelectSchedule] = useState(false)
     const [componentDidMount, setComponentDidMount] = useState(false)
     const sortOrderRef = useRef(sortOrder);
     sortOrderRef.current = sortOrder;
@@ -109,6 +101,7 @@ export default function Workflows(props) {
       return () => {
         clearInterval(refreshWorkflowsInterval);
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleTableChange = (event, filter, sorter) => {
@@ -190,22 +183,22 @@ export default function Workflows(props) {
 
     const showNotebooksOfWorkflow = workflow => {
       // Parent workflow removed from assign Workflow
-      const notebookNames = notebooksLight.filter(notebook => workflow.notebooks.find(x => x==notebook.id)).map(notebook => notebook.path.substring(1))
+      const notebookNames = notebooksLight.filter(notebook => workflow.notebooks.find(x => x===notebook.id)).map(notebook => notebook.path.substring(1))
       return <span><b>Notebooks: </b>{notebookNames.join(", ")}</span>
     }
 
     const runWorkflow = async workflow => {
-      const response = await workflowsService.runWorkflow(workflow.id);
+      await workflowsService.runWorkflow(workflow.id);
       refreshWorkflows()
     }
 
     const stopWorkflow = async workflow => {
-      const response = await workflowsService.stopWorkflow(workflow.lastRun.workflowRunId);
+      await workflowsService.stopWorkflow(workflow.lastRun.workflowRunId);
       refreshWorkflows()
     }
 
     const deleteWorkflow = async workflow => {
-      const response = await workflowsService.deleteWorkflow(workflow.id);
+      await workflowsService.deleteWorkflow(workflow.id);
       refreshWorkflows()
     }
 
@@ -253,7 +246,7 @@ export default function Workflows(props) {
 
           }
           else {
-            if (assignTriggerWorkflowForId && assignTriggerWorkflowForId == workflow.id){
+            if (assignTriggerWorkflowForId && assignTriggerWorkflowForId === workflow.id){
               return <Modal
                         title={"Assign Trigger Workflow"}
                         visible={true}
@@ -265,7 +258,7 @@ export default function Workflows(props) {
                         {selectTriggerWorkflowElement}
                       </Modal>
             } else {
-              return <a className={style.linkText} onClick={()=>setAssignTriggerWorkflowForId(workflow.id)}>Assign Workflow</a>
+              return <a href={() => false} className={style.linkText} onClick={()=>setAssignTriggerWorkflowForId(workflow.id)}>Assign Workflow</a>
             }
           }
         }
@@ -290,10 +283,10 @@ export default function Workflows(props) {
 
           }
           else {
-            if (assignSchedule && assignSchedule == workflow.id){
+            if (assignSchedule && assignSchedule === workflow.id){
               return <SelectSchedule onChange={(value)=>{updateAssignedSchedule(workflow.id, value)}} />
             } else {
-              return <a className={style.linkText} onClick={()=>setAssignSchedule(workflow.id)}>Assign Schedule</a>
+              return <a href={() => false} className={style.linkText} onClick={()=>setAssignSchedule(workflow.id)}>Assign Schedule</a>
             }
           }          
         }
@@ -306,11 +299,6 @@ export default function Workflows(props) {
         sorter: ()=>{},
         sortOrder: sortedInfo.columnKey === 'lastRunTime' && sortedInfo.order,
         ellipsis: true,
-        sorter: (a, b) => {
-          return Math.abs(
-            new Date(a.lastRun ? a.lastRun.startTimestamp : null) - new Date(b.lastRun ? b.lastRun.startTimestamp : null)
-          );
-        },
         defaultSortOrder: "descend",
         render: lastRun => {
 
@@ -429,7 +417,7 @@ export default function Workflows(props) {
       if (response){settingInitialValues() }
       refreshWorkflows()
     }
-    const workflowOptionElements = workflows.filter(workflow=>!((selectedWorkflow && workflow.id == selectedWorkflow.id) || (workflow.id == assignTriggerWorkflowForId))).map(workflow => 
+    const workflowOptionElements = workflows.filter(workflow=>!((selectedWorkflow && workflow.id === selectedWorkflow.id) || (workflow.id === assignTriggerWorkflowForId))).map(workflow => 
       <Option value={workflow.id} workflow={workflow} key={workflow.id}> {workflow.name} </Option>
     )
 

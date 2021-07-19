@@ -1,11 +1,7 @@
 import React from "react";
 import {
   Button,
-  Alert,
-  Form,
   Table,
-  Breadcrumb,
-  Spin,
   Row,
   Col,
   Radio,
@@ -23,8 +19,6 @@ import notebookService from "services/notebooks.js";
 
 import "ace-builds/src-noconflict/mode-json";
 import "ace-builds/src-noconflict/theme-github";
-
-const datasetDetailsConst = {"dremioSchema":[{"columnName":"OrderTS","dataType":"TIMESTAMP"},{"columnName":"OPK","dataType":"DECIMAL"},{"columnName":"OrderStatus","dataType":"STRING"},{"columnName":"OrderEntries","dataType":"NONE"},{"columnName":"Consignments","dataType":"NONE"},{"columnName":"FirstAllocMin","dataType":"NONE"},{"columnName":"LastAllocMin","dataType":"NONE"},{"columnName":"FirstToLastAllocMin","dataType":"NONE"},{"columnName":"NonReturnConsignments","dataType":"NONE"},{"columnName":"LastNonReturnAllocMin","dataType":"NONE"}],"druidIngestionSpec":"{\"type\": \"index\", \"spec\": {\"dataSchema\": {\"dataSource\": \"ALLOCATION\", \"timestampSpec\": {\"column\": \"OrderTS\", \"format\": \"millis\", \"missingValue\": null}, \"dimensionsSpec\": {\"dimensions\": [{\"type\": \"string\", \"name\": \"OrderStatus\", \"multiValueHandling\": \"SORTED_ARRAY\", \"createBitmapIndex\": true}]}, \"metricsSpec\": [{\"type\": \"count\", \"name\": \"count\"}, {\"type\": \"doubleSum\", \"name\": \"OPK\", \"fieldName\": \"OPK\", \"expression\": null}], \"granularitySpec\": {\"type\": \"uniform\", \"segmentGranularity\": \"MONTH\", \"queryGranularity\": \"MINUTE\", \"rollup\": true, \"intervals\": null}, \"transformSpec\": {\"filter\": null, \"transforms\": []}}, \"ioConfig\": {\"type\": \"index\", \"inputSource\": {\"type\": \"s3\", \"uris\": null, \"prefixes\": [\"s3://ssl-cuebook/druid-cubes/ALLOCATION/\"], \"objects\": null}, \"inputFormat\": {\"type\": \"parquet\", \"flattenSpec\": {\"useFieldDiscovery\": true, \"fields\": []}, \"binaryAsString\": false}, \"appendToExisting\": false}, \"tuningConfig\": {\"type\": \"index_parallel\", \"maxRowsPerSegment\": 5000000, \"maxRowsInMemory\": 1000000, \"maxBytesInMemory\": 0, \"maxTotalRows\": null, \"numShards\": null, \"splitHintSpec\": null, \"partitionsSpec\": {\"type\": \"dynamic\", \"maxRowsPerSegment\": 5000000, \"maxTotalRows\": null}, \"indexSpec\": {\"bitmap\": {\"type\": \"concise\"}, \"dimensionCompression\": \"lz4\", \"metricCompression\": \"lz4\", \"longEncoding\": \"longs\"}, \"indexSpecForIntermediatePersists\": {\"bitmap\": {\"type\": \"concise\"}, \"dimensionCompression\": \"lz4\", \"metricCompression\": \"lz4\", \"longEncoding\": \"longs\"}, \"maxPendingPersists\": 0, \"forceGuaranteedRollup\": false, \"reportParseExceptions\": false, \"pushTimeout\": 0, \"segmentWriteOutMediumFactory\": null, \"maxNumConcurrentSubTasks\": 1, \"maxRetry\": 3, \"taskStatusCheckPeriodMs\": 1000, \"chatHandlerTimeout\": \"PT10S\", \"chatHandlerNumRetries\": 5, \"maxNumSegmentsToMerge\": 100, \"totalNumMergeTasks\": 10, \"logParseExceptions\": false, \"maxParseExceptions\": 2147483647, \"maxSavedParseExceptions\": 0, \"buildV9Directly\": true, \"partitionDimensions\": []}}, \"context\": {\"forceTimeChunkLock\": true}, \"dataSource\": \"ALLOCATION\"}","isPublishedToDruid":false,"refreshSchedule":"0 35 5 * * ? *","isScheduleEnabled":false}
 
 class DatasetSelector extends React.Component {
   DATATYPE_TO_MEASURE_MAP = new Map()
@@ -461,11 +455,8 @@ class DatasetSelector extends React.Component {
     const measuresSet = new Set(measures.map(e => e.fieldName));
 
     let newDims = [];
-    let mappedColumns = dremioSchema.forEach(e => {
+    dremioSchema.forEach(e => {
       let columnName = e.columnName;
-      let dremioDataType = e.dataType;
-
-      let updatedRow = false;
       let columnType = "dimension";
       if (dimensionsSet.has(columnName)) {
         columnType = "dimension";
@@ -483,7 +474,6 @@ class DatasetSelector extends React.Component {
           createdBitmapIndex: true
         };
         newDims.push(ob1);
-        updatedRow = true;
       }
     });
 
@@ -493,8 +483,6 @@ class DatasetSelector extends React.Component {
     ];
 
     return JSON.stringify(parsedJSONSpec, null, 2);
-    //JSON.stringify(JSON.parse(druidIngestionSpec), null, 2)
-    //this.setState({ ...this.state, spec: JSON.stringify(parsedJSONSpec) });
   };
 
 
@@ -528,9 +516,6 @@ class DatasetSelector extends React.Component {
     let updatedDatasetDetails = _.isNil(measuresAndDimensions)
       ? []
       : measuresAndDimensions["mappedColumns"];
-    let isSchemaUpdated = _.isNil(measuresAndDimensions)
-      ? false
-      : measuresAndDimensions["isSchemaUpdated"];
 
     const options = [
       { value: "string", label: "string" },

@@ -9,7 +9,7 @@ import React, { createContext, useState } from 'react';
 export const GlobalContext = createContext();
 
 export const GlobalContextProvider = ({ children }) => {
-	const [metastoreTables, setMetastoreTables] = useState({});
+	const [metastoreTables, setMetastoreTables] = useState([]);
 	const value = { metastoreTables, setMetastoreTables };
 
 	return (

@@ -41,9 +41,9 @@ class Metastore:
 
     def getColumns(self, tableId: int):
         res = ApiResponse(message="Error retrieving columns")
-        cur = self.connection.cursor()
+        cur = self.connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
         columnSQL = f"""
-            SELECT "CD_ID", "COLUMN_NAME", "TYPE_NAME" FROM "COLUMNS_V2" WHETE "CD_ID"={tableId}
+            SELECT "CD_ID" as "tableId", "COLUMN_NAME" as "name", "TYPE_NAME" as "type" FROM "COLUMNS_V2" WHERE "CD_ID"={tableId}
         """
         cur.execute(columnSQL)
         response = cur.fetchall()
