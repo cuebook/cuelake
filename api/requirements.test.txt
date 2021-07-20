@@ -14,4 +14,8 @@ requests==2.25.1
 urllib3>=1.26.5
 kubernetes==12.0.1
 psycopg2-binary==2.8.6
+pytest-cov==2.12.1
+pytest-django==4.3.0
+mixer==7.1.2
+pytest-mock==3.6.1
 redis==3.5.3

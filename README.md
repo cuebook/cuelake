@@ -11,7 +11,7 @@
     <img src="https://api.codeclimate.com/v1/badges/db3c4c0355e11d23bb66/test_coverage" alt="Test Coverage">
   </a>
   <a href="https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml">
-    <img src="https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml/badge.svg" alt="Test Coverage">
+    <img src="https://github.com/cuebook/cuelake/actions/workflows/pr_checks.yml/badge.svg" alt="PR Checks">
   </a>
   <br>
   <a href="https://github.com/cuebook/cuelake/blob/main/LICENSE.md">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Input, message, Select, Popconfirm } from "antd";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-mysql";
@@ -8,15 +8,12 @@ import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
 import connectionService from "services/connection.js";
 import { Link } from "react-router-dom";
-import { LeftOutlined } from '@ant-design/icons';
 import DatasetSelector from "../DatasetSelector/DatasetSelector";
 
 const { Option } = Select;
 
 export default function EditNotebook(props) {
-  const [notebookTemplates, setNotebookTemplates] = useState([]);
   const [connections, setConnections] = useState([]);
-  const [selectedNotebookTemplate, setSelectedNotebookTemplate] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState(null);
   const [form] = Form.useForm();
 
@@ -27,6 +24,7 @@ export default function EditNotebook(props) {
     if (!connections.length) {
         fetchConnections();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchNotebookObject = async (notebookObjId) => {
@@ -53,7 +51,7 @@ export default function EditNotebook(props) {
   const getConnectionOptions = (field) => {
     let optionElements = [];
     connections.forEach(connection => {
-        if(!field.filter || field.filter && field.filter.indexOf(connection.connectionType) !== -1){
+        if(!field.filter || (field.filter && field.filter.indexOf(connection.connectionType) !== -1)){
             optionElements.push(
                 <Option value={connection.id}>{connection.name}</Option>
             )
@@ -108,8 +106,8 @@ export default function EditNotebook(props) {
   if(selectedNotebook){
     defaultNotebookName = selectedNotebook.defaultPayload.name
     selectedNotebook.notebookTemplate.formJson.fields.forEach(field => {
-        let fieldInitValue = field.type == "datasetSelector" ? undefined : selectedNotebook.defaultPayload[field.name]
-        let initValForDatasetSelector = field.type == "datasetSelector" ? JSON.parse(selectedNotebook.defaultPayload[field.name]).spec.ioConfig.inputSource.prefixes[0] : null
+        let fieldInitValue = field.type === "datasetSelector" ? undefined : selectedNotebook.defaultPayload[field.name]
+        let initValForDatasetSelector = field.type === "datasetSelector" ? JSON.parse(selectedNotebook.defaultPayload[field.name]).spec.ioConfig.inputSource.prefixes[0] : null
         notebookFormElements.push(
             <div
                 // style={{ width: field.properties.width }}
@@ -134,9 +132,6 @@ export default function EditNotebook(props) {
 
     let editNotebookFormElement = (
       <div>
-        <div className={style.selectedNotebookTemplate}>
-            <p className={style.selectedNotebookTemplateName}>{selectedNotebookTemplate.name}</p>
-        </div>
         <Form 
             layout="vertical" 
             className="mb-2" 

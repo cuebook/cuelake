@@ -1,12 +1,10 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 import ReactNotification from 'react-notifications-component';
 
 // components
 
-import AdminNavbar from "components/Navbars/AdminNavbar.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
-import HeaderStats from "components/Headers/HeaderStats.js";
 
 // views
 import Settings from "views/admin/Settings.js";
@@ -15,7 +13,6 @@ import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
 import SchedulesView from "views/admin/Schedules.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
-import WorkflowRunLogs from "views/admin/WorkflowRunLogs.js";
 import SparkUI from "views/admin/sparkUI.js";
 
 // contexts
@@ -40,7 +37,6 @@ export default function Admin() {
               <Route path="/schedules" exact component={SchedulesView} />
               <Route path="/workflows" exact component={WorkflowsMain} />
               <Route path="/spark" exact component={SparkUI} />
-              <Route path="/workflows/workflowRun/:id" exact component={WorkflowRunLogs} />
               <Redirect from="/" to="/notebooks" />
             </Switch>
           </div>

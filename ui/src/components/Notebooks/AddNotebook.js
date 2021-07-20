@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Input, message, Select } from "antd";
-import { useHistory } from "react-router-dom";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-mysql";
 import "ace-builds/src-noconflict/theme-chrome";
@@ -19,7 +18,6 @@ export default function AddNotebook(props) {
   const [connections, setConnections] = useState([]);
   const [selectedNotebookTemplate, setSelectedNotebookTemplate] = useState('');
   const [form] = Form.useForm();
-  const history = useHistory();
 
   useEffect(() => {
     if (!notebookTemplates.length) {
@@ -28,6 +26,7 @@ export default function AddNotebook(props) {
     if (!connections.length) {
         fetchConnections();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchNotebookTemplates = async () => {
@@ -58,7 +57,7 @@ export default function AddNotebook(props) {
   const getConnectionOptions = (field) => {
     let optionElements = [];
     connections.forEach(connection => {
-        if(!field.filter || field.filter && field.filter.indexOf(connection.connectionType) !== -1){
+        if(!field.filter || (field.filter && field.filter.indexOf(connection.connectionType) !== -1)){
             optionElements.push(
                 <Option value={connection.id}>{connection.name}</Option>
             )

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Popconfirm, Input, message, Tooltip, Drawer } from "antd";
+import { Table, Button, Popconfirm, message, Tooltip, Drawer } from "antd";
 import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
 import EditSchedule from "components/Schedules/EditSchedule.js"
 import AddSchedule from "components/Schedules/AddSchedule.js"
-import { EyeOutlined, DeleteOutlined , EditOutlined} from '@ant-design/icons';
+import { DeleteOutlined , EditOutlined} from '@ant-design/icons';
 
 
 
@@ -19,6 +19,7 @@ const [isViewConnectionDrawerVisible, setIsViewConnectionDrawerVisible] = useSta
     if (!schedules.length) {
         fetchSchedules();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSchedules = async () => {

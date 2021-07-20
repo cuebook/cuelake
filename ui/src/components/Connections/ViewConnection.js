@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Input, message } from "antd";
-import { LeftOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from "react";
+import { Form, Input } from "antd";
 
 import style from "./style.module.scss";
 import connectionService from "services/connection.js";
@@ -19,6 +18,7 @@ export default function ViewConnection(props) {
     if (!selectedConnection.id) {
         fetchSelectedConnection();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchConnectionTypes = async () => {

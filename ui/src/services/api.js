@@ -1,5 +1,3 @@
-import { getCookie } from "./general.js";
-
 class ApiService {
   constructor(basePath){
     if(process.env.NODE_ENV === "development"){

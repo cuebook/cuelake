@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Popconfirm, Input, message, Tooltip, Drawer } from "antd";
+import { Table, Button, Popconfirm, message, Tooltip, Drawer } from "antd";
 import style from "./style.module.scss";
 import connectionService from "services/connection.js";
 import AddConnection from "./AddConnection.js";
 import ViewConnection from "./ViewConnection.js";
 import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
-
-const { Search } = Input;
-const ButtonGroup = Button.Group;
 
 export default function Connection() {
   const [connections, setConnections] = useState([]);
@@ -19,6 +16,7 @@ export default function Connection() {
     if (!connections.length) {
         fetchConnections();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchConnections = async () => {

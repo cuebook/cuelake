@@ -8,7 +8,6 @@ import {
   Table,
   Button,
   Input,
-  Select,
   Tooltip,
   Popover,
   message,
@@ -22,24 +21,24 @@ import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 import EditNotebook from "./EditNotebook.js"
 import SelectSchedule from "components/Schedule/selectSchedule"
-import { RUNNING, ABORT, FINISHED, SUCCESS, ERROR, PENDING } from "./constants";
+import { RUNNING, ABORT, SUCCESS, ERROR, PENDING } from "./constants";
 import { timehumanize } from 'services/general';
 import ArchivedNotebookTable from "components/Notebooks/ArchivedNotebookTable.js";
 
 var moment = require("moment");
-const { Option } = Select;
+
 const {Search} = Input
 
 export default function NotebookTable() {
 
   const [sorter, setSorter] = useState({});
-  const [limit, setLimit] = useState(25);
+  const [limit] = useState(25);
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState({});
   const [notebooks, setNotebooks] = useState([]);
   const [podsDriver, setpodsDriver] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedNotebook, setSelectedNotebook] = useState('');
   const [runLogNotebook, setRunLogNotebook] = useState('');
   const [isRunLogsDrawerVisible, setIsRunLogsDrawerVisible] = useState(false);
@@ -80,6 +79,7 @@ export default function NotebookTable() {
       clearInterval(refreshNotebookInterval);
       clearInterval(refreshPodStatus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getNotebooks = async (offset) => {
@@ -219,16 +219,6 @@ export default function NotebookTable() {
     }
   }
 
-  const onNotebookToggleChange = async (event, notebook) => {
-    const response = await notebookService.toggleNotebookSchedule(event, notebook.id)
-    if(response.success){
-      refreshNotebooks()
-    }
-    else{
-      message.error(response.message)
-    }
-  }
-
   const showArchivedNotebookTable = () => {
     setIsArchivedNotebookVisible(true)
   }
@@ -293,7 +283,7 @@ export default function NotebookTable() {
       sortOrder: sorter.columnKey === 'schedule' && sorter.order,
       ellipsis: true,
       render: (schedule, notebook) => {
-        if(schedule && selectedNotebook != notebook.id){
+        if(schedule && selectedNotebook !== notebook.id){
           return (
             <>
             <div className={style.scheduleText}>
@@ -310,10 +300,10 @@ export default function NotebookTable() {
             <>
               { 
 
-                selectedNotebook == notebook.id ?
+                selectedNotebook === notebook.id ?
                 <SelectSchedule onChange={addNotebookSchedule} />
                 :
-                <a className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Assign Schedule</a>
+                <a href={() => false} className={style.linkText} onClick={()=>showScheduleDropDown(notebook.id)}>Assign Schedule</a>
               }
             </>
           );
@@ -574,7 +564,7 @@ export default function NotebookTable() {
               New Notebook
           </Button>
           <div className={style.archiveNotebookLink}>
-            <a onClick={() => showArchivedNotebookTable()}>Archived Notebooks</a>
+            <a href={() => false} onClick={() => showArchivedNotebookTable()}>Archived Notebooks</a>
           </div>
           <div className={style.driversAndExecutoresStyle}>
             <div className={style.podStyle}>Drivers : {drivers.length > 0 ? drivers : 0 }</div>

@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Input, message, Select } from "antd";
-import { LeftOutlined } from '@ant-design/icons';
 
 import style from "./style.module.scss";
 import notebookService from "services/notebooks.js";
 
 const { Option } = Select;
 export default function EditSchedule(props) {
-  const [schedules, setSchedules] = useState([]);
   const [timezones, setTimezones] = useState('');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [scheduleName, setScheduleName] = useState('');
   const [cronTabSchedule, setCronTabSchedule] = useState('');
   const [selectedTimezone, setSelectedTimezone] = useState('');
-  const [selectedSchedule, setSelectedSchedule] = useState({});
-  const [isAddScheduleModalVisible, setIsAddScheduleModalVisible] = useState(false);
   const [initialFormValues, setInitialFormValues] = useState({});
   const [form] = Form.useForm();
 
@@ -24,13 +20,8 @@ export default function EditSchedule(props) {
       getTimezones();
     }
     fetchSelectedSchedule()
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const getSchedules = async () => {
-    const response = await notebookService.getSchedules();
-    setSchedules(response);
-  };
 
   const getTimezones = async () => {
     const response = await notebookService.getTimezones();
@@ -39,12 +30,7 @@ export default function EditSchedule(props) {
 
 
   const editScheduleForm = async (values) => {
-    let payload = {
-        name: scheduleName,
-        crontab: cronTabSchedule,
-        timezone: selectedTimezone,
-    };
-    const response = await notebookService.updateSchedule(selectedScheduleId,cronTabSchedule, selectedTimezone, scheduleName)
+    const response = await notebookService.updateSchedule(selectedScheduleId, cronTabSchedule, selectedTimezone, scheduleName)
     if(response.success){
         props.onEditScheduleSuccess()
     }
@@ -62,7 +48,6 @@ export default function EditSchedule(props) {
   const fetchSelectedSchedule = async () => {
     const response = await notebookService.getSingleSchedule(props.editSchedule.id)
     setSelectedScheduleId(props.editSchedule.id)
-    setSelectedSchedule(response)
     let responseObj = response[0];
     let resName = responseObj["name"]
     let resTimezone = responseObj["timezone"]
@@ -91,7 +76,6 @@ const handleCancelClick = async () =>
                 className="mb-2" 
                 form={form} 
                 initialValues={{...initialFormValues}}
-                // onFinish={addConnectionFormSubmit}
                 name="EditSchedule"
                 scrollToFirstError
                 hideRequiredMark

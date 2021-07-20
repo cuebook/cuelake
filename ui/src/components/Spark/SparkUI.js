@@ -13,7 +13,7 @@ export default function SparkUI() {
     iframeUrl = apiService.spark_base_url;
   return (
     <>
-      <iframe className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
+      <iframe title="sparkUI" className={isEmbedPage ? style.embedIframe : style.iframe} src={iframeUrl}></iframe>
     </>
   );
 }

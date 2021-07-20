@@ -1,11 +1,10 @@
 import apiService from "./api";
-import { store } from 'react-notifications-component';
 import { message } from "antd";
 
 class WorkflowsService {
     async getWorkflows(offset, limit, sortColumn, sortOrder){
         const response = await apiService.get("workflows/workflows/" + offset + "?limit="+ limit +"&sortColumn=" + sortColumn + "&sortOrder=" + sortOrder)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -14,7 +13,7 @@ class WorkflowsService {
 
     async getWorkflowRuns(workflowId, offset){
         const response = await apiService.get("workflows/workflowRuns/" + workflowId +"/"+ offset)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -22,7 +21,7 @@ class WorkflowsService {
 
     async getWorkflowRunLogs(workflowRunId){
         const response = await apiService.get("workflows/workflowRunLogs/" + workflowRunId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             return null
@@ -30,7 +29,7 @@ class WorkflowsService {
 
     async setWorkflows(data){
         const response = await apiService.post("workflows/workflows", data)
-        if(response.success == true)
+        if(response.success === true)
             return response.success
         else
             message.error(response.message);
@@ -39,7 +38,7 @@ class WorkflowsService {
 
     async runWorkflow(workflowId){
         const response = await apiService.get("workflows/runWorkflow/" + workflowId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             message.error(response.message);
@@ -48,7 +47,7 @@ class WorkflowsService {
 
     async stopWorkflow(workflowId){
         const response = await apiService.get("workflows/stopWorkflow/" + workflowId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             message.error(response.message);
@@ -57,7 +56,7 @@ class WorkflowsService {
 
     async deleteWorkflow(workflowId){
         const response = await apiService.delete("workflows/workflow/" + workflowId)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             message.error(response.message);
@@ -66,7 +65,7 @@ class WorkflowsService {
 
     async updateTriggerWorkflow(workflowId, data){
         const response = await apiService.post("workflows/updateTriggerWorkflow/" + workflowId, data)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             message.error(response.message);
@@ -75,7 +74,7 @@ class WorkflowsService {
 
     async updateWorkflowSchedule(workflowId, data){
         const response = await apiService.post("workflows/updateSchedule/" + workflowId, data)
-        if(response.success == true)
+        if(response.success === true)
             return response.data
         else
             message.error(response.message);
