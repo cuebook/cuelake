@@ -169,3 +169,55 @@
     overflow: auto;
     padding: 10px;
 }
+
+.result{
+    font-size: 10px;
+}
+
+.paragraph{
+    margin-bottom: 20px;
+    // border-bottom: 2px solid #eee;
+    width: 100%;
+    display: inline-block;
+    position: relative;
+
+    .status{
+        width: 200px;
+        float: left;
+        position: relative;
+        font-size: 10px;
+
+        .icon{
+            position: absolute;
+            top: 0px;
+            background-color: white;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            height: 30px;
+            width: 30px;
+            right: 10px;
+            font-size: 16px;
+            text-align: center;
+            padding-top: 1px;
+        }
+    }
+
+    .line{
+        width: 2px;
+        height: calc(100% + 30px);
+        position: absolute;
+        left: 175px;
+        background-color: #eee;
+    }
+    
+    &:last-child{
+        .line{
+            display: none;
+        }
+    }
+
+    .logs{
+        width: calc(100% - 200px);
+        float: left;
+    }
+}

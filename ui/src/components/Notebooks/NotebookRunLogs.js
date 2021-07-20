@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
+import Ansi from "ansi-to-react";
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-scala";
+import "ace-builds/src-noconflict/mode-mysql";
+import "ace-builds/src-noconflict/theme-twilight";
+import { CheckCircleOutlined, MinusCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 
 import {
     Table,
@@ -16,7 +24,7 @@ export default function NotebookRunLogs(props) {
 
   const [notebookLogs, setNotebookLogs] = useState('');
   const [loading, setLoading] = useState('');
-  const [currentPage, setCurrentPage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   
   useEffect(() => {
     if (!notebookLogs) {
@@ -43,19 +51,70 @@ export default function NotebookRunLogs(props) {
   }
 
 
+  const getStatusElement = (status) => {
+    if(status === "FINISHED")
+    return <CheckCircleOutlined style={{color: "#48bb78"}} />
+    else if(status === "ERROR")
+    return <CloseCircleOutlined style={{color: "#f56565"}} />
+    else if(status === "RUNNING")
+    return <LoadingOutlined style={{color: "#4299e1"}} />
+    else if(status === "ABORT")
+    return <MinusCircleOutlined style={{color: "#ecc94b"}} />
+    else if(status === "PENDING")
+    return <ClockCircleOutlined style={{color: "#63b3ed"}} />
+  }
+
+
   const parseNotebookLogs = (logsJSON) => {
       let logElements = []
       if(logsJSON && logsJSON.paragraphs){
         logsJSON.paragraphs.forEach(paragraph => {
-            logElements.push(<div key={paragraph.id}> 
-                <p>{paragraph.text}</p>
-                <p>{JSON.stringify(paragraph.results)}</p>
-                <p>Date Started: {paragraph.dateStarted}</p>
-                <p>Date Finished: {paragraph.dateFinished}</p>
-                <p>Status: {paragraph.status}</p>
-                <div className={style.divider}></div>
+          let resultElements = []
+          if(paragraph.results && paragraph.results.msg){
+            paragraph.results.msg.forEach((element, index) => {
+              if(element.type === "TEXT"){
+                resultElements.push(<Ansi key={paragraph.id + "text" + index}>{element.data}</Ansi>)
+              } else if(element.type === "HTML"){
+                resultElements.push(<div dangerouslySetInnerHTML={{__html: element.data}} key={paragraph.id + "html" + index}></div>)
+              } else if(element.type === "IMG"){
+                resultElements.push(<img style={{maxHeight: '300px'}} key={paragraph.id + "img" + index} src={`data:image/png;base64,${element.data}`}  />)
+              } else{
+                resultElements.push(<p key={paragraph.id + "data" + index}>{element.data}</p>)
+              }
+            })
+          }
+          logElements.push(
+            <div key={paragraph.id} className={style.paragraph}>
+              <div className={style.line}></div>
+              <div className={style.status}>
+                <p>Started: {paragraph.dateStarted}</p>
+                <p>Finished: {paragraph.dateFinished}</p>
+                <div className={style.icon}>
+                  {getStatusElement(paragraph.status)}
                 </div>
-            )
+              </div>
+              <div className={style.logs}>
+                <AceEditor
+                  mode={(paragraph.config && paragraph.config.editorSetting && paragraph.config.editorSetting.language) ? paragraph.config.editorSetting.language : 'python'}
+                  theme="twilight"
+                  name={paragraph.id + "_code"}
+                  highlightActiveLine={false}
+                  showGutter={false}
+                  maxLines={10000}
+                  setOptions={{
+                      showLineNumbers: false,
+                      readOnly: true,
+                      value: paragraph.text,
+                      tabSize: 2,
+                  }}
+                  style={{
+                      width: "100%"
+                  }}
+                />
+                <div className={style.result}>{resultElements}</div>
+              </div>
+            </div>
+          ) 
         })
       }
       let logElement = <div className={style.logsDiv}>{logElements}</div>

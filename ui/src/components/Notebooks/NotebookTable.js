@@ -531,10 +531,10 @@ export default function NotebookTable() {
   let pendingExecutors = podsDriver.pendingExecutors
   let drivers = []
   _.times(runningDrivers, (i) => {
-    drivers.push(<i className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}  key={i}></i>);
+    drivers.push(<i key={"driver" + i} className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}  key={i}></i>);
   });
   _.times(pendingDrivers, (i) => {
-    drivers.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}} key={i} ></i>);
+    drivers.push(<i key={"executor" + i} className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}} key={i} ></i>);
   });
 
   let executors = []
@@ -605,7 +605,7 @@ export default function NotebookTable() {
     {/* Drawer Components */}
     <Drawer
         title={(runLogNotebook ? runLogNotebook.name.substring(1) : "")}
-        width={720}
+        width={1000}
         onClose={closeRunLogsDrawer}
         visible={isRunLogsDrawerVisible}
         bodyStyle={{ paddingBottom: 80 }}
