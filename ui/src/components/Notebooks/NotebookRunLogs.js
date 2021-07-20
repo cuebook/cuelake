@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import style from "./style.module.scss";
 import Moment from 'react-moment';
 import TimeAgo from 'react-timeago';
+import Ansi from "ansi-to-react";
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-mysql";
+import "ace-builds/src-noconflict/theme-twilight";
 
 import {
     Table,
@@ -57,17 +61,44 @@ export default function NotebookRunLogs(props) {
 
   const parseNotebookLogs = (logsJSON) => {
       let logElements = []
-      if(logsJSON && logsJSON.paragraphs){
-        logsJSON.paragraphs.forEach(paragraph => {
-            logElements.push(<div key={paragraph.id}> 
-                <p>{paragraph.text}</p>
-                <p>{JSON.stringify(paragraph.results)}</p>
-                <p>Date Started: {paragraph.dateStarted}</p>
-                <p>Date Finished: {paragraph.dateFinished}</p>
-                <p>Status: {paragraph.status}</p>
-                <div className={style.divider}></div>
-                </div>
-            )
+        if(logsJSON && logsJSON.paragraphs){
+          let resultTextElements = []
+          logsJSON.paragraphs.forEach(paragraph => {
+            if( paragraph.results && paragraph.results.msg){
+              paragraph.results.msg.forEach(element => {
+                let resultTextElement = ''
+                if(element.type == "TEXT"){
+                  resultTextElement =  <Ansi>{element.data}</Ansi>
+                } 
+                resultTextElements.push(resultTextElement)
+              })
+            }
+          logElements.push(
+            <div key={paragraph.id}>
+              <AceEditor
+                mode="python"
+                theme="twilight"
+                name={paragraph.id + "_code"}
+                highlightActiveLine={false}
+                showGutter={false}
+                maxLines={10}
+                setOptions={{
+                    showLineNumbers: false,
+                    readOnly: true,
+                    value: paragraph.text,
+                    tabSize: 2,
+                }}
+                style={{
+                    width: "100%"
+                }}
+              />
+              <p className={style.result}>{resultTextElements}</p>
+              <p>Date Started: {paragraph.dateStarted}</p>
+              <p>Date Finished: {paragraph.dateFinished}</p>
+              <p>Status: {paragraph.status}</p>
+              <div className={style.divider}></div>
+            </div>
+          )
         })
       }
       let logElement = <div className={style.logsDiv}>{logElements}</div>
