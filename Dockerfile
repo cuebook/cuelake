@@ -9,12 +9,12 @@ COPY ui /app
 RUN npm run build
 
 # production environment
-FROM python:3.7-buster
+FROM python:3.7-slim
 ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install nginx vim -y --no-install-recommends
 WORKDIR /code
 COPY api/requirements.txt /code/
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --no-cache-dir
 COPY api /code/
 COPY --from=builder /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/sites-available/default
