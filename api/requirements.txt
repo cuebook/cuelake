@@ -7,6 +7,7 @@ django-celery-beat==2.2.0
 django-cors-headers==3.7.0
 django-timezone-field==4.1.1
 djangorestframework==3.12.2
+gevent==21.1.2
 gunicorn==20.0.4
 polling==0.3.1
 pytz==2021.1
