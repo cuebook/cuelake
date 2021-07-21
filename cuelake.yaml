@@ -113,7 +113,7 @@ spec:
       labels:
         app.kubernetes.io/name: zeppelin-server-main
     spec:
-      serviceAccountName: zeppelin-server
+      serviceAccountName: cuelake
       volumes:
       - name: zeppelin-server-notebook-volume
         persistentVolumeClaim:
@@ -215,12 +215,12 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: zeppelin-server
+  name: cuelake
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: zeppelin-server-role
+  name: cuelake-role
 rules:
 - apiGroups: [""]
   resources: ["pods", "pods/exec", "services", "configmaps"]
@@ -232,42 +232,13 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: zeppelin-server-role-binding
+  name: cuelake-role-binding
 subjects:
 - kind: ServiceAccount
-  name: zeppelin-server
+  name: cuelake
 roleRef:
   kind: Role
-  name: zeppelin-server-role
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: default
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: default-role
-rules:
-- apiGroups: [""]
-  resources: ["pods", "configmaps"]
-  verbs: ["create", "get", "update", "patch", "list", "delete", "watch"]
-- apiGroups: ["rbac.authorization.k8s.io"]
-  resources: ["roles", "rolebindings"]
-  verbs: ["bind", "create", "get", "update", "patch", "list", "delete", "watch"]
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: default-role-binding
-subjects:
-- kind: ServiceAccount
-  name: default
-roleRef:
-  kind: Role
-  name: default-role
+  name: cuelake-role
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
@@ -312,7 +283,7 @@ spec:
       labels:
         app.kubernetes.io/name: lakehouse
     spec:
-      serviceAccountName: zeppelin-server
+      serviceAccountName: cuelake
       volumes:
       - name: lakehouse-db-volume
         persistentVolumeClaim:
