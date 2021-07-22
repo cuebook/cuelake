@@ -16,7 +16,7 @@ def __checkOrphanNotebookJobs():
     if len(runStatuses):
         staleRunStatues = []
         for runStatus in runStatuses:
-            if((datetime.now(timezone.utc) - runStatus.updateTimestamp).seconds > 30):
+            if((datetime.now(timezone.utc) - runStatus.updateTimestamp).seconds > 60):
                 staleRunStatues.append(runStatus)
                 __handleStaleNotebookJob(runStatus)
 
@@ -27,7 +27,7 @@ def __handleStaleNotebookJob(runStatus):
     podStatus = None
     try:
         podStatus = Kubernetes.getPodStatus(runStatus.zeppelinServerId)
-        if podStatus in ["RUNNING", "PENDING"]:
+        if podStatus in ["PENDING"]:
             return True
     except Exception as ex:
         # This will be mostly pod not found error
