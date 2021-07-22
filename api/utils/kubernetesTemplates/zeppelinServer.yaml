@@ -8,6 +8,7 @@ metadata:
     statefulset.kubernetes.io/pod-name: {podId}
 spec:
   serviceAccountName: cuelake
+  volumes:
     - name: shared-notebook
       emptyDir:
     - name: shared-conf
