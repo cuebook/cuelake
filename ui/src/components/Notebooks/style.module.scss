@@ -182,7 +182,7 @@
     position: relative;
 
     .status{
-        width: 200px;
+        width: 225px;
         float: left;
         position: relative;
         font-size: 10px;
@@ -206,7 +206,7 @@
         width: 2px;
         height: calc(100% + 30px);
         position: absolute;
-        left: 175px;
+        left: 200px;
         background-color: #eee;
     }
     
@@ -217,7 +217,7 @@
     }
 
     .logs{
-        width: calc(100% - 200px);
+        width: calc(100% - 225px);
         float: left;
     }
 }

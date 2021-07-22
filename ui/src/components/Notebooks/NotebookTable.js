@@ -531,19 +531,19 @@ export default function NotebookTable() {
   let pendingExecutors = podsDriver.pendingExecutors
   let drivers = []
   _.times(runningDrivers, (i) => {
-    drivers.push(<i key={"driver" + i} className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}  key={i}></i>);
+    drivers.push(<i key={"driver" + i} className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}}></i>);
   });
   _.times(pendingDrivers, (i) => {
-    drivers.push(<i key={"executor" + i} className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}} key={i} ></i>);
+    drivers.push(<i key={"pendingDriver" + i} className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}></i>);
   });
 
   let executors = []
 
   _.times(runningExecutors, (i) => {
-    executors.push(<i className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}} key={i}></i>);
+    executors.push(<i key={"executor" + i} className="fas fa-circle ml-2 icon-driver-1 red" style={{color:"green",fontSize:"12px"}} ></i>);
   });
   _.times(pendingExecutors, (i) => {
-    executors.push(<i className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}}key={i} ></i>);
+    executors.push(<i key={"pendingExecutor" + i} className="fas fa-circle ml-2 icon-driver-2 " style={{color:"orange",fontSize:"12px"}} ></i>);
   });
 
   return (

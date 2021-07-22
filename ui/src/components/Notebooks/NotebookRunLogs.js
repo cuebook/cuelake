@@ -77,7 +77,7 @@ export default function NotebookRunLogs(props) {
               } else if(element.type === "HTML"){
                 resultElements.push(<div dangerouslySetInnerHTML={{__html: element.data}} key={paragraph.id + "html" + index}></div>)
               } else if(element.type === "IMG"){
-                resultElements.push(<img style={{maxHeight: '300px'}} key={paragraph.id + "img" + index} src={`data:image/png;base64,${element.data}`}  />)
+                resultElements.push(<img alt={paragraph.id} style={{maxHeight: '300px'}} key={paragraph.id + "img" + index} src={`data:image/png;base64,${element.data}`}  />)
               } else{
                 resultElements.push(<p key={paragraph.id + "data" + index}>{element.data}</p>)
               }
