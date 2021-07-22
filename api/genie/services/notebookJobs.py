@@ -264,7 +264,6 @@ class NotebookJobServices:
 
         updateSuccess = Zeppelin.updateNotebookParagraphs(notebookObject.notebookZeppelinId, notebook)
         if updateSuccess:
-            print(defaultPayload)
             if defaultPayload.get("name"):
                 Zeppelin.renameNotebook(notebookObject.notebookZeppelinId, defaultPayload.get("name"))
             notebookObject.defaultPayload = defaultPayload

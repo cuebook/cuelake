@@ -3,7 +3,6 @@ import json
 import uuid
 import datetime as dt
 import dateutil.parser as dp
-import requests
 import polling
 from celery import shared_task
 from django.conf import settings
