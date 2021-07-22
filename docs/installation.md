@@ -81,26 +81,6 @@ POSTGRES_DB_SCHEMA="cuelake_db"
 POSTGRES_DB_PORT=5432
 ```
 
-### S3 Settings
-Name of the S3 bucket being used as your data warehouse location. This will be also used for uploading files via CueLake.
-
-```yaml
-S3_BUCKET_NAME="YourBucketName"
-```
-
-Default directory for uplaoding files is s3://<YourBucketName>/files. If you wish to change it you can do so by setting S3_FILES_PREFIX property.
-
-```yaml
-S3_FILES_PREFIX="files/"
-```
-
-Default directory for iceberg tables (hadoop catalog) is s3://<YourBucketName>/cuelake. If you wish to change it you can do so by setting HADOOP_S3_PREFIX property.
-
-```yaml
-HADOOP_S3_PREFIX="cuelake/"
-```
-
-If you change HADOOP_S3_PREFIX, please change the spark interpreter setting `spark.sql.catalog.cuelake.warehouse` accordingly. 
 
 ### Metastore DB Settings
 We currently support Postgres as spark metastore database. Information related to saved spark tables and views get stored here. If not set the tables and views will be destroyed on every interpreter restart.

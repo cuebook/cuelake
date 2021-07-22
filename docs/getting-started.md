@@ -27,7 +27,7 @@ You should see 3 pods in running status, something like below:
 NAME                               READY   STATUS    RESTARTS   AGE
 lakehouse-74cd5d759b-8pj5c         1/1     Running   0          1m
 redis-69cc674bf8-rsd74             1/1     Running   0          1m
-zeppelin-server-865974dc55-rt9vg   3/3     Running   0          1m
+zeppelin-server-main-865974dc55-rt9vg   3/3     Running   0          1m
 ```
 
 Now visit [http://localhost:8080](http://localhost:8080) in your browser.

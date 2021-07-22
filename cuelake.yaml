@@ -8,19 +8,14 @@ data:
   # POSTGRES_DB_USERNAME: postgres
   # POSTGRES_DB_PASSWORD: postgres
   # POSTGRES_DB_SCHEMA: cuelake
-  # POSTGRES_DB_PORT: 5432
-  
-  ## S3 Settings
-  # export S3_BUCKET_NAME="YourBucketName"
-  # export S3_FILES_PREFIX="files/"
-  # export HADOOP_S3_PREFIX="cuelake/"
+  # POSTGRES_DB_PORT: '5432'
 
   ## Change below properties to point to your metastore database
-  # METASTORE_POSTGRES_HOST="localhost"
-  # METASORE_POSTGRES_PORT=5432
-  # METASORE_POSTGRES_USERNAME="postgres"
-  # METASORE_POSTGRES_PASSWORD="postgres"
-  # METASORE_POSTGRES_DATABASE="cuelake_metastore"
+  # METASTORE_POSTGRES_HOST: localhost
+  # METASORE_POSTGRES_PORT: '5432'
+  # METASORE_POSTGRES_USERNAME: postgres
+  # METASORE_POSTGRES_PASSWORD: postgres
+  # METASORE_POSTGRES_DATABASE: cuelake_metastore
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -129,7 +124,7 @@ spec:
             path: nginx.conf
       containers:
       - name: zeppelin-server
-        image: cuebook/zeppelin-server-lite:0.2
+        image: cuebook/zeppelin-server-lite:0.3
         command: ["sh", "-c"]
         args:
           - curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-env.sh -o $(ZEPPELIN_HOME)/conf/zeppelin-env.sh && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-site.xml -o $(ZEPPELIN_HOME)/conf/zeppelin-site.xml && $(ZEPPELIN_HOME)/bin/zeppelin.sh
@@ -290,7 +285,7 @@ spec:
           claimName: lakehouse-db-volume-pvc
       containers:
       - name: lakehouse
-        image: cuebook/lakehouse:0.2
+        image: cuebook/lakehouse:0.3
         resources:
           requests:
             memory: "2560Mi"

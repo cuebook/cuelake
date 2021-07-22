@@ -65,8 +65,6 @@ A lakehouse is a new, open architecture that combines the best elements of data 
 
 ### Current Limitations
 * Supports AWS S3 as a destination. Support for ADLS and GCS is in the roadmap.
-* Uses Apache Iceberg as an open table format. Delta support is in the roadmap.
-* Uses Celery for scheduling jobs. Support for Airflow is in the roadmap.
 
 
 # Support
