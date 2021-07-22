@@ -3,12 +3,11 @@ import json
 import uuid
 import datetime as dt
 import dateutil.parser as dp
-import requests
 import polling
 from celery import shared_task
 from django.conf import settings
 
-from genie.models import NotebookJob, RunStatus, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
+from genie.models import RunStatus, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
 from system.services import NotificationServices
 from utils.zeppelinAPI import ZeppelinAPI
 from utils.kubernetesAPI import Kubernetes

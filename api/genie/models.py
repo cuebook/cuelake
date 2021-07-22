@@ -26,6 +26,7 @@ class RunStatus(models.Model):
     """
     startTimestamp = models.DateTimeField(auto_now_add=True)
     endTimestamp = models.DateTimeField(null=True, default=None)
+    updateTimestamp = models.DateTimeField(auto_now=True)
     notebookId = models.CharField(max_length=20, default="000000000")
     logs = models.TextField(default="{}") # Should be valid JSON
     status = models.CharField(max_length=20)
