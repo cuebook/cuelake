@@ -11,6 +11,11 @@ export default function Sidebar(props) {
   
   const menuItems = [
     {
+      "label": "Dashboard",
+      "path": "/dashboard",
+      "icon": "fa-file"
+    },
+    {
       "label": "Notebooks",
       "path": "/notebook",
       "icon": "fa-file"

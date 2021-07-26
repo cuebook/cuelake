@@ -28,7 +28,7 @@ class RunStatus(models.Model):
     endTimestamp = models.DateTimeField(null=True, default=None)
     updateTimestamp = models.DateTimeField(auto_now=True)
     notebookId = models.CharField(max_length=20, default="000000000")
-    logs = models.TextField(default="{}") # Should be valid JSON
+    logs = models.TextField(default=dict) # Should be valid JSON
     status = models.CharField(max_length=20)
     runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
@@ -75,8 +75,8 @@ class ConnectionParamValue(models.Model):
 
 # Notebook template model
 class NotebookTemplate(models.Model):
-    template = models.JSONField(default={})
-    formJson = models.JSONField(default={})
+    template = models.JSONField(default=dict)
+    formJson = models.JSONField(default=dict)
     name = models.CharField(max_length=200, blank=True, null=True)
 
 class CustomSchedule(CrontabSchedule):
@@ -86,7 +86,7 @@ class NotebookObject(models.Model):
     notebookZeppelinId = models.CharField(max_length=10)
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, blank=True, null=True)
     notebookTemplate = models.ForeignKey(NotebookTemplate, on_delete=models.CASCADE)
-    defaultPayload = models.JSONField(default={})
+    defaultPayload = models.JSONField(default=dict)
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=NotebookJob)
