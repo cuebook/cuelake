@@ -15,7 +15,7 @@ from workflows.models import (
 from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
-from genie.models import NOTEBOOK_STATUS_QUEUED, RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
+from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookRunLogs, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -35,9 +35,9 @@ class TaskUtils:
         """
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
         workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
-        notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
+        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
         workflowStatus = polling.poll(
-            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds),
+            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunLogsIds),
             check_success= lambda x: x != "RUNNING",
             step=3,
             timeout=3600*6,
@@ -57,17 +57,17 @@ class TaskUtils:
         """
         Runs notebook jobs for all notebookIds
         """
-        notebookRunStatusIds = []
+        notebookRunLogsIds = []
         for notebookId in notebookIds:
-            runStatus = RunStatus.objects.create(
+            notebookRunLogs = NotebookRunLogs.objects.create(
                 notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRun_id=workflowRunId
             )
-            response = runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
-            runStatus.taskId = response.id
-            runStatus.save()
-            notebookRunStatusIds.append(runStatus.id)
+            response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id)
+            notebookRunLogs.taskId = response.id
+            notebookRunLogs.save()
+            notebookRunLogsIds.append(notebookRunLogs.id)
             time.sleep(0.2) # Sleep for 200ms to make sure zeppelin server has been allocated to previous notebook
-        return notebookRunStatusIds
+        return notebookRunLogsIds
     
     @staticmethod
     def __getNotebookIdsInWorkflow(workflowId: int):
@@ -98,14 +98,14 @@ class TaskUtils:
         return workflowRun
     
     @staticmethod
-    def __checkGivenRunStatuses(notebookRunStatusIds: List[int]):
+    def __checkGivenRunStatuses(notebookRunLogsIds: List[int]):
         """
         Check if given runStatuses are status is SUCCESS
         """
-        runningAndQueuedNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds).exclude(status=NOTEBOOK_STATUS_RUNNING).exclude(status=NOTEBOOK_STATUS_QUEUED).count()
-        if (len(notebookRunStatusIds) == runningAndQueuedNotebookCount):
-            successfulNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS).count()
-            logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}. Notebooks in batch: {str(len(notebookRunStatusIds))}")
-            logger.info(f"Notebook Run Status Ids: {str(notebookRunStatusIds)}")
-            return (len(notebookRunStatusIds) == successfulNotebookCount)
+        runningAndQueuedNotebookCount = NotebookRunLogs.objects.filter(id__in=notebookRunLogsIds).exclude(status=NOTEBOOK_STATUS_RUNNING).exclude(status=NOTEBOOK_STATUS_QUEUED).count()
+        if (len(notebookRunLogsIds) == runningAndQueuedNotebookCount):
+            successfulNotebookCount = NotebookRunLogs.objects.filter(id__in=notebookRunLogsIds, status=NOTEBOOK_STATUS_SUCCESS).count()
+            logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}. Notebooks in batch: {str(len(notebookRunLogsIds))}")
+            logger.info(f"Notebook Run Status Ids: {str(notebookRunLogsIds)}")
+            return (len(notebookRunLogsIds) == successfulNotebookCount)
         return "RUNNING"

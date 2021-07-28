@@ -1,6 +1,6 @@
 import json
 from rest_framework import serializers
-from genie.models import NotebookObject, NotebookJob, RunStatus, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
+from genie.models import NotebookObject, NotebookJob, NotebookRunLogs, Connection, ConnectionType, NotebookTemplate, CustomSchedule as Schedule
 
 class NotebookJobSerializer(serializers.ModelSerializer):
     """
@@ -10,9 +10,9 @@ class NotebookJobSerializer(serializers.ModelSerializer):
         model = NotebookJob
         fields = ["id", "notebookId"]
 
-class RunStatusSerializer(serializers.ModelSerializer):
+class NotebookRunLogsSerializer(serializers.ModelSerializer):
     """
-    Serializer for the model RunStatus
+    Serializer for the model NotebookRunLogs
     """
     logsJSON = serializers.SerializerMethodField()
     def get_logsJSON(self, obj):
@@ -22,7 +22,7 @@ class RunStatusSerializer(serializers.ModelSerializer):
         return json.loads(obj.logs)
 
     class Meta:
-        model = RunStatus
+        model = NotebookRunLogs
         fields = ["id", "notebookId", "startTimestamp", "endTimestamp", "status", "logsJSON", "runType"]
 
 class ScheduleSerializer(serializers.ModelSerializer):

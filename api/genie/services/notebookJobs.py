@@ -6,8 +6,8 @@ import logging
 import threading
 from typing import List
 from django.template import Template, Context
-from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NotebookObject, NotebookJob, RunStatus, Connection, NotebookTemplate, CustomSchedule as Schedule
-from genie.serializers import NotebookObjectSerializer, RunStatusSerializer
+from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_RUNNING, NotebookObject, NotebookJob, NotebookRunLogs, Connection, NotebookTemplate, CustomSchedule as Schedule
+from genie.serializers import NotebookObjectSerializer, NotebookRunLogsSerializer
 from workflows.models import Workflow, WorkflowNotebookMap
 from utils.apiResponse import ApiResponse
 from utils.zeppelinAPI import Zeppelin, ZeppelinAPI
@@ -51,7 +51,7 @@ class NotebookJobServices:
         notebooks =  Zeppelin.getAllNotebooks()
         if searchQuery:
             notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
-        if sorter.get('columnKey', False):
+        if sorter.get('order', False):
             notebooks = NotebookJobServices.sortingOnNotebook(notebooks, sorter, _filter)
         if notebooks:
             notebookCount = len(notebooks)
@@ -79,10 +79,10 @@ class NotebookJobServices:
                 for name in names:
                     workflowNames.append(name)
                 notebook["assignedWorkflow"] = workflowNames
-                notebookRunStatus = RunStatus.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
-                if notebookRunStatus:
-                    notebook["notebookStatus"] = notebookRunStatus.status if notebookRunStatus.status else None
-                    notebook["lastRun"] = RunStatusSerializer(notebookRunStatus).data
+                notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
+                if notebookRunLogs:
+                    notebook["notebookStatus"] = notebookRunLogs.status if notebookRunLogs.status else None
+                    notebook["lastRun"] = NotebookRunLogsSerializer(notebookRunLogs).data
             res.update(True, "NotebookObjects retrieved successfully", {"notebooks": notebooks, "count": notebookCount})
         else:
             res.update(True, "NotebookObjects retrieved successfully", [])
@@ -139,8 +139,8 @@ class NotebookJobServices:
         if sorter['columnKey'] == "lastRun1":
             isAscending = True if sorter['order'] == "ascend" else False
             notebookIds = [notebook["id"] for notebook in notebooks]
-            runStatusObjects = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "startTimestamp")
-            sortedNotebookIds = sorted(runStatusObjects, key = lambda i: i['startTimestamp'], reverse=isAscending)
+            notebookRunLogsObjects = NotebookRunLogs.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "startTimestamp")
+            sortedNotebookIds = sorted(notebookRunLogsObjects, key = lambda i: i['startTimestamp'], reverse=isAscending)
             reversedNotebookIds = sortedNotebookIds[::-1]
             for notebookId in reversedNotebookIds:
                 for notebook in notebooks:
@@ -152,8 +152,8 @@ class NotebookJobServices:
             if "lastRun2" in _filter:
                 # import pdb; pdb.set_trace();
                 notebookIds = [notebook["id"] for notebook in notebooks]
-                runStatusObjects = RunStatus.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "status")
-                filteredNotebookIds = [runStatusObject["notebookId"] for runStatusObject in runStatusObjects if runStatusObject['status'] in _filter['lastRun2']]
+                notebookRunLogsObjects = NotebookRunLogs.objects.filter(notebookId__in=notebookIds).order_by("notebookId", "-startTimestamp").distinct("notebookId").values("notebookId", "status")
+                filteredNotebookIds = [notebookRunLogsObject["notebookId"] for notebookRunLogsObject in notebookRunLogsObjects if notebookRunLogsObject['status'] in _filter['lastRun2']]
                 notebooks = [notebook for notebook in notebooks if notebook["id"] in filteredNotebookIds]
 
         return notebooks
@@ -273,17 +273,17 @@ class NotebookJobServices:
         return res
     
     @staticmethod
-    def getNotebookJobDetails(notebookId: int, runStatusOffset: int = 0):
+    def getNotebookJobDetails(notebookId: int, notebookRunLogsOffset: int = 0):
         """
         Service to fetch run details and logs of the selected NotebookJob
         :param notebookId: ID of the NotebookJob
-        :param runStatusOffset: Offset for fetching NotebookJob run statuses
+        :param notebookRunLogsOffset: Offset for fetching NotebookJob run statuses
         """
         res = ApiResponse()
         notebookJobData = {}
-        runStatuses = RunStatus.objects.filter(notebookId=notebookId).order_by("-startTimestamp")[runStatusOffset: runStatusOffset + RUN_STATUS_LIMIT]
-        notebookRunCount = RunStatus.objects.filter(notebookId=notebookId).count()
-        notebookJobData["runStatuses"] = RunStatusSerializer(runStatuses, many=True).data
+        notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId).order_by("-startTimestamp")[notebookRunLogsOffset: notebookRunLogsOffset + RUN_STATUS_LIMIT]
+        notebookRunCount = NotebookRunLogs.objects.filter(notebookId=notebookId).count()
+        notebookJobData["notebookRunLogs"] = NotebookRunLogsSerializer(notebookRunLogs, many=True).data
         notebookJobData["count"] = notebookRunCount
         res.update(True, "NotebookJobs retrieved successfully", notebookJobData)
         return res
@@ -318,8 +318,8 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
-        runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id, runType="Manual")
+        notebookRunLogs = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, runType="Manual")
         res.update(True, "Notebook triggered successfully", None)
         return res
 
@@ -329,12 +329,12 @@ class NotebookJobServices:
         Service to stop notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
-        # Updating runStatus that the task is being aborted
-        notebookRunStatus = RunStatus.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
-        if(notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING):
-            notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
-            notebookRunStatus.save()
-        zeppelin = ZeppelinAPI(notebookRunStatus.zeppelinServerId)
+        # Updating NotebookRunLogs that the task is being aborted
+        notebookNotebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
+        if(notebookNotebookRunLogs.status == NOTEBOOK_STATUS_RUNNING):
+            notebookNotebookRunLogs.status = NOTEBOOK_STATUS_ABORT
+            notebookNotebookRunLogs.save()
+        zeppelin = ZeppelinAPI(notebookNotebookRunLogs.zeppelinServerId)
         thread = threading.Thread(target=zeppelin.stopNotebookJob, args=[notebookId])
         thread.start()
         res.update(True, "Aborting notebook job", None)

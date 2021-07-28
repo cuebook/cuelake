@@ -20,7 +20,7 @@ class NotebookJob(PeriodicTask):
     """
     notebookId = models.CharField(max_length=50, db_index=True, unique=True)
 
-class RunStatus(models.Model):
+class NotebookRunLogs(models.Model):
     """
     Model class to store logs and statuses of NotebookJob runs
     """

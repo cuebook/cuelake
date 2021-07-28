@@ -11,7 +11,7 @@ from workflows.tasks import runWorkflowJob
 from genie.tasks import runNotebookJob
 
 from workflows.models import WorkflowRun, STATUS_ERROR, STATUS_SUCCESS
-from genie.tasks import RunStatus
+from genie.tasks import NotebookRunLogs
 
 
 @pytest.mark.django_db(transaction=True)
@@ -120,7 +120,7 @@ def test_workflows(client, populate_seed_data, mocker):
     response = client.get(path)
     assert response.status_code == 200
     assert WorkflowRun.objects.count() == 2
-    assert RunStatus.objects.count() == 1
+    assert NotebookRunLogs.objects.count() == 1
     runWorkflowJobPatch.stop()
     runNotebookJobPatch.stop()
 

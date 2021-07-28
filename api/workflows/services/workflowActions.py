@@ -10,7 +10,7 @@ from utils.apiResponse import ApiResponse
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.services import NotebookJobServices
-from genie.models import CustomSchedule, RunStatus, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
+from genie.models import CustomSchedule, NotebookRunLogs, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_QUEUED, NOTEBOOK_STATUS_ABORT
 
 
 class WorkflowActions:
@@ -57,16 +57,16 @@ class WorkflowActions:
         workflowRun.save()
 
         # Stopping notebook tasks
-        notebookRunStatuses = RunStatus.objects.filter(workflowRun=workflowRunId)
-        for notebookRunStatus in notebookRunStatuses:
-            if notebookRunStatus.status == NOTEBOOK_STATUS_QUEUED:
-                app.control.revoke(notebookRunStatus.taskId, terminate=True)
-                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
-                notebookRunStatus.save()
-            elif notebookRunStatus.status == NOTEBOOK_STATUS_RUNNING:
-                notebookRunStatus.status = NOTEBOOK_STATUS_ABORT
-                notebookRunStatus.save()
-                NotebookJobServices.stopNotebookJob(notebookRunStatus.notebookId)
+        notebookRunLogs = NotebookRunLogs.objects.filter(workflowRun=workflowRunId)
+        for notebookRunLog in notebookRunLogs:
+            if notebookRunLog.status == NOTEBOOK_STATUS_QUEUED:
+                app.control.revoke(notebookRunLog.taskId, terminate=True)
+                notebookRunLog.status = NOTEBOOK_STATUS_ABORT
+                notebookRunLog.save()
+            elif notebookRunLog.status == NOTEBOOK_STATUS_RUNNING:
+                notebookRunLog.status = NOTEBOOK_STATUS_ABORT
+                notebookRunLog.save()
+                NotebookJobServices.stopNotebookJob(notebookRunLog.notebookId)
 
         res.update(True, "Stopped workflow successfully")
         return res

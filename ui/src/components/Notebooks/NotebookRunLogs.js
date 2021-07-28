@@ -253,7 +253,7 @@ export default function NotebookRunLogs(props) {
         rowKey={"id"}
         scroll={{ x: "100%" }}
         columns={columns}
-        dataSource={notebookLogs.runStatuses}
+        dataSource={notebookLogs.notebookRunLogs}
         loading={loading}
         size={"small"}
         expandable={{
