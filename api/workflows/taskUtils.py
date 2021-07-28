@@ -5,7 +5,7 @@ import logging
 import datetime as dt
 import polling
 from workflows.models import (
-    WorkflowRun,
+    WorkflowRunLogs,
     WorkflowNotebookMap,
     STATUS_SUCCESS,
     STATUS_ERROR,
@@ -29,13 +29,13 @@ class TaskUtils:
     Class containing workflow job utils
     """
     @staticmethod
-    def runWorkflow(workflowId: int, taskId: str, workflowRunId: int = None):
+    def runWorkflow(workflowId: int, taskId: str, workflowRunLogsId: int = None):
         """
         Runs workflow
         """
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
-        workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
-        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
+        workflowRunLogs = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunLogsId)
+        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRunLogs.id)
         workflowStatus = polling.poll(
             lambda: TaskUtils.__checkGivenRunStatuses(notebookRunLogsIds),
             check_success= lambda x: x != "RUNNING",
@@ -44,23 +44,23 @@ class TaskUtils:
         )
         logger.info(f"Workflow status : {str(workflowStatus)}")
 
-        if WorkflowRun.objects.get(id=workflowRun.id).status == STATUS_ABORTED:
+        if WorkflowRunLogs.objects.get(id=workflowRunLogs.id).status == STATUS_ABORTED:
             return STATUS_ABORTED
 
-        workflowRun.status = STATUS_SUCCESS if workflowStatus else STATUS_ERROR
-        workflowRun.endTimestamp = dt.datetime.now()
-        workflowRun.save()
-        return workflowRun.status
+        workflowRunLogs.status = STATUS_SUCCESS if workflowStatus else STATUS_ERROR
+        workflowRunLogs.endTimestamp = dt.datetime.now()
+        workflowRunLogs.save()
+        return workflowRunLogs.status
 
     @staticmethod
-    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunId: int):
+    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunLogsId: int):
         """
         Runs notebook jobs for all notebookIds
         """
         notebookRunLogsIds = []
         for notebookId in notebookIds:
             notebookRunLogs = NotebookRunLogs.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRun_id=workflowRunId
+                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId
             )
             response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id)
             notebookRunLogs.taskId = response.id
@@ -82,17 +82,17 @@ class TaskUtils:
         return notebookIds
 
     @staticmethod
-    def __getOrCreateWorkflowRun(workflowId: int, taskId: str, workflowRunId: int = None):
+    def __getOrCreateWorkflowRun(workflowId: int, taskId: str, workflowRunLogsId: int = None):
         """
         Gets or Creates workflow run object
         """
-        if workflowRunId:
-            workflowRun = WorkflowRun.objects.get(id=workflowRunId)
+        if workflowRunLogsId:
+            workflowRun = WorkflowRunLogs.objects.get(id=workflowRunLogsId)
             workflowRun.status = STATUS_RUNNING
             workflowRun.taskId = taskId
             workflowRun.save()
         else:
-            workflowRun = WorkflowRun.objects.create(
+            workflowRun = WorkflowRunLogs.objects.create(
                 workflow_id=workflowId, status=STATUS_RUNNING, taskId=taskId
             )
         return workflowRun

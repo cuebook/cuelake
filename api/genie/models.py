@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.fields import CharField
 from django_celery_beat.models import PeriodicTask, PeriodicTasks, CrontabSchedule
-from workflows.models import WorkflowRun
+from workflows.models import WorkflowRunLogs
 from django.db.models import signals
 
 
@@ -32,7 +32,7 @@ class NotebookRunLogs(models.Model):
     status = models.CharField(max_length=20)
     runType = models.CharField(max_length=20, blank=True, null=True) # Manual/Scheduled
     message = models.CharField(max_length=5000, null=True, default=None)
-    workflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.SET_NULL)
+    workflowRunLogs = models.ForeignKey(WorkflowRunLogs, null=True, blank=True, on_delete=models.SET_NULL)
     taskId = models.CharField(max_length=200, default="")
     zeppelinServerId = models.CharField(max_length=200, default="")
 

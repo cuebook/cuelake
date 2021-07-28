@@ -10,7 +10,7 @@ from genie.services import ScheduleService
 from workflows.tasks import runWorkflowJob
 from genie.tasks import runNotebookJob
 
-from workflows.models import WorkflowRun, STATUS_ERROR, STATUS_SUCCESS
+from workflows.models import WorkflowRunLogs, STATUS_ERROR, STATUS_SUCCESS
 from genie.tasks import NotebookRunLogs
 
 
@@ -119,7 +119,7 @@ def test_workflows(client, populate_seed_data, mocker):
     path =  reverse("runWorkflow", kwargs={"workflowId": _workflowId})
     response = client.get(path)
     assert response.status_code == 200
-    assert WorkflowRun.objects.count() == 2
+    assert WorkflowRunLogs.objects.count() == 2
     assert NotebookRunLogs.objects.count() == 1
     runWorkflowJobPatch.stop()
     runNotebookJobPatch.stop()
