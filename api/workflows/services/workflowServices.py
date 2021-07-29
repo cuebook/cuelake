@@ -5,10 +5,10 @@ from app.celery import app
 
 from workflows.models import (
     Workflow,
-    WorkflowRun,
+    WorkflowRunLogs,
     WorkflowNotebookMap
 )
-from workflows.serializers import WorkflowSerializer, WorkflowRunSerializer
+from workflows.serializers import WorkflowSerializer, WorkflowRunLogsSerializer
 from utils.apiResponse import ApiResponse
 from django_celery_beat.models import PeriodicTask
 
@@ -49,7 +49,7 @@ class WorkflowServices:
         if sortColumn == "schedule":
             workflows = Workflow.objects.all().order_by(sortPrefix + "periodictask__crontab__customschedule__name")
         if sortColumn == "lastRunTime":
-            workflowRuns = WorkflowRun.objects.all().order_by("workflow_id", "-startTimestamp").distinct("workflow_id").values("workflow_id", "startTimestamp")
+            workflowRuns = WorkflowRunLogs.objects.all().order_by("workflow_id", "-startTimestamp").distinct("workflow_id").values("workflow_id", "startTimestamp")
             sortedWorkflowRuns = sorted(workflowRuns, key = lambda i: i['startTimestamp'], reverse=isAscending)
             sortedWorkflowIds = [workflowRun["workflow_id"] for workflowRun in sortedWorkflowRuns]
             workflows = Workflow.objects.filter(id__in=sortedWorkflowIds)
@@ -175,9 +175,9 @@ class WorkflowServices:
         """
         LIMIT = 10
         res = ApiResponse(message="Error in retrieving workflow logs")
-        workflowRuns = WorkflowRun.objects.filter(workflow=workflowId).order_by("-id")
+        workflowRuns = WorkflowRunLogs.objects.filter(workflow=workflowId).order_by("-id")
         total = workflowRuns.count()
-        data = WorkflowRunSerializer(workflowRuns[offset:offset+LIMIT], many=True).data
+        data = WorkflowRunLogsSerializer(workflowRuns[offset:offset+LIMIT], many=True).data
 
         res.update(
             True,
@@ -187,13 +187,13 @@ class WorkflowServices:
         return res
 
     @staticmethod
-    def getWorkflowRunLogs(workflowRunId: int):
+    def getWorkflowRunLogs(workflowRunLogsId: int):
         """
         Service to fetch logs related to given workflowRun
-        :param workflowRunId: if of model workflows.workflowRun
+        :param workflowRunLogsId: if of model workflows.workflowRun
         """
         res = ApiResponse(message="Error in retrieving workflow logs")
-        workflowRun = WorkflowRun.objects.get(id=workflowRunId)
+        workflowRun = WorkflowRunLogs.objects.get(id=workflowRunLogsId)
         total = []
         res.update(
             True,

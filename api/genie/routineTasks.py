@@ -11,45 +11,45 @@ def orphanJobsChecker():
     __checkOrphanWorkflowJobs()
     
 def __checkOrphanNotebookJobs():
-    from genie.models import RunStatus, NOTEBOOK_STATUS_RUNNING
-    runStatuses = RunStatus.objects.filter(status__in=[NOTEBOOK_STATUS_RUNNING])
-    if len(runStatuses):
+    from genie.models import NotebookRunLogs, NOTEBOOK_STATUS_RUNNING
+    notebookRunLogs = NotebookRunLogs.objects.filter(status__in=[NOTEBOOK_STATUS_RUNNING])
+    if len(notebookRunLogs):
         staleRunStatues = []
-        for runStatus in runStatuses:
-            if((datetime.now(timezone.utc) - runStatus.updateTimestamp).seconds > 60):
-                staleRunStatues.append(runStatus)
-                __handleStaleNotebookJob(runStatus)
+        for notebookRunLog in notebookRunLogs:
+            if((datetime.now(timezone.utc) - notebookRunLog.updateTimestamp).seconds > 60):
+                staleRunStatues.append(notebookRunLog)
+                __handleStaleNotebookJob(notebookRunLog)
 
-def __handleStaleNotebookJob(runStatus):
+def __handleStaleNotebookJob(notebookRunLog):
     # First check if job server is running:
     from utils.kubernetesAPI import Kubernetes
     from genie.tasks import runNotebookJob
     podStatus = None
     try:
-        podStatus = Kubernetes.getPodStatus(runStatus.zeppelinServerId)
+        podStatus = Kubernetes.getPodStatus(notebookRunLog.zeppelinServerId)
         if podStatus in ["PENDING"]:
             return True
     except Exception as ex:
         # This will be mostly pod not found error
         logger.info(f"{str(ex)}")
     # Run the job again
-    runNotebookJob.delay(notebookId=runStatus.notebookId, runStatusId=runStatus.id)
+    runNotebookJob.delay(notebookId=notebookRunLog.notebookId, notebookRunLogsId=notebookRunLog.id)
 
 def __checkOrphanWorkflowJobs():
-    from workflows.models import WorkflowRun, STATUS_RUNNING
-    workflowRuns = WorkflowRun.objects.filter(status=STATUS_RUNNING)
-    if len(workflowRuns):
-        for workflowRun in workflowRuns:
-            ___checkAndUpdateWorkflowStatus(workflowRun)
+    from workflows.models import WorkflowRunLogs, STATUS_RUNNING
+    workflowRunLogs = WorkflowRunLogs.objects.filter(status=STATUS_RUNNING)
+    if len(workflowRunLogs):
+        for workflowRunLog in workflowRunLogs:
+            ___checkAndUpdateWorkflowStatus(workflowRunLog)
 
-def ___checkAndUpdateWorkflowStatus(workflowRun):
+def ___checkAndUpdateWorkflowStatus(workflowRunLog):
     from workflows.models import STATUS_RUNNING, STATUS_QUEUED, STATUS_ABORTED, STATUS_ERROR, STATUS_SUCCESS
-    if workflowRun.runstatus_set.filter(status__in=[STATUS_RUNNING,STATUS_QUEUED]).count() == 0:
-        workflowRun.endTimestamp = datetime.now()
-        if workflowRun.runstatus_set.filter(status__in=[STATUS_ERROR, STATUS_ABORTED]).count() == 0:
-            workflowRun.status = STATUS_SUCCESS
-            workflowRun.save()
+    if workflowRunLog.notebookrunlogs_set.filter(status__in=[STATUS_RUNNING,STATUS_QUEUED]).count() == 0:
+        workflowRunLog.endTimestamp = datetime.now()
+        if workflowRunLog.notebookrunlogs_set.filter(status__in=[STATUS_ERROR, STATUS_ABORTED]).count() == 0:
+            workflowRunLog.status = STATUS_SUCCESS
+            workflowRunLog.save()
         else:
-            workflowRun.status = STATUS_ERROR
-            workflowRun.save()
+            workflowRunLog.status = STATUS_ERROR
+            workflowRunLog.save()
                 

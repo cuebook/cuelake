@@ -91,7 +91,7 @@ class NotebookJobView(APIView):
     """
     def get(self, request, notebookId=None):
         offset = int(request.GET.get("offset", 0))
-        res = NotebookJobServices.getNotebookJobDetails(notebookId=notebookId, runStatusOffset=offset)
+        res = NotebookJobServices.getNotebookJobDetails(notebookId=notebookId, notebookRunLogsOffset=offset)
         return Response(res.json())
     
     def post(self, request):

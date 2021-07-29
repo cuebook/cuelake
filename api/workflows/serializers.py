@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from workflows.models import Workflow, WorkflowRun, WorkflowNotebookMap
+from workflows.models import Workflow, WorkflowRunLogs, WorkflowNotebookMap
 
 class WorkflowSerializer(serializers.ModelSerializer):
     """
@@ -22,13 +22,13 @@ class WorkflowSerializer(serializers.ModelSerializer):
     	"""
 		Gets last run time of workflow
     	"""
-    	workflowRuns = obj.workflowrun_set.order_by("-startTimestamp")
-    	if workflowRuns.count():
+    	workflowRunlogs = obj.workflowrunlogs_set.order_by("-startTimestamp")
+    	if workflowRunlogs.count():
     		return {
-                "status": workflowRuns[0].status, 
-                "startTimestamp": workflowRuns[0].startTimestamp,
-                "endTimestamp": workflowRuns[0].endTimestamp,
-                "workflowRunId": workflowRuns[0].id
+                "status": workflowRunlogs[0].status, 
+                "startTimestamp": workflowRunlogs[0].startTimestamp,
+                "endTimestamp": workflowRunlogs[0].endTimestamp,
+                "workflowRunId": workflowRunlogs[0].id
             }
     	else:
     		return None
@@ -48,11 +48,11 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "triggerWorkflow", "triggerWorkflowStatus", "lastRun", "schedule", "notebooks"]
 
 
-class WorkflowRunSerializer(serializers.ModelSerializer):
+class WorkflowRunLogsSerializer(serializers.ModelSerializer):
     """
-    Serializer for the model WorkflowRun
+    Serializer for the model WorkflowRunLogs
     """
 
     class Meta:
-        model = WorkflowRun
+        model = WorkflowRunLogs
         fields = ["id", "status", "workflow", "startTimestamp", "endTimestamp"]

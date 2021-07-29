@@ -8,7 +8,7 @@ from django.conf import settings
 
 from system.services import NotificationServices
 from workflows.taskUtils import TaskUtils
-from workflows.models import Workflow, WorkflowRun, STATUS_QUEUED, STATUS_ERROR, STATUS_ALWAYS
+from workflows.models import Workflow, WorkflowRunLogs, STATUS_QUEUED, STATUS_ERROR, STATUS_ALWAYS
 
 import logging
 
@@ -16,13 +16,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 @shared_task
-def runWorkflowJob(workflowId: int, workflowRunId: int = None):
+def runWorkflowJob(workflowId: int, workflowRunLogsId: int = None):
 	"""
     Celery task to run a Workflow
     :param workflowId: ID of Workflows.workflow model
 	"""
 	try:
-		workflowRunStatus = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunId=workflowRunId, taskId=runWorkflowJob.request.id if runWorkflowJob.request.id else "")
+		workflowRunStatus = TaskUtils.runWorkflow(workflowId=workflowId, workflowRunLogsId=workflowRunLogsId, taskId=runWorkflowJob.request.id if runWorkflowJob.request.id else "")
 		dependentWorkflowIds = list(
             Workflow.objects.filter(
                 triggerWorkflow_id=workflowId,
@@ -30,8 +30,8 @@ def runWorkflowJob(workflowId: int, workflowRunId: int = None):
             ).values_list("id", flat=True)
         )
 		for workflowId in dependentWorkflowIds:
-			workflowRun = WorkflowRun.objects.create(workflow_id=workflowId, status=STATUS_QUEUED)
-			runWorkflowJob.delay(workflowId=workflowId, workflowRunId=workflowRun.id)
+			workflowRun = WorkflowRunLogs.objects.create(workflow_id=workflowId, status=STATUS_QUEUED)
+			runWorkflowJob.delay(workflowId=workflowId, workflowRunLogsId=workflowRun.id)
 	except Exception as ex:
-		WorkflowRun.objects.filter(id=workflowRunId).update(status=STATUS_ERROR, endTimestamp=dt.datetime.now())
+		WorkflowRunLogs.objects.filter(id=workflowRunLogsId).update(status=STATUS_ERROR, endTimestamp=dt.datetime.now())
 		print(str(ex))
