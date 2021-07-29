@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Popconfirm, message, Tooltip, Drawer } from "antd";
+import { Button } from "antd";
 // import style from "./style.module.scss";
 import workspaceService from "services/workspace.js";
 
@@ -24,6 +24,9 @@ export default function Connection() {
             <Button
                 key="createTag"
                 type="primary"
+                onClick={(e) => {e.preventDefault();
+                    window.location.href='/workspace/add';}
+                }
             >
                 New Workspace
             </Button>

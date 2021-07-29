@@ -4,4 +4,6 @@ from . import views
 urlpatterns = [
     path("workspaces", views.Workspaces.as_view(), name="workspaces"),
     path("workspace/<int:workspaceId>", views.Workspace.as_view(), name="workspace"),
+    path("workspaceConfig/<int:workspaceId>", views.WorksapceConfig.as_view(), name="workspaceConfig"),
+    path("dockerimages/<str:repository>", views.DockerImages.as_view(), name="dockerimages"),
 ]

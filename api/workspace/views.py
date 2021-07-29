@@ -24,7 +24,12 @@ class Workspace(APIView):
 
 
 class WorksapceConfig(APIView):
-    def put(self, request):
+    def put(self, request, workspaceId: int):
         workspaceConfigDict = request.data
-        res = WorkspaceService.updateWorkspaceConfig(workspaceConfigDict)
+        res = WorkspaceService.updateWorkspaceConfig(workspaceId, workspaceConfigDict)
+        return Response(res.json())
+
+class DockerImages(APIView):
+    def get(self, request, repository: str):
+        res = WorkspaceService.getDockerImages(repository)
         return Response(res.json())

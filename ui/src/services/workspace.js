@@ -6,6 +6,11 @@ class WorkspaceService {
         const response = await apiService.get("workspace/workspaces")
         return response
     }
+
+    async getImageTags(repository){
+        const response = await apiService.get("workspace/dockerimages/" + repository)
+        return response
+    }
 }
 let workspaceService = new WorkspaceService();
 export default workspaceService

@@ -1,9 +1,11 @@
+from utils.dockerHubAPI import DockerHubAPI
 from workspace.models import (
     Workspace,
     WorkspaceConfig
 )
 from workspace.serializers import WorkspaceSerializer
 from utils.apiResponse import ApiResponse
+from utils.dockerHubAPI import dockerHubAPI
 
 class WorkspaceService:
     """
@@ -22,6 +24,7 @@ class WorkspaceService:
         res.update(True, "Worksapces retrieved successfully", data)
         return res
 
+    @staticmethod
     def createWorkspace(name: str, description: str):
         res = ApiResponse(message="Error creating workspace")
         workspace = Workspace.objects.create(name=name, description=description)
@@ -29,15 +32,26 @@ class WorkspaceService:
         res.update(True, "Workspace created successfully")
         return res
 
+    @staticmethod
     def updateWorkspaceConfig(workspaceId: int, workspaceConfigDict: dict):
         res = ApiResponse(message="Error updating config of workspace")
         worksapceConfig = WorkspaceConfig.objects.get(workspace_id=workspaceId)
-        worksapceConfig.update(**workspaceConfigDict)
+        for (key, value) in workspaceConfigDict.items():
+            setattr(worksapceConfig, key, value)
+        worksapceConfig.save()
         res.update(True, message="Successfully updated workspace config")
         return res
 
+    @staticmethod
     def startWorksapceServer(workspaceId: int):
         res = ApiResponse(message="Error creating worksapce server")
+        return res
+
+    @staticmethod
+    def getDockerImages(repository: str):
+        res = ApiResponse(message="Error fetching docker images")
+        imageTags = dockerHubAPI.getImageTags(repository)
+        res.update(True, message="Image tags fetched successfully", data=imageTags)
         return res
 
     @staticmethod
