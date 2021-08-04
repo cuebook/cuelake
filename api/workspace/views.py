@@ -16,6 +16,12 @@ class Workspaces(APIView):
         res = WorkspaceService.createWorkspace(name, description)
         return Response(res.json())
 
+class CreateAndStartWorkspaceServer(APIView):
+    def post(self, request):
+        workspaceDict = request.data.get("workspace")
+        workspaceConfigDict = request.data.get("workspaceConfig")
+        res = WorkspaceService.createAndStartWorkspaceServer(workspaceDict, workspaceConfigDict)
+        return Response(res.json())
 
 class Workspace(APIView):
     def get(self, request, workspaceId: int):

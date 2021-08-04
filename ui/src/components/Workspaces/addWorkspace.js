@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Steps, Popover, Form, Input, Button, Select } from 'antd';
+import { Steps, Popover, Form, Input, Button, Select, message } from 'antd';
 import { DatabaseOutlined, AppstoreOutlined, CloudServerOutlined, SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import style from "./style.module.scss";
 import workspaceService from "services/workspace";
@@ -44,6 +44,13 @@ export default function AddWorkspace() {
     }
 
     const createWorkspace = () => {
+        const response = workspaceService.createAndStartWorkspaceServer(workspace, workspaceConfig)
+        if(response.success){
+            window.location.href='/dashboard'
+        }
+        else{
+            message.error(response.message);
+        }
     }
 
     const getSparkImages = async () => {

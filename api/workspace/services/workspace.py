@@ -1,3 +1,4 @@
+from django.db import transaction
 from utils.dockerHubAPI import DockerHubAPI
 from workspace.models import (
     Workspace,
@@ -45,6 +46,20 @@ class WorkspaceService:
     @staticmethod
     def startWorksapceServer(workspaceId: int):
         res = ApiResponse(message="Error creating worksapce server")
+        return res
+
+    @staticmethod
+    @transaction.atomic
+    def createAndStartWorkspaceServer(workspaceDict: dict, workspaceConfigDict: dict):
+        res = ApiResponse(message="Error creating workspace")
+        workspace = Workspace.objects.create(**workspaceDict)
+        WorkspaceConfig.objects.create(workspace=workspace)
+        worksapceConfig = WorkspaceConfig.objects.get(workspace_id=workspace.id)
+        for (key, value) in workspaceConfigDict.items():
+            setattr(worksapceConfig, key, value)
+        worksapceConfig.save()
+        WorkspaceService.startWorksapceServer(workspace.id)
+        res.update(True, message="Successfully created workspace config")
         return res
 
     @staticmethod

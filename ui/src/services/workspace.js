@@ -11,6 +11,11 @@ class WorkspaceService {
         const response = await apiService.get("workspace/dockerimages/" + repository)
         return response
     }
+
+    async createAndStartWorkspaceServer(workspace, workspaceConfig){
+        const response = await apiService.post("workspace/createAndStartWorkspaceServer", {workspace: workspace, workspaceConfig: workspaceConfig})
+        return response
+    }
 }
 let workspaceService = new WorkspaceService();
 export default workspaceService
