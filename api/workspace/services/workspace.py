@@ -7,6 +7,7 @@ from workspace.models import (
 from workspace.serializers import WorkspaceSerializer
 from utils.apiResponse import ApiResponse
 from utils.dockerHubAPI import dockerHubAPI
+from utils.kubernetesAPI import Kubernetes
 
 class WorkspaceService:
     """
@@ -44,8 +45,11 @@ class WorkspaceService:
         return res
 
     @staticmethod
-    def startWorksapceServer(workspaceId: int):
+    def startWorksapceServer(workspace: Workspace):
         res = ApiResponse(message="Error creating worksapce server")
+        workspaceName = workspace.name
+        workspaceConfigDict = WorkspaceConfig.objects.get(workspace=workspace).__dict__
+        Kubernetes.addZeppelinServer(workspaceName, workspaceConfigDict)
         return res
 
     @staticmethod
@@ -58,7 +62,7 @@ class WorkspaceService:
         for (key, value) in workspaceConfigDict.items():
             setattr(worksapceConfig, key, value)
         worksapceConfig.save()
-        WorkspaceService.startWorksapceServer(workspace.id)
+        WorkspaceService.startWorksapceServer(workspace)
         res.update(True, message="Successfully created workspace config")
         return res
 

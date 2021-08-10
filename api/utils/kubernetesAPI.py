@@ -8,6 +8,8 @@ from kubernetes import config, client
 from utils.safeDict import SafeDict
 import random
 import subprocess
+from pathlib import Path
+from string import Template
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -57,7 +59,249 @@ class KubernetesAPI:
                 }
         return data
 
-    def addZeppelinServer(self, podId):
+    def addZeppelinServer(self, workspaceName: str, workspaceConfig: dict):
+        sparkConfigJSON = ""
+        if(workspaceConfig['storage'] == "S3"):
+            if(workspaceConfig['acidProvider'] == "Delta"):
+                sparkConfigJSON = """
+                "AWS_ACCESS_KEY_ID": {
+                    "name": "AWS_ACCESS_KEY_ID",
+                    "value": "s3AccessKey",
+                    "type": "textarea"
+                },
+                "AWS_SECRET_ACCESS_KEY": {
+                    "name": "AWS_SECRET_ACCESS_KEY",
+                    "value": "s3SecretKey",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "warehouseLocation",
+                    "type": "textarea"
+                },
+                 "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "io.delta.sql.DeltaSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('s3AccessKey', workspaceConfig['s3AccessKey']).replace('s3SecretKey', workspaceConfig['s3SecretKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+            elif(workspaceConfig['acidProvider'] == "Iceberg"):
+                sparkConfigJSON = """"AWS_ACCESS_KEY_ID": {
+                    "name": "AWS_ACCESS_KEY_ID",
+                    "value": "s3AccessKey",
+                    "type": "textarea"
+                },
+                "AWS_SECRET_ACCESS_KEY": {
+                    "name": "AWS_SECRET_ACCESS_KEY",
+                    "value": "s3SecretKey",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "warehouseLocation",
+                    "type": "textarea"
+                },
+                 "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.iceberg.spark.SparkSessionCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('s3AccessKey', workspaceConfig['s3AccessKey']).replace('s3SecretKey', workspaceConfig['s3SecretKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+        elif(workspaceConfig['storage'] == "AZFS"):
+            if(workspaceConfig['acidProvider'] == "Delta"):
+                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net": {
+                    "name": "spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net",
+                    "value": "azureKey",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "warehouseLocation",
+                    "type": "textarea"
+                },
+                 "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "io.delta.sql.DeltaSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('azureKey', workspaceConfig['azureKey']).replace('azureAccount', workspaceConfig['azureAccount']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+            elif(workspaceConfig['acidProvider'] == "Iceberg"):
+                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net": {
+                    "name": "spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net",
+                    "value": "azureKey",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "{workspaceConfig['warehouseLocation']}",
+                    "type": "textarea"
+                },
+                  "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.iceberg.spark.SparkSessionCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('azureKey', workspaceConfig['azureKey']).replace('azureAccount', workspaceConfig['azureAccount']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+        elif(workspaceConfig['storage'] == "GS"):
+            if(workspaceConfig['acidProvider'] == "Delta"):
+                sparkConfigJSON = """spark.kubernetes.driver.secrets.cuelake-bucket-key": {
+                    "name": "spark.kubernetes.driver.secrets.cuelake-bucket-key",
+                    "value": "googleKey",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "warehouseLocation",
+                    "type": "textarea"
+                },
+                "spark.hadoop.fs.AbstractFileSystem.gs.impl":{
+                    "name": "spark.hadoop.fs.AbstractFileSystem.gs.impl",
+                    "value": "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
+                    "type": "textarea"
+                },
+                "spark.hadoop.google.cloud.auth.service.account.enable":{
+                    "name": "spark.hadoop.google.cloud.auth.service.account.enable",
+                    "value": "true",
+                    "type": "textarea"
+                },
+                "spark.delta.logStore.gs.impl":{
+                    "name": "spark.delta.logStore.gs.impl",
+                    "value": "io.delta.storage.GCSLogStore",
+                    "type": "textarea"
+                },
+                "spark.hadoop.fs.gs.impl":{
+                    "name": "spark.hadoop.fs.gs.impl",
+                    "value": "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem",
+                    "type": "textarea"
+                },
+                "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "io.delta.sql.DeltaSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('googleKey', workspaceConfig['googleKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+            elif(workspaceConfig['acidProvider'] == "Iceberg"):
+                sparkConfigJSON = """spark.kubernetes.driver.secrets.cuelake-bucket-key": {
+                    "name": "spark.kubernetes.driver.secrets.cuelake-bucket-key",
+                    "value": "googleKey",
+                    "type": "textarea"
+                },
+                "spark.kubernetes.authenticate.driver.serviceAccountName": {
+                    "name": "spark.kubernetes.authenticate.driver.serviceAccountName",
+                    "value": "{workspaceConfig['azureAccount']}",
+                    "type": "textarea"
+                },
+                "spark.sql.warehouse.dir":{
+                    "name": "spark.sql.warehouse.dir",
+                    "value": "warehouseLocation",
+                    "type": "textarea"
+                },
+                "spark.hadoop.fs.AbstractFileSystem.gs.impl":{
+                    "name": "spark.hadoop.fs.AbstractFileSystem.gs.impl",
+                    "value": "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
+                    "type": "textarea"
+                },
+                "spark.hadoop.google.cloud.auth.service.account.enable":{
+                    "name": "spark.hadoop.google.cloud.auth.service.account.enable",
+                    "value": "true",
+                    "type": "textarea"
+                },
+                "spark.delta.logStore.gs.impl":{
+                    "name": "spark.delta.logStore.gs.impl",
+                    "value": "io.delta.storage.GCSLogStore",
+                    "type": "textarea"
+                },
+                "spark.hadoop.fs.gs.impl":{
+                    "name": "spark.hadoop.fs.gs.impl",
+                    "value": "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem",
+                    "type": "textarea"
+                },
+                 "spark.sql.extensions":{
+                    "name": "spark.sql.extensions",
+                    "value": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtension",
+                    "type": "textarea"
+                },
+                 "spark.sql.catalog.spark_catalog":{
+                    "name": "spark.sql.catalog.spark_catalog",
+                    "value": "org.apache.iceberg.spark.SparkSessionCatalog",
+                    "type": "textarea"
+                },
+                """
+                sparkConfigJSON = sparkConfigJSON.replace('googleKey', workspaceConfig['googleKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+        with open("workspace/services/templates/conf/interpreter.json", "r") as file:
+            zeppelinInterpreterTemplate = file.read()
+            zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('sparkConfigJSON', sparkConfigJSON)
+            print
+        Path(f"data/workspaces/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
+        with open(f"data/workspaces/{workspaceName}/conf/interpreter.json", "w") as file:
+            file.write(zeppelinInterpreterTemplate)
+
+        zeppelinEnvTemplate = open("workspace/services/templates/conf/zeppelin-env.sh", "r")
+        zeppelinEnvTemplate = zeppelinEnvTemplate.read()
+        zeppelinEnvTemplate = zeppelinEnvTemplate.format_map(SafeDict(inactivityTimeout=workspaceConfig['inactivityTimeout']))
+        Path(f"data/workspaces/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
+        zeppelinEnvFile = open(f"data/workspaces/{workspaceName}/conf/zeppelin-env.sh", "w")
+        zeppelinEnvFile.write(zeppelinEnvTemplate)
+
+        interpreterSpecTemplate = open("workspace/services/templates/zeppelinInterpreter.yaml", "r")
+        interpreterSpecTemplate = interpreterSpecTemplate.read()
+        Path(f"data/workspaces/{workspaceName}/k8s/interpreter").mkdir(parents=True, exist_ok=True)
+        interpreterSpecFile = open(f"data/workspaces/{workspaceName}/k8s/interpreter/100-interpreter-spec.yaml", "w")
+        interpreterSpecFile.write(interpreterSpecTemplate)
+
+        if os.environ.get("ENVIRONMENT","") == "dev":
+            subprocess.Popen(["kubectl cp data/workspaces/WORKSPACE_NAME POD_NAMESPACE/$(kubectl get pods -n POD_NAMESPACE | grep lakehouse | awk '{print $1}'):/data/WORKSPACE_NAME".replace('POD_NAMESPACE', self.POD_NAMESPACE).replace("WORKSPACE_NAME", workspaceName)],shell=True)
+            
+        
+        v1Core = client.CoreV1Api()
+        v1App = client.AppsV1Api()
+        deploymentTemplateFile = open("workspace/services/templates/zeppelinServer.yaml", "r")
+        deploymentBody = deploymentTemplateFile.read()
+        deploymentBody = deploymentBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
+        deploymentBody = yaml.safe_load(deploymentBody)
+        v1App.create_namespaced_deployment(namespace=self.POD_NAMESPACE, body=deploymentBody)
+        serviceTemplateFile = open("workspace/services/templates/zeppelinService.yaml", "r")
+        serviceBody = serviceTemplateFile.read()
+        serviceBody = serviceBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
+        serviceBody = yaml.safe_load(serviceBody)
+        v1Core.create_namespaced_service(namespace=self.POD_NAMESPACE, body=serviceBody)
+        pvcTemplateFile = open("workspace/services/templates/zeppelinPVC.yaml", "r")
+        pvcBody = pvcTemplateFile.read()
+        pvcBody = pvcBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
+        pvcBody = yaml.safe_load(pvcBody)
+        v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
+
+    def addZeppelinJobServer(self, podId):
         v1 = client.CoreV1Api()
         podTemplateFile = open("utils/kubernetesTemplates/zeppelinServer.yaml", "r")
         podBody = podTemplateFile.read()

@@ -95,7 +95,7 @@ def __getOrCreateZeppelinServerId(zeppelinServerMap):
             return zeppelinServerId
     randomId = uuid.uuid4().hex.lower()[0:20]
     zeppelinServerId = ZEPPELIN_JOB_SERVER_PREFIX + randomId
-    Kubernetes.addZeppelinServer(zeppelinServerId)
+    Kubernetes.addZeppelinJobServer(zeppelinServerId)
     return zeppelinServerId
 
 def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
