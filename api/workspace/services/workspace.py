@@ -21,9 +21,20 @@ class WorkspaceService:
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving workflows")
-        workspaces = Workspace.objects.all()   
+        deployments = Kubernetes.getDeployments()
+        runningDeployments = {}
+        for deployment in deployments:
+            if deployment.status.replicas > 0 and deployment.metadata.name.startswith("zeppelin-server-"):
+                runningDeployments[deployment.metadata.name[16:]] = deployment
+        workspaces = Workspace.objects.all()
         data = WorkspaceSerializer(workspaces, many=True).data
-        res.update(True, "Worksapces retrieved successfully", data)
+        for workspace in data:
+            runningDeployment = runningDeployments.get(workspace["name"], False)
+            if runningDeployment:
+                workspace['replica'] = runningDeployment.status.replicas
+            else:
+                workspace['replica'] = 0
+        res.update(True, "Workspaces retrieved successfully", data)
         return res
 
     @staticmethod
@@ -45,11 +56,30 @@ class WorkspaceService:
         return res
 
     @staticmethod
-    def startWorksapceServer(workspace: Workspace):
-        res = ApiResponse(message="Error creating worksapce server")
-        workspaceName = workspace.name
-        workspaceConfigDict = WorkspaceConfig.objects.get(workspace=workspace).__dict__
-        Kubernetes.addZeppelinServer(workspaceName, workspaceConfigDict)
+    def startWorkspaceServer(workspaceId: int, createPV: bool = False):
+        workspaceName = Workspace.objects.get(pk=workspaceId).name
+        workspaceConfigDict = WorkspaceConfig.objects.get(workspace_id=workspaceId).__dict__
+        res = ApiResponse(message="Error starting workspace server")
+        Kubernetes.addZeppelinServer(workspaceName, workspaceConfigDict, createPV)
+        res.update(True, message="Workspace started successfully")
+        return res
+
+    @staticmethod
+    def stopWorkspaceServer(workspaceId: int):
+        workspaceName = Workspace.objects.get(pk=workspaceId).name
+        res = ApiResponse(message="Error stopping workspace")
+        Kubernetes.removeWorkspace(workspaceName)
+        res.update(True, "Workspace stopped successfully")
+        return res
+
+    @staticmethod
+    def deleteWorkspace(workspaceId: int):
+        workspaceName = Workspace.objects.get(pk=workspaceId).name
+        workspace = Workspace.objects.get(pk=workspaceId)
+        workspace.delete()
+        res = ApiResponse(message="Error deleting workspace server")
+        Kubernetes.removeWorkspace(workspaceName)
+        res.update(True, message="Workspace deleted successfully")
         return res
 
     @staticmethod
@@ -62,7 +92,7 @@ class WorkspaceService:
         for (key, value) in workspaceConfigDict.items():
             setattr(worksapceConfig, key, value)
         worksapceConfig.save()
-        WorkspaceService.startWorksapceServer(workspace)
+        WorkspaceService.startWorkspaceServer(workspace.id, True)
         res.update(True, message="Successfully created workspace config")
         return res
 

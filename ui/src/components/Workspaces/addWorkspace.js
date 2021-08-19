@@ -3,6 +3,7 @@ import { Steps, Popover, Form, Input, Button, Select, message } from 'antd';
 import { DatabaseOutlined, AppstoreOutlined, CloudServerOutlined, SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import style from "./style.module.scss";
 import workspaceService from "services/workspace";
+import { useHistory } from "react-router-dom";
 
 const { Step } = Steps;
 const { TextArea } = Input;
@@ -16,6 +17,7 @@ export default function AddWorkspace() {
     const [interpreterImages, setInterpreterImages] = useState([]);
     const [workspace, setWorkspace] = useState({});
     const [workspaceConfig, setWorkspaceConfig] = useState({});
+    const history = useHistory();
     
     const storageTypes = [
         "S3",
@@ -72,6 +74,10 @@ export default function AddWorkspace() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
+
+    const navigateToDashboard = () => {
+        history.push("/api/redirect/cuelake/dashboard");
+    } 
 
     return (
         <div className={style.addWorksapceForm}>
@@ -380,6 +386,7 @@ export default function AddWorkspace() {
                         </Button>
                         <Button
                             icon=""
+                            
                             type="primary"
                             htmlType="submit"
                         >
@@ -430,6 +437,7 @@ export default function AddWorkspace() {
                             icon=""
                             type="primary"
                             htmlType="submit"
+                            onClick={() => navigateToDashboard()}
                         >
                             Cretae Workspace and Start Server
                         </Button>

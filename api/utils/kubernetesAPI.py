@@ -9,7 +9,6 @@ from utils.safeDict import SafeDict
 import random
 import subprocess
 from pathlib import Path
-from string import Template
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -59,24 +58,24 @@ class KubernetesAPI:
                 }
         return data
 
-    def addZeppelinServer(self, workspaceName: str, workspaceConfig: dict):
+    def addZeppelinServer(self, workspaceName: str, workspaceConfig: dict, createPV: bool = False):
         sparkConfigJSON = ""
         if(workspaceConfig['storage'] == "S3"):
             if(workspaceConfig['acidProvider'] == "Delta"):
                 sparkConfigJSON = """
                 "AWS_ACCESS_KEY_ID": {
                     "name": "AWS_ACCESS_KEY_ID",
-                    "value": "s3AccessKey",
+                    "value": "S3ACCESSKEY",
                     "type": "textarea"
                 },
                 "AWS_SECRET_ACCESS_KEY": {
                     "name": "AWS_SECRET_ACCESS_KEY",
-                    "value": "s3SecretKey",
+                    "value": "S3SECRETKEY",
                     "type": "textarea"
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "warehouseLocation",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                  "spark.sql.extensions":{
@@ -90,11 +89,11 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('s3AccessKey', workspaceConfig['s3AccessKey']).replace('s3SecretKey', workspaceConfig['s3SecretKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('S3ACCESSKEY', workspaceConfig['s3AccessKey']).replace('S3SECRETKEY', workspaceConfig['s3SecretKey']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
             elif(workspaceConfig['acidProvider'] == "Iceberg"):
                 sparkConfigJSON = """"AWS_ACCESS_KEY_ID": {
                     "name": "AWS_ACCESS_KEY_ID",
-                    "value": "s3AccessKey",
+                    "value": "S3ACCESSKEY",
                     "type": "textarea"
                 },
                 "AWS_SECRET_ACCESS_KEY": {
@@ -104,7 +103,7 @@ class KubernetesAPI:
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "warehouseLocation",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                  "spark.sql.extensions":{
@@ -118,17 +117,17 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('s3AccessKey', workspaceConfig['s3AccessKey']).replace('s3SecretKey', workspaceConfig['s3SecretKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('S3ACCESSKEY', workspaceConfig['s3AccessKey']).replace('S3SECRETKEY', workspaceConfig['s3SecretKey']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
         elif(workspaceConfig['storage'] == "AZFS"):
             if(workspaceConfig['acidProvider'] == "Delta"):
-                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net": {
-                    "name": "spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net",
-                    "value": "azureKey",
+                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.AZUREACCOUNT.blob.core.windows.net": {
+                    "name": "spark.hadoop.fs.azure.account.key.AZUREACCOUNT.blob.core.windows.net",
+                    "value": "AZUREKEY",
                     "type": "textarea"
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "warehouseLocation",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                  "spark.sql.extensions":{
@@ -142,16 +141,16 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('azureKey', workspaceConfig['azureKey']).replace('azureAccount', workspaceConfig['azureAccount']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('AZUREKEY', workspaceConfig['azureKey']).replace('AZUREACCOUNT', workspaceConfig['azureAccount']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
             elif(workspaceConfig['acidProvider'] == "Iceberg"):
-                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net": {
-                    "name": "spark.hadoop.fs.azure.account.key.azureAccount.blob.core.windows.net",
-                    "value": "azureKey",
+                sparkConfigJSON = """"spark.hadoop.fs.azure.account.key.AZUREACCOUNT.blob.core.windows.net": {
+                    "name": "spark.hadoop.fs.azure.account.key.AZUREACCOUNT.blob.core.windows.net",
+                    "value": "AZUREKEY",
                     "type": "textarea"
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "{workspaceConfig['warehouseLocation']}",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                   "spark.sql.extensions":{
@@ -165,17 +164,17 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('azureKey', workspaceConfig['azureKey']).replace('azureAccount', workspaceConfig['azureAccount']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('AZUREKEY', workspaceConfig['azureKey']).replace('AZUREACCOUNT', workspaceConfig['azureAccount']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
         elif(workspaceConfig['storage'] == "GS"):
             if(workspaceConfig['acidProvider'] == "Delta"):
                 sparkConfigJSON = """spark.kubernetes.driver.secrets.cuelake-bucket-key": {
                     "name": "spark.kubernetes.driver.secrets.cuelake-bucket-key",
-                    "value": "googleKey",
+                    "value": "GOOGLEKEY",
                     "type": "textarea"
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "warehouseLocation",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                 "spark.hadoop.fs.AbstractFileSystem.gs.impl":{
@@ -209,11 +208,11 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('googleKey', workspaceConfig['googleKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('GOOGLEKEY', workspaceConfig['googleKey']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
             elif(workspaceConfig['acidProvider'] == "Iceberg"):
                 sparkConfigJSON = """spark.kubernetes.driver.secrets.cuelake-bucket-key": {
                     "name": "spark.kubernetes.driver.secrets.cuelake-bucket-key",
-                    "value": "googleKey",
+                    "value": "GOOGLEKEY",
                     "type": "textarea"
                 },
                 "spark.kubernetes.authenticate.driver.serviceAccountName": {
@@ -223,7 +222,7 @@ class KubernetesAPI:
                 },
                 "spark.sql.warehouse.dir":{
                     "name": "spark.sql.warehouse.dir",
-                    "value": "warehouseLocation",
+                    "value": "WAREHOUSELOCATION",
                     "type": "textarea"
                 },
                 "spark.hadoop.fs.AbstractFileSystem.gs.impl":{
@@ -257,7 +256,7 @@ class KubernetesAPI:
                     "type": "textarea"
                 },
                 """
-                sparkConfigJSON = sparkConfigJSON.replace('googleKey', workspaceConfig['googleKey']).replace('warehouseLocation', workspaceConfig['warehouseLocation'])
+                sparkConfigJSON = sparkConfigJSON.replace('GOOGLEKEY', workspaceConfig['googleKey']).replace('WAREHOUSELOCATION', workspaceConfig['warehouseLocation'])
         with open("workspace/services/templates/conf/interpreter.json", "r") as file:
             zeppelinInterpreterTemplate = file.read()
             zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('sparkConfigJSON', sparkConfigJSON)
@@ -299,7 +298,8 @@ class KubernetesAPI:
         pvcBody = pvcTemplateFile.read()
         pvcBody = pvcBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
         pvcBody = yaml.safe_load(pvcBody)
-        v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
+        if createPV:
+            v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
 
     def addZeppelinJobServer(self, podId):
         v1 = client.CoreV1Api()
@@ -322,6 +322,16 @@ class KubernetesAPI:
         except Exception as ex:
             logger.error(f"Error removing zeppelin server: {podId}. Error: {str(ex)}")
 
+    def removeWorkspace(self, podId):
+        v1App = client.AppsV1Api()
+        v1 = client.CoreV1Api()
+        serverName = "zeppelin-server-" + podId
+        try:
+            v1App.delete_namespaced_deployment(name=serverName, namespace=self.POD_NAMESPACE)
+            v1.delete_namespaced_service(name=serverName, namespace=self.POD_NAMESPACE)
+        except Exception as ex:
+            logger.error(f"Error removing zeppelin workspace: {serverName}. Error: {str(ex)}")   
+
     def getPodStatus(self, podId):
         v1 = client.CoreV1Api()
         podResponse = v1.read_namespaced_pod(name=podId, namespace=self.POD_NAMESPACE)
@@ -332,6 +342,11 @@ class KubernetesAPI:
         pods = v1.list_namespaced_pod(namespace=self.POD_NAMESPACE)
         return pods.items
 
+    def getDeployments(self):
+        v1App = client.AppsV1Api()
+        deployments = v1App.list_namespaced_deployment(namespace=self.POD_NAMESPACE)
+        return deployments.items
+        
     def portForward(self, zeppelinServerId):
         port = str(random.randint(10000,65000))
         time.sleep(3) 

@@ -23,11 +23,23 @@ class CreateAndStartWorkspaceServer(APIView):
         res = WorkspaceService.createAndStartWorkspaceServer(workspaceDict, workspaceConfigDict)
         return Response(res.json())
 
+class WorkspaceServer(APIView):
+    def post(self, request, workspaceId, ):
+        res = WorkspaceService.startWorkspaceServer(workspaceId)
+        return Response(res.json())
+    
+    def delete(self, request, workspaceId):
+        res = WorkspaceService.stopWorkspaceServer(workspaceId)
+        return Response(res.json())
+
 class Workspace(APIView):
     def get(self, request, workspaceId: int):
         res = WorkspaceService.getWorkspace(workspaceId)
         return Response(res.json())
 
+    def delete(self, request, workspaceId: int):
+        res = WorkspaceService.deleteWorkspace(workspaceId)
+        return Response(res.json())
 
 class WorksapceConfig(APIView):
     def put(self, request, workspaceId: int):

@@ -16,6 +16,21 @@ class WorkspaceService {
         const response = await apiService.post("workspace/createAndStartWorkspaceServer", {workspace: workspace, workspaceConfig: workspaceConfig})
         return response
     }
+
+    async stopWorkspaceServer(id){
+        const response = await apiService.delete("workspace/workspaceServer/" + id , {id: id})
+        return response
+    }
+
+    async startWorkspaceServer(id){
+        const response = await apiService.post("workspace/workspaceServer/" + id , {id: id})
+        return response
+    }
+
+    async deleteWorkspaceServer(id){
+        const response = await apiService.delete("workspace/" + id , {id: id})
+        return response
+    }
 }
 let workspaceService = new WorkspaceService();
 export default workspaceService
