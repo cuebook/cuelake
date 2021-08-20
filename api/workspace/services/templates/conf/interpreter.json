@@ -471,17 +471,17 @@
           },
             "spark.hadoop.javax.jdo.option.ConnectionURL":{
               "name": "spark.hadoop.javax.jdo.option.ConnectionURL",
-              "value": "",
+              "value": "_HOST:_PORT/_DBNAME",
               "type": "textarea"
           },
             "spark.hadoop.javax.jdo.option.ConnectionUserName":{
               "name": "spark.hadoop.javax.jdo.option.ConnectionUserName",
-              "value": "",
+              "value": "_USERNAME",
               "type": "textarea"
           },
             "spark.hadoop.javax.jdo.option.ConnectionPassword":{
               "name": "spark.hadoop.javax.jdo.option.ConnectionPassword",
-              "value": "",
+              "value": "_PASSWORD",
               "type": "textarea"
           },
               "spark.hadoop.javax.jdo.option.ConnectionDriverName":{

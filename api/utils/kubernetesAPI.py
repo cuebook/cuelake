@@ -1,3 +1,4 @@
+from utils.dbUtils import DbUtils
 import os
 from time import sleep
 import time
@@ -58,8 +59,12 @@ class KubernetesAPI:
                 }
         return data
 
-    def addZeppelinServer(self, workspaceName: str, workspaceConfig: dict, createPV: bool = False):
+    def addZeppelinServer(self, workspaceName: str, workspaceConfig: dict, isNew: bool = False):
         sparkConfigJSON = ""
+        if isNew:
+            db = DbUtils()
+            db.createMetastoreDB(workspaceName)
+            db.metastoreSchema()
         if(workspaceConfig['storage'] == "S3"):
             if(workspaceConfig['acidProvider'] == "Delta"):
                 sparkConfigJSON = """
@@ -260,7 +265,9 @@ class KubernetesAPI:
         with open("workspace/services/templates/conf/interpreter.json", "r") as file:
             zeppelinInterpreterTemplate = file.read()
             zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('sparkConfigJSON', sparkConfigJSON)
-            print
+            if isNew:
+                zeppelinInterpreterTemplate.replace('_HOST', os.environ.get("POSTGRES_DB_HOST")).replace('_PORT', os.environ.get("POSTGRES_DB_PORT")).replace('_USERNAME', os.environ.get("POSTGRES_DB_USERNAME")).replace('_PASSWORD', os.environ.get("POSTGRES_DB_PASSWORD")).replace('_DBNAME', (f"{workspaceName}_metastore"))
+            
         Path(f"data/workspaces/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
         with open(f"data/workspaces/{workspaceName}/conf/interpreter.json", "w") as file:
             file.write(zeppelinInterpreterTemplate)
@@ -298,7 +305,7 @@ class KubernetesAPI:
         pvcBody = pvcTemplateFile.read()
         pvcBody = pvcBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
         pvcBody = yaml.safe_load(pvcBody)
-        if createPV:
+        if isNew:
             v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
 
     def addZeppelinJobServer(self, podId):

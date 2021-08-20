@@ -437,7 +437,6 @@ export default function AddWorkspace() {
                             icon=""
                             type="primary"
                             htmlType="submit"
-                            onClick={() => navigateToDashboard()}
                         >
                             Cretae Workspace and Start Server
                         </Button>

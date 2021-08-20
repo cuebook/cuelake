@@ -56,11 +56,11 @@ class WorkspaceService:
         return res
 
     @staticmethod
-    def startWorkspaceServer(workspaceId: int, createPV: bool = False):
+    def startWorkspaceServer(workspaceId: int, isNew: bool = False):
         workspaceName = Workspace.objects.get(pk=workspaceId).name
         workspaceConfigDict = WorkspaceConfig.objects.get(workspace_id=workspaceId).__dict__
         res = ApiResponse(message="Error starting workspace server")
-        Kubernetes.addZeppelinServer(workspaceName, workspaceConfigDict, createPV)
+        Kubernetes.addZeppelinServer(workspaceName, workspaceConfigDict, isNew)
         res.update(True, message="Workspace started successfully")
         return res
 
