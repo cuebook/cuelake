@@ -28,7 +28,8 @@ export default function EditNotebook(props) {
   }, []);
 
   const fetchNotebookObject = async (notebookObjId) => {
-    const response = await notebookService.getNotebookObject(notebookObjId)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.getNotebookObject(notebookObjId, workspaceId)
     setSelectedNotebook(response)
  }
 
@@ -39,7 +40,8 @@ export default function EditNotebook(props) {
 
   const editNotebookFormSubmit = async (values) => {
     values["notebookObjId"] = props.notebookObjId
-    const response = await notebookService.editNotebook(values)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.editNotebook(values, workspaceId)
     if(response.success){
         props.onAddNotebookSuccess()
     }

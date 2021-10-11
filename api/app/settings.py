@@ -32,6 +32,7 @@ CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ["*", "localhost"]
 CORS_ORIGIN_ALLOW_ALL = True
 HTTP_HTTPS = "http://"
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,7 +47,8 @@ INSTALLED_APPS = [
     'system',
     'rest_framework',
     'django_celery_beat',
-    'workflows'
+    'workflows',
+    'workspace'
 ]
 
 MIDDLEWARE = [
@@ -167,4 +169,3 @@ METASORE_POSTGRES_PASSWORD = os.environ.get("METASORE_POSTGRES_PASSWORD", "postg
 METASORE_POSTGRES_DATABASE = os.environ.get("METASORE_POSTGRES_DATABASE", "cuelake_metastore")
 
 HADOOP_S3_PREFIX = os.environ.get("HADOOP_S3_PREFIX", "cuelake/")
-SOME_KEY = "AKIAGWHGSIECJLJN7VGX"

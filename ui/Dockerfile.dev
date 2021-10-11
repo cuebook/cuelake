@@ -7,4 +7,11 @@ RUN cat package.json
 RUN npm install
 RUN which npm
 EXPOSE 3000
+# For testing production locally
+# COPY . /app
+# RUN npm run build
+# RUN npm i spa-http-server -g
+# RUN cd build
+# CMD ["http-server", "--push-state", "-p", "3000"]
+# For running code directly
 CMD ["/usr/local/bin/npm", "start"]

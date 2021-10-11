@@ -63,7 +63,8 @@ export default function Workflows(props) {
 
     const getWorkflows = async (offset) => {
       setLoading(true)
-      const response = await workflowsService.getWorkflows(offset,limit, sortColumnRef.current, sortOrderRef.current);
+      let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+      const response = await workflowsService.getWorkflows(workspaceId, offset, limit, sortColumnRef.current, sortOrderRef.current);
       if(response){
         setWorkflows(response.workflows);
         setTotal(response.total)
@@ -74,7 +75,8 @@ export default function Workflows(props) {
 
     const refreshWorkflows = async (sortColumn = sortColumnRef.current, sortOrder = sortOrderRef.current, currentPage = currentPageRef.current) => {
       if(currentPageRef.current){
-      const response = await workflowsService.getWorkflows((currentPage - 1)*limit, limit, sortColumn, sortOrder);
+      let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+      const response = await workflowsService.getWorkflows(workspaceId, (currentPage - 1)*limit, limit, sortColumn, sortOrder);
       if(response){
         setWorkflows(response.workflows);
         setTotal(response.total)
@@ -114,8 +116,9 @@ export default function Workflows(props) {
     }
 
     const getNotebooksLight = async () => {
+      let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
       if (_.isEmpty(notebooksLight)){
-        const response = await notebookService.getNotebooksLight();
+        const response = await notebookService.getNotebooksLight(WorkspaceId);
         if(response){
           setNotebooksLight(response);
         }
@@ -153,7 +156,8 @@ export default function Workflows(props) {
           triggerWorkflowId: triggerWorkflow ? triggerWorkflow.id : null,
           triggerWorkflowStatus: triggerWorkflowStatus
         }
-        const response = await workflowsService.setWorkflows(data);
+        let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
+        const response = await workflowsService.setWorkflows(data, WorkspaceId);
         if(response){
           setIsEditCreateWorkflow(false)
           settingInitialValues()

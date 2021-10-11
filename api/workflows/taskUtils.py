@@ -12,7 +12,6 @@ from workflows.models import (
     STATUS_RUNNING,
     STATUS_ABORTED
 )
-from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookRunLogs, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
@@ -53,7 +52,7 @@ class TaskUtils:
         return workflowRunLogs.status
 
     @staticmethod
-    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunLogsId: int):
+    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunLogsId: int, workspaceId: int = 0):
         """
         Runs notebook jobs for all notebookIds
         """
@@ -62,7 +61,7 @@ class TaskUtils:
             notebookRunLogs = NotebookRunLogs.objects.create(
                 notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId
             )
-            response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id)
+            response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, workspaceId=workspaceId)
             notebookRunLogs.taskId = response.id
             notebookRunLogs.save()
             notebookRunLogsIds.append(notebookRunLogs.id)

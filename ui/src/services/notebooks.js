@@ -1,16 +1,16 @@
 import apiService from "./api";
 
 class NotebookService {
-    async getNotebookObject(notebookObjId){
-        const response = await apiService.get("genie/notebookObject/" + notebookObjId)
+    async getNotebookObject(notebookObjId, workspaceId){
+        const response = await apiService.get("genie/notebookObject/" + notebookObjId + "/" + workspaceId)
         if(response.success === true)
             return response.data
         else
             return null
     }
 
-    async getNotebooks(offset, limit, searchText, sorter, filter){
-        const response = await apiService.get("genie/notebooks/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
+    async getNotebooks(offset, limit, searchText, sorter, filter, workspaceId){
+        const response = await apiService.get("genie/notebooks/" + offset + "/" + workspaceId + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
         if(response.success === true)
             return response.data
         else
@@ -33,8 +33,8 @@ class NotebookService {
             return null
     }
 
-    async getNotebooksLight(){
-        const response = await apiService.get("genie/notebooksLight")
+    async getNotebooksLight(workspaceId){
+        const response = await apiService.get("genie/notebooksLight/" + workspaceId)
         if(response.success === true)
             return response.data
         else
@@ -95,13 +95,13 @@ class NotebookService {
         return response
     }
 
-    async stopNotebook(notebookId){
-        const response = await apiService.delete("genie/notebook/actions/" + notebookId)
+    async stopNotebook(notebookId, workspaceId){
+        const response = await apiService.delete("genie/notebook/actions/" + notebookId + "/" + workspaceId)
         return response
     }
 
-    async runNotebook(notebookId){
-        const response = await apiService.post("genie/notebook/actions/" + notebookId)
+    async runNotebook(notebookId, workspaceId){
+        const response = await apiService.post("genie/notebook/actions/" + notebookId + "/" + workspaceId)
         return response
     }
 
@@ -115,33 +115,33 @@ class NotebookService {
         return response
     }
 
-    async addNotebook(payload){
-        const response = await apiService.post("genie/notebook", payload)
+    async addNotebook(payload, WorkspaceId){
+        const response = await apiService.post("genie/notebook" + "/" + WorkspaceId, payload)
         return response
     }
 
-    async editNotebook(payload){
-        const response = await apiService.put("genie/notebookObject/" + payload.notebookObjId, payload)
+    async editNotebook(payload, WorkspaceId){
+        const response = await apiService.put("genie/notebookObject/" + payload.notebookObjId + "/" + WorkspaceId, payload)
         return response
     }
 
-    async cloneNotebook(notebookId, newNotebookName){
-        const response = await apiService.post("genie/notebook/" + notebookId, {name: newNotebookName})
+    async cloneNotebook(notebookId, newNotebookName, workspaceId){
+        const response = await apiService.post("genie/notebook/" + notebookId + "/" + workspaceId, {name: newNotebookName})
         return response
     }
 
-    async archiveNotebook(notebookId, notebookName){
-        const response = await apiService.get("genie/notebook/" + notebookId + "/archive/" + notebookName)
+    async archiveNotebook(notebookId, notebookName, WorkspaceId){
+        const response = await apiService.get("genie/notebook/" + notebookId + "/archive/" + notebookName + "/" + WorkspaceId)
         return response
     }
 
-    async unarchiveNotebook(notebookId, notebookName){
-        const response = await apiService.get("genie/notebook/" + notebookId + "/unarchive/" + notebookName)
+    async unarchiveNotebook(notebookId, notebookName, WorkspaceId){
+        const response = await apiService.get("genie/notebook/" + notebookId + "/unarchive/" + notebookName + "/" + WorkspaceId)
         return response
     }
 
-    async deleteNotebook(notebookId){
-        const response = await apiService.delete("genie/notebook/" + notebookId)
+    async deleteNotebook(notebookId, WorkspaceId){
+        const response = await apiService.delete("genie/notebook/" + notebookId + "/" + WorkspaceId)
         return response
     }
 

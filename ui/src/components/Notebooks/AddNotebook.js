@@ -45,7 +45,8 @@ export default function AddNotebook(props) {
 
   const addNotebookFormSubmit = async (values) => {
     values["notebookTemplateId"] = selectedNotebookTemplate.id;
-    const response = await notebookService.addNotebook(values)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.addNotebook(values, workspaceId)
     if(response.success){
         props.onAddNotebookSuccess()
     }

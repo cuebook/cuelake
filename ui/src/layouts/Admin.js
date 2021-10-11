@@ -14,6 +14,8 @@ import Connections from "views/admin/Connections.js";
 import SchedulesView from "views/admin/Schedules.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import SparkUI from "views/admin/sparkUI.js";
+import Dashboard from "views/admin/Dashboard.js";
+import AddWorkspace from "views/admin/AddWorkspace.js";
 
 // contexts
 import { GlobalContextProvider } from "./GlobalContext";
@@ -30,6 +32,8 @@ export default function Admin() {
           {/* <HeaderStats /> */}
           <div className="px-0 md:px-0 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "1rem 0rem 0 0rem"}}>
             <Switch>
+              <Route path="/dashboard" exact component={Dashboard} />
+              <Route path="/workspace/add" exact component={AddWorkspace} />
               <Route path="/notebooks" exact component={Notebooks} />
               <Route path="/notebook/:notebookId" exact component={NotebookView} />
               <Route path="/settings" exact component={Settings} />

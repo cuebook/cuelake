@@ -11,6 +11,7 @@ import Connections from "views/admin/Connections.js";
 import SparkUI from "views/admin/sparkUI.js";
 import WorkflowsMain from "views/admin/WorkflowsMain.js";
 import SchedulesView from "views/admin/Schedules.js";
+import Dashboard from "views/admin/Dashboard.js";
 import { GlobalContextProvider } from "./GlobalContext";
 
 export default function Admin() {
@@ -22,6 +23,7 @@ export default function Admin() {
         <div className="relative md:ml-12 bg-gray-200" >
           <div className="px-0 md:px-0 py-2 mx-auto w-full" style={{minHeight: "calc(100vh - 0px)", padding: "1rem 0rem 0 0rem"}}>
             <Switch>
+              <Route path="/api/redirect/cuelake/dashboard" exact component={Dashboard} />
               <Route path="/api/redirect/cuelake/notebooks"  exact component={Notebooks} />
               <Route path="/api/redirect/cuelake/notebook/:notebookId" exact component={NotebookView} />
               <Route path="/api/redirect/cuelake/settings" exact component={Settings} />

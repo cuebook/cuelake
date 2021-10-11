@@ -1,14 +1,55 @@
 /*eslint-disable*/
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Select } from "antd";
 import { Link } from "react-router-dom";
 import style from "./style.module.scss";
+import workspaceService from "services/workspace.js";
+
+const { Option } = Select;  
 
 export default function Sidebar(props) {
+  const [workspaces, setWorkspaces] = useState(null);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState();
+
+  useEffect(() => {
+    if (workspaces === null) {
+        fetchWorkspaces();
+    }
+  }, []);
+
+  const fetchWorkspaces = async () => {
+    const response = await workspaceService.getWorkspaces();
+    setWorkspaces(response.data)
+  }
+
+  const setSelectedWorkspace = (workspaceId) => {
+    localStorage.setItem('workspaceId', workspaceId);
+    setSelectedWorkspaceId(workspaceId)
+    switchWorkspaceServer(workspaceId)
+  }
+
+  const switchWorkspaceServer = async (workspaceId) => {
+    const response = await workspaceService.switchWorkspaceServer(workspaceId);
+  }
+
   let urlPrefix = ""
   if(props.isEmbedPage){
     urlPrefix = "/api/redirect/cuelake"
   }
+
+  let tempWorkspaceId = parseInt(localStorage.getItem("workspaceId"))
+  if(tempWorkspaceId && tempWorkspaceId !== selectedWorkspaceId){
+    setSelectedWorkspaceId(tempWorkspaceId)
+  }
   
+  const adminMenuItems = [
+    {
+      "label": "Dashboard",
+      "path": "/dashboard",
+      "icon": "fa-file"
+    }
+  ]
+
   const menuItems = [
     {
       "label": "Notebooks",
@@ -42,11 +83,8 @@ export default function Sidebar(props) {
     }
   ]
 
-  let menuElements = []
-
-  menuItems.forEach(menuItem => {
-    menuElements.push(
-      <li className="items-center" key={menuItem.path}>
+  const generateMenuItem = (menuItem) => {
+    return <li className="items-center" key={menuItem.path}>
         <Link
           className={
             `${style.navLink} text-xs uppercase py-3 font-bold block ` +
@@ -69,6 +107,27 @@ export default function Sidebar(props) {
           </span>
         </Link>
       </li>
+  }
+
+  let menuElements = []
+  menuItems.forEach(menuItem => {
+    menuElements.push(
+      generateMenuItem(menuItem)
+    )
+  })
+
+  let adminMenuElements = []
+  adminMenuItems.forEach(menuItem => {
+    adminMenuElements.push(
+      generateMenuItem(menuItem)
+    )
+  })
+
+  let workspaceElements = []
+
+  workspaces && workspaces.forEach(workspace => {
+    workspaceElements.push(
+      <Option value={workspace.id} key={workspace.id}>{workspace.name}</Option>
     )
   })
 
@@ -97,18 +156,34 @@ export default function Sidebar(props) {
             </>
           }
           <div
-            className={`md:flex md:flex-col md:items-stretch md:opacity-100 md:relative md:mt-2 md:shadow-none shadow absolute top-0 left-0 right-0 z-40 overflow-y-auto overflow-x-hidden h-auto items-center flex-1 rounded`}
+            className={`md:flex md:flex-col md:items-stretch md:opacity-100 md:relative md:mt-2 md:shadow-none shadow absolute top-0 left-0 right-0 z-40 h-auto items-center flex-1 rounded`}
           >
             { props.isEmbedPage ?
               null
             :
               <hr className="my-4 md:min-w-full" />
             }
-            {/* Heading */}
-
+            {/* Admin Menu */}
             <ul className="md:flex-col md:min-w-full flex flex-col list-none">
-              { menuElements }
+              { adminMenuElements }
             </ul>
+            <div className={style.subMenu}>
+            {/* Workspace Selector */}
+              <label style={{fontSize: '11px'}}>Workspace</label>
+              <Select
+                    style={{width: '100%'}}
+                    showSearch
+                    onChange={(value) => setSelectedWorkspace(value)}
+                    filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 }
+                    value={selectedWorkspaceId}
+                  >
+                  {workspaceElements}
+              </Select>
+              {/* Menu */}
+              <ul className="md:flex-col md:min-w-full flex flex-col list-none">
+                { menuElements }
+              </ul> 
+            </div>
           </div>
         </div>
       </nav>

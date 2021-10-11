@@ -84,7 +84,8 @@ export default function NotebookTable() {
 
   const getNotebooks = async (offset) => {
     setLoading(true)
-    const response = await notebookService.getNotebooks(offset, limit, searchTextRef.current, sorterRef.current, filterRef.current);
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.getNotebooks(offset, limit, searchTextRef.current, sorterRef.current, filterRef.current, workspaceId);
     if(response){
       setNotebooks(response);
     }
@@ -169,7 +170,8 @@ export default function NotebookTable() {
   }
 
   const runNotebook = async (notebook) => {
-    const response = await notebookService.runNotebook(notebook.id)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.runNotebook(notebook.id, workspaceId)
     if(response.success)
       message.success("Notebook " + notebook.name.substring(1) + " ran successfully")
     else{
@@ -178,7 +180,8 @@ export default function NotebookTable() {
   }
 
   const stopNotebook = async (notebook) => {
-    const response = await notebookService.stopNotebook(notebook.id)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.stopNotebook(notebook.id, workspaceId)
     if(response.success)
       message.success("Notebook " + notebook.name.substring(1) + " stopped successfully")
     else{
@@ -187,7 +190,8 @@ export default function NotebookTable() {
   }
 
   const cloneNotebook = async (notebook) => {
-    const response = await notebookService.cloneNotebook(notebook.id, notebook.name.substring(1) + " Copy")
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.cloneNotebook(notebook.id, notebook.name.substring(1) + " Copy", workspaceId)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " cloned successfully")
       refreshNotebooks()
@@ -198,7 +202,8 @@ export default function NotebookTable() {
   }
 
   const archiveNotebook = async (notebook) => {
-    const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1))
+    let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1), WorkspaceId)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " moved to archive")
       refreshNotebooks()
@@ -209,7 +214,8 @@ export default function NotebookTable() {
   }
 
   const deleteNotebook = async (notebook) => {
-    const response = await notebookService.deleteNotebook(notebook.id)
+    let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.deleteNotebook(notebook.id, WorkspaceId)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
       refreshNotebooks()

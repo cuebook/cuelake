@@ -8,16 +8,16 @@ class Workflows(APIView):
     """
     Class to get and post workflows 
     """
-    def get(self, request, offset: int):
+    def get(self, request, workspaceId: int):
         """Gets all workflows"""
-        
         limit= int(request.GET.get("limit", 25))
         sortColumn = request.GET.get("sortColumn", "")
         sortOrder = request.GET.get("sortOrder", '')
-        res = WorkflowServices.getWorkflows(offset, limit, sortColumn, sortOrder)
+        offset = int(request.GET.get("offset", 0))
+        res = WorkflowServices.getWorkflows(workspaceId, offset, limit, sortColumn, sortOrder)
         return Response(res.json())
 
-    def post(self, request):
+    def post(self, request, workspaceId: int):
         data = request.data
         name = data.get("name", "")
         scheduleId = data.get("scheduleId", "")
@@ -28,7 +28,7 @@ class Workflows(APIView):
         if 'id' in data and data['id']:
             res = WorkflowServices.updateWorkflow(data['id'], name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
         else:
-            res = WorkflowServices.createWorkflow(name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds)
+            res = WorkflowServices.createWorkflow(name, scheduleId, triggerWorkflowId, triggerWorkflowStatus, notebookIds, workspaceId)
         return Response(res.json())
 
 

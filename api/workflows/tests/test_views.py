@@ -18,7 +18,8 @@ from genie.tasks import NotebookRunLogs
 def test_workflows(client, populate_seed_data, mocker):
 
     # Create workflow test
-    path = reverse('workflowsPost')
+    path = reverse('workflowsPost', kwargs={"workspaceId": 1})
+    mixer.blend("workspace.workspace", id=1, name="test")
     data = {'name': 'test',
              'notebookIds': [],
              'scheduleId': None,
@@ -30,7 +31,7 @@ def test_workflows(client, populate_seed_data, mocker):
     workflowId = response.data['data']
 
     # Update workflow test
-    path = reverse('workflowsPost')
+    path = reverse('workflowsPost', kwargs={"workspaceId": 1})
     data = {'id': workflowId,
              'name': 'testWorkflow',
              'notebookIds': ['2G5CNGNAJ'],
@@ -42,7 +43,7 @@ def test_workflows(client, populate_seed_data, mocker):
     assert response.data['success']
 
     # Get workflows test
-    path = reverse('workflows', kwargs={"offset": 0})
+    path = reverse('workflows', kwargs={"workspaceId": 1})
     response = client.get(path)
     exceptedWorkflow = {'id': workflowId,
                          'lastRun': None,
@@ -67,7 +68,7 @@ def test_workflows(client, populate_seed_data, mocker):
     assert response.data['data']
 
     # Assign trigger workflow test
-    path = reverse('workflowsPost')
+    path = reverse('workflowsPost', kwargs={"workspaceId": 1})
     data = {'name': 'triggerWorkflow',
              'notebookIds': [],
              'scheduleId': None,
@@ -90,7 +91,7 @@ def test_workflows(client, populate_seed_data, mocker):
     assert response.data['data'] == 1
 
     # Getting workflows test 
-    path = reverse('workflows', kwargs={"offset": 0})
+    path = reverse('workflows', kwargs={"workspaceId": 1})
     response = client.get(path)
     expectedWorkflows = [{'id': _workflowId,
                            'lastRun': None,
@@ -125,7 +126,7 @@ def test_workflows(client, populate_seed_data, mocker):
     runNotebookJobPatch.stop()
 
     # Get workflow test
-    path = reverse('workflows', kwargs={"offset": 0})
+    path = reverse('workflows', kwargs={"workspaceId": 1})
     response = client.get(path)
     expectedLastRunKeys = set(["endTimestamp", "startTimestamp", "status", "workflowRunId"])
     assert response.status_code == 200
@@ -134,7 +135,7 @@ def test_workflows(client, populate_seed_data, mocker):
     assert set(response.data['data']['workflows'][1]['lastRun'].keys()) == expectedLastRunKeys
 
     # Sorting on workflows test
-    path = reverse('workflowsPost')
+    path = reverse('workflowsPost', kwargs={"workspaceId": 1})
     data = {'name': 'sortTest',
              'notebookIds': [],
              'scheduleId': None,
@@ -145,23 +146,23 @@ def test_workflows(client, populate_seed_data, mocker):
     assert response.data['data']
 
     # Sort on name test
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=name&sortOrder=descend"
+    path = reverse("workflows", kwargs={"workspaceId": 1}) + "?sortColumn=name&sortOrder=descend"
     response = client.get(path)
     names = [ x['name'] for x in response.data['data']['workflows'] ] 
     assert names == sorted(names, reverse=True)
 
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=name&sortOrder=ascend"
+    path = reverse("workflows", kwargs={"workspaceId": 1}) + "?sortColumn=name&sortOrder=ascend"
     response = client.get(path)
     names = [ x['name'] for x in response.data['data']['workflows'] ] 
     assert names == sorted(names)
 
     # Sort on trigger workflow name test
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=triggerWorkflow&sortOrder=descend"
+    path = reverse("workflows", kwargs={"workspaceId": 1}) + "?sortColumn=triggerWorkflow&sortOrder=descend"
     response = client.get(path)
     triggerWorkflows = [ x['triggerWorkflow']['name'] for x in response.data['data']['workflows'] if x['triggerWorkflow'] ] 
     assert triggerWorkflows == sorted(triggerWorkflows, reverse=True)
 
-    path = reverse("workflows", kwargs={"offset": 0}) + "?sortColumn=triggerWorkflow&sortOrder=ascend"
+    path = reverse("workflows", kwargs={"workspaceId": 1}) + "?sortColumn=triggerWorkflow&sortOrder=ascend"
     response = client.get(path)
     triggerWorkflows = [ x['triggerWorkflow']['name'] for x in response.data['data']['workflows'] if x['triggerWorkflow'] ] 
     assert triggerWorkflows == sorted(triggerWorkflows)

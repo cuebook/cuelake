@@ -2,8 +2,8 @@ import apiService from "./api";
 import { message } from "antd";
 
 class WorkflowsService {
-    async getWorkflows(offset, limit, sortColumn, sortOrder){
-        const response = await apiService.get("workflows/workflows/" + offset + "?limit="+ limit +"&sortColumn=" + sortColumn + "&sortOrder=" + sortOrder)
+    async getWorkflows(workspaceId, offset, limit, sortColumn, sortOrder){
+        const response = await apiService.get("workflows/workflows/" + workspaceId + "?offset=" + offset + "&limit="+ limit +"&sortColumn=" + sortColumn + "&sortOrder=" + sortOrder)
         if(response.success === true)
             return response.data
         else
@@ -27,8 +27,8 @@ class WorkflowsService {
             return null
     }
 
-    async setWorkflows(data){
-        const response = await apiService.post("workflows/workflows", data)
+    async setWorkflows(data, workspaceId){
+        const response = await apiService.post("workflows/workflows/" + workspaceId, data)
         if(response.success === true)
             return response.success
         else
