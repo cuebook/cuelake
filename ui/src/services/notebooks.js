@@ -73,8 +73,8 @@ class NotebookService {
             return null
     }
     
-    async addNotebookSchedule(notebookId, scheduleId){
-        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId})
+    async addNotebookSchedule(notebookId, scheduleId, workspaceId){
+        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId,scheduleId: scheduleId, workspaceId: workspaceId})
         return response
     }
 
@@ -146,7 +146,8 @@ class NotebookService {
     }
 
     async unassignSchedule(notebookId){
-        const response = await apiService.delete("genie/notebookjob/" + notebookId)
+        let workspaceId = parseInt(localStorage.getItem("workspaceId"));
+        const response = await apiService.delete("genie/notebookjob/" + notebookId + "/" + workspaceId)
         return response
     }
 

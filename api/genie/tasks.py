@@ -31,7 +31,7 @@ def runNotebookJob(notebookId: str, workspaceId: int, notebookRunLogsId: int = N
     logger.info(f"Starting notebook job for: {notebookId}")
     taskId = runNotebookJob.request.id # Celery task id
     taskId = taskId if taskId else ""
-    notebookRunLogs = __getOrCreateNotebookRunLogs(notebookRunLogsId, notebookId, runType, taskId)
+    notebookRunLogs = __getOrCreateNotebookRunLogs(notebookRunLogsId, notebookId, runType, taskId, workspaceId)
     try:
         zeppelinServerId = __allocateZeppelinServer(notebookRunLogs, workspaceId)
         logger.info(f"Notebook {notebookId} scheduled to run on {zeppelinServerId}")
@@ -111,12 +111,12 @@ def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
         lambda: zeppelin.healthCheck() != False, step=3, timeout=3600*6
     )
 
-def __getOrCreateNotebookRunLogs(notebookRunLogsId: int, notebookId: str, runType: str, taskId: str):
+def __getOrCreateNotebookRunLogs(notebookRunLogsId: int, notebookId: str, runType: str, taskId: str, workspaceId: int):
     """
     Gets or creates a notebook run status object
     """
     if not notebookRunLogsId:
-        notebookRunLog = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId)
+        notebookRunLog = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId, workspace_id=workspaceId)
     else:
         notebookRunLog = NotebookRunLogs.objects.get(id=notebookRunLogsId)
         notebookRunLog.startTimestamp = dt.datetime.now()

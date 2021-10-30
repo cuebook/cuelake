@@ -20,6 +20,7 @@ class NotebookJob(PeriodicTask):
     Subclass of django_celery_beat.models.PeriodicTask
     """
     notebookId = models.CharField(max_length=50, db_index=True, unique=True)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE,null=True, default=None)
 
 class NotebookRunLogs(models.Model):
     """

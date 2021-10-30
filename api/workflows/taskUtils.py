@@ -61,7 +61,7 @@ class TaskUtils:
         notebookRunLogsIds = []
         for notebookId in notebookIds:
             notebookRunLogs = NotebookRunLogs.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId
+                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId, workspace_id=workspaceId
             )
             response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, workspaceId=workspaceId)
             notebookRunLogs.taskId = response.id

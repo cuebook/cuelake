@@ -34,7 +34,7 @@ class NotebookActionsView(APIView):
         return Response(res.json())
 
     def delete(self, request, notebookId, workspaceId):
-        res = NotebookJobServices.stopNotebookJob(notebookId)
+        res = NotebookJobServices.stopNotebookJob(notebookId, workspaceId)
         return Response(res.json())
 
     def put(self, request, notebookId, workspaceId):
@@ -97,11 +97,12 @@ class NotebookJobView(APIView):
     def post(self, request):
         notebookId = request.data["notebookId"]
         scheduleId = request.data["scheduleId"]
-        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
+        workspaceId = request.data["workspaceId"]
+        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId, workspaceId=workspaceId)
         return Response(res.json())
 
-    def delete(self, request, notebookId=None):
-        res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId)
+    def delete(self, request, notebookId=None, workspaceId=None):
+        res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId, workspaceId=workspaceId)
         return Response(res.json())
 
 class ScheduleView(APIView):

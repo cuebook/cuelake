@@ -121,8 +121,9 @@ export default function NotebookTable() {
 
 
   const addNotebookSchedule = async (selectedSchedule) => {
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"));
     if(selectedSchedule && selectedNotebook && selectedSchedule !== -1){
-      const response = await notebookService.addNotebookSchedule(selectedNotebook, selectedSchedule);
+      const response = await notebookService.addNotebookSchedule(selectedNotebook, selectedSchedule, workspaceId);
       if(response.success){
         message.success(response.message)
       }

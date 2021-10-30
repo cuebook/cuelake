@@ -296,7 +296,7 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def addNotebookJob(notebookId: str, scheduleId: int):
+    def addNotebookJob(notebookId: str, workspaceId: int, scheduleId: int):
         """
         Service to add a new NotebookJob
         :param notebookId: ID of the notebook for which to create job
@@ -304,18 +304,18 @@ class NotebookJobServices:
         """
         res = ApiResponse()
         scheduleObj = Schedule.objects.get(crontabschedule_ptr_id=scheduleId)
-        NotebookJob.objects.update_or_create(name=notebookId, notebookId=notebookId, defaults={"crontab":scheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}"]'})
+        NotebookJob.objects.update_or_create(name=notebookId, workspace_id=workspaceId, notebookId=notebookId, defaults={"crontab":scheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}", {workspaceId}]'})
         res.update(True, "NotebookJob added successfully", None)
         return res
 
     @staticmethod
-    def deleteNotebookJob(notebookId: int):
+    def deleteNotebookJob(notebookId: int, workspaceId: int):
         """
         Service to update crontab of an existing NotebookJob
         :param notebookId: ID of the Notebook for which to delete
         """
         res = ApiResponse()
-        NotebookJob.objects.filter(name=notebookId).delete()
+        NotebookJob.objects.filter(name=notebookId, workspace_id=workspaceId).delete()
         res.update(True, "NotebookJob deleted successfully", None)
         return res
 
@@ -331,13 +331,13 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def stopNotebookJob(notebookId: str):
+    def stopNotebookJob(notebookId: str, workspaceId: int):
         """
         Service to stop notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
         # Updating NotebookRunLogs that the task is being aborted
-        notebookNotebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
+        notebookNotebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId, workspace_id=workspaceId).order_by("-startTimestamp").first()
         if(notebookNotebookRunLogs.status == NOTEBOOK_STATUS_RUNNING):
             notebookNotebookRunLogs.status = NOTEBOOK_STATUS_ABORT
             notebookNotebookRunLogs.save()

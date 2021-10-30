@@ -12,6 +12,7 @@ urlpatterns = [
     path("notebook/<str:notebookId>/unarchive/<str:notebookName>/<int:workspaceId>", views.UnarchiveNotebookView.as_view(), name="unarchiveNotebookView"),
     path("notebook/<int:workspaceId>", views.NotebookView.as_view(), name="notebook"),
     path("notebookObject/<int:notebookObjId>/<int:workspaceId>", views.getNotebookObject, name="notebookObject"),
+    path("notebookjob/<str:notebookId>/<int:workspaceId>", views.NotebookJobView.as_view(), name="notebookJobView"),
     path("notebookjob/<str:notebookId>", views.NotebookJobView.as_view(), name="notebookJobView"),
     path("notebookjob/", views.NotebookJobView.as_view(), name="notebooksJobView"),
     path("notebookTemplates/", views.NotebookTemplateView.as_view(), name="notebookTemplateView"),
