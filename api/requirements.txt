@@ -16,3 +16,5 @@ urllib3>=1.26.5
 kubernetes==12.0.1
 psycopg2-binary==2.8.6
 redis==3.5.3
+uvicorn==0.13.4
+websockets==9.1

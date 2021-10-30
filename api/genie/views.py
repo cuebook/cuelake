@@ -154,16 +154,16 @@ class TimzoneView(APIView):
 # TODO 
 # Change connection views to class
 @api_view(["GET", "POST"])
-def connections(request: HttpRequest) -> Response:
+def connections(request: HttpRequest, workspaceId: int) -> Response:
     """
     Method to get or add connection
     :param request: HttpRequest
     """
     if request.method == "GET":
-        res = Connections.getConnections()
+        res = Connections.getConnections(workspaceId)
         return Response(res.json())
     elif request.method == "POST":
-        res = Connections.addConnection(request.data)
+        res = Connections.addConnection(request.data, workspaceId)
         return Response(res.json())
 
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Steps, Popover, Form, Input, Button, Select, message } from 'antd';
-import { DatabaseOutlined, AppstoreOutlined, CloudServerOutlined, SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, AppstoreOutlined, CloudServerOutlined, SmileOutlined, QuestionCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import style from "./style.module.scss";
 import workspaceService from "services/workspace";
 import { useHistory } from "react-router-dom";
@@ -18,6 +18,7 @@ export default function AddWorkspace() {
     const [workspace, setWorkspace] = useState({});
     const [workspaceConfig, setWorkspaceConfig] = useState({});
     const history = useHistory();
+    const [loading, setLoading] = useState('');
     
     const storageTypes = [
         "S3",
@@ -45,14 +46,16 @@ export default function AddWorkspace() {
         setStorage(storage)
     }
 
-    const createWorkspace = () => {
-        const response = workspaceService.createAndStartWorkspaceServer(workspace, workspaceConfig)
+    const createWorkspace = async () => {
+        setLoading(true)
+        const response = await workspaceService.createAndStartWorkspaceServer(workspace, workspaceConfig)
         if(response.success){
             window.location.href='/dashboard'
         }
         else{
             message.error(response.message);
         }
+        setLoading(false);
     }
 
     const getSparkImages = async () => {
@@ -162,7 +165,7 @@ export default function AddWorkspace() {
                                         </>
                                     } 
                                     rules={[{message: "Location can't be empty", required: true}]}>
-                                    <Input className={style.inputArea} placeholder="s3://BUCKET_NAME/DIRECTORY" />
+                                    <Input className={style.inputArea} placeholder="s3a://BUCKET_NAME/DIRECTORY" />
                                 </Form.Item>
                             </div>
                             <div className={style.formItem} style={{ width: "100%" }}>
@@ -399,49 +402,51 @@ export default function AddWorkspace() {
             }
             { currentStep === 3 ?
                 <Form 
-                    layout="vertical" 
-                    className={style.preview}
-                    form={form} 
-                    onFinish={createWorkspace}
-                    name="addConnection"
-                    scrollToFirstError
-                    hideRequiredMark
-                >
-                    <label>Name</label>
-                    <Input disabled value={workspace.name}></Input>
-                    <label>Description</label>
-                    <TextArea disabled value={workspace.description}></TextArea>
-                    <label>Storage</label>
-                    <Input disabled value={workspaceConfig.storage}></Input>
-                    <label>Data Location</label>
-                    <Input disabled value={workspaceConfig.warehouseLocation}></Input>
-                    <label>Spark Image</label>
-                    <Input disabled value={workspaceConfig.sparkImage}></Input>
-                    <label>Zeppelin Interpreter Image</label>
-                    <Input disabled value={workspaceConfig.zeppelinInterpreterImage}></Input>
-                    <label>ACID & Data Versioning Provider</label>
-                    <Input disabled value={{'delta':'Delta Lake', 'iceberg': 'Apache Iceberg', 'none': 'None'}[workspaceConfig.acidProvider]}></Input>
-                    <label>Auto Terminate Interpreter Inactivity Time (seconds)</label>
-                    <Input disabled value={workspaceConfig.inactivityTimeout}></Input>
+                        layout="vertical" 
+                        className={style.preview}
+                        form={form}
+                        onFinish={createWorkspace}
+                        name="addConnection"
+                        
+                        scrollToFirstError
+                        hideRequiredMark
+                    >
+                        <label>Name</label>
+                        <Input disabled value={workspace.name}></Input>
+                        <label>Description</label>
+                        <TextArea disabled value={workspace.description}></TextArea>
+                        <label>Storage</label>
+                        <Input disabled value={workspaceConfig.storage}></Input>
+                        <label>Data Location</label>
+                        <Input disabled value={workspaceConfig.warehouseLocation}></Input>
+                        <label>Spark Image</label>
+                        <Input disabled value={workspaceConfig.sparkImage}></Input>
+                        <label>Zeppelin Interpreter Image</label>
+                        <Input disabled value={workspaceConfig.zeppelinInterpreterImage}></Input>
+                        <label>ACID & Data Versioning Provider</label>
+                        <Input disabled value={{'delta':'Delta Lake', 'iceberg': 'Apache Iceberg', 'none': 'None'}[workspaceConfig.acidProvider]}></Input>
+                        <label>Auto Terminate Interpreter Inactivity Time (seconds)</label>
+                        <Input disabled value={workspaceConfig.inactivityTimeout}></Input>
 
-                    <div className={`${style.buttonDiv} mt-4`}>
-                        <Button
-                            icon=""
-                            type="default"
-                            className="mr-2"
-                            onClick={()=>setCurrentStep(2)}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            icon=""
-                            type="primary"
-                            htmlType="submit"
-                        >
-                            Cretae Workspace and Start Server
-                        </Button>
-                    </div>
-                </Form>
+                        <div className={`${style.buttonDiv} mt-4`}>
+                            <Button
+                                icon=""
+                                type="default"
+                                className="mr-2"
+                                onClick={()=>setCurrentStep(2)}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                icon=""
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading}
+                            >
+                                Create Workspace and Start Server
+                            </Button>
+                        </div>
+                    </Form>
                 :
                 null
             }

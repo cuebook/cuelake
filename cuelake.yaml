@@ -4,18 +4,11 @@ metadata:
   name: cuelake-conf-map
 data:
   # Change below properties to point to your production database
-  # POSTGRES_DB_HOST: localhost
-  # POSTGRES_DB_USERNAME: postgres
-  # POSTGRES_DB_PASSWORD: postgres
-  # POSTGRES_DB_SCHEMA: cuelake
-  # POSTGRES_DB_PORT: '5432'
-
-  ## Change below properties to point to your metastore database
-  # METASTORE_POSTGRES_HOST: localhost
-  # METASORE_POSTGRES_PORT: '5432'
-  # METASORE_POSTGRES_USERNAME: postgres
-  # METASORE_POSTGRES_PASSWORD: postgres
-  # METASORE_POSTGRES_DATABASE: cuelake_metastore
+  POSTGRES_DB_HOST: postgres
+  POSTGRES_DB_USERNAME: postgres
+  POSTGRES_DB_PASSWORD: postgres
+  POSTGRES_DB_SCHEMA: cuelake
+  POSTGRES_DB_PORT: '5432'
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -30,7 +23,6 @@ data:
   #
   # Default value is 'local.zeppelin-project.org' while it points 127.0.0.1 and `kubectl port-forward zeppelin-server` will give localhost to connects.
   # If you have your ingress controller configured to connect to `zeppelin-server` service and have a domain name for it (with wildcard subdomain point the same address), you can replace serviceDomain field with your own domain.
-  SERVICE_DOMAIN: local.zeppelin-project.org:8080
   ZEPPELIN_K8S_SPARK_CONTAINER_IMAGE: cuebook/spark:3.0.2.18
   ZEPPELIN_K8S_CONTAINER_IMAGE: cuebook/zeppelin-interpreter:0.9.0.4
   ZEPPELIN_HOME: /zeppelin
@@ -43,52 +35,71 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: zeppelin-server-conf
+  name: postgres-config
+  labels:
+    app: postgres
 data:
-  nginx.conf: |
-    daemon off;
-    worker_processes auto;
-    events {
-      worker_connections 1024;
-    }
-    http {
-      map $http_upgrade $connection_upgrade {
-        default upgrade;
-        '' close;
-      }
-
-      # first server block will be default. Proxy zeppelin server.
-      server {
-        listen 80;
-        location / {
-          proxy_pass http://localhost:8080;
-          proxy_set_header Host $host;
-          proxy_http_version 1.1;
-          proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection $connection_upgrade;
-          proxy_redirect http://localhost $scheme://SERVICE_DOMAIN;
-        }
-      }
-
-      # match request domain [port]-[service].[serviceDomain]
-      # proxy extra service such as spark-ui
-      server {
-        listen 80;
-        server_name "~(?<svc_port>[0-9]+)-(?<svc_name>[^.]*)\.(.*)";
-        location / {
-          resolver 127.0.0.1:53 ipv6=off;
-          proxy_pass http://$svc_name.NAMESPACE.svc:$svc_port;
-          proxy_set_header Host $host;
-          proxy_http_version 1.1;
-          proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection $connection_upgrade;
-          proxy_redirect http://localhost $scheme://SERVICE_DOMAIN;
-
-          # redirect rule for spark ui. 302 redirect response misses port number of service domain
-          proxy_redirect ~(http:[/]+[0-9]+[-][^-]+[-][^.]+)[^/]+(\/jobs.*) $1.SERVICE_DOMAIN$2;
-        }
-      }
-    }
+  POSTGRES_DB: cuelake
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.1
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: cuelake
+      volumes:
+        - name: cuelake
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres 
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+   app: postgres
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -101,11 +112,14 @@ metadata:
   name: cuelake-role
 rules:
 - apiGroups: [""]
-  resources: ["pods", "pods/exec", "services", "configmaps"]
+  resources: ["pods", "pods/exec", "services", "configmaps", "persistentvolumeclaims"]
   verbs: ["create", "get", "update", "patch", "list", "delete", "watch"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]
   verbs: ["bind", "create", "get", "update", "patch", "list", "delete", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["create", "get", "update", "patch", "list", "delete", "watch"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -144,7 +158,7 @@ spec:
           claimName: lakehouse-db-volume-pvc
       containers:
       - name: lakehouse
-        image: cuebook/lakehouse:0.3
+        image: cuebook/lakehouse:0.4
         resources:
           requests:
             memory: "2560Mi"

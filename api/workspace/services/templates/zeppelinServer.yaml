@@ -17,11 +17,14 @@ spec:
     spec:
       serviceAccountName: cuelake
       volumes:
-        - name: shared-notebook
-          emptyDir:
+        - name: notebook-volume
+          persistentVolumeClaim:
+            claimName: zeppelin-server-{workspaceName}-pvc
         - name: shared-conf
           emptyDir:
         - name: shared-k8s
+          emptyDir:
+        - name: shared-jobk8s
           emptyDir:
       initContainers:
         - name: init
@@ -32,10 +35,13 @@ spec:
               mountPath: /shared-conf
             - name: shared-k8s
               mountPath: /shared-k8s
+            - name: shared-jobk8s
+              mountPath: /shared-jobk8s
           args:
             - >-
               kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/conf /shared-conf &&
-              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/k8s /shared-k8s
+              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/k8s /shared-k8s &&
+              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/jobk8s /shared-jobk8s
       containers:
         - name: zeppelin-server
           image: 'cuebook/zeppelin-server-lite:0.3'
@@ -66,6 +72,8 @@ spec:
             - configMapRef:
                 name: zeppelin-server-conf-map
           env:
+            - name: SERVICE_DOMAIN
+              value: zeppelin-server-{workspaceName}
             - name: POD_UID
               valueFrom:
                 fieldRef:
@@ -81,6 +89,10 @@ spec:
               mountPath: /zeppelin/conf
             - name: shared-k8s
               mountPath: /zeppelin/k8s
+            - name: notebook-volume
+              mountPath: /zeppelin/notebook
+            - name: shared-jobk8s
+              mountPath: /zeppelin/jobk8s
           lifecycle:
             preStop:
               exec:

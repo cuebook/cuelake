@@ -10,15 +10,15 @@ class NotebookService {
     }
 
     async getNotebooks(offset, limit, searchText, sorter, filter, workspaceId){
-        const response = await apiService.get("genie/notebooks/" + offset + "/" + workspaceId + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
+        const response = await apiService.get("genie/notebooks/" + workspaceId + "/" + offset + "?limit="+ limit + "&searchText="+ searchText+ "&sorter="+ JSON.stringify(sorter) + "&filter=" + JSON.stringify(filter))
         if(response.success === true)
             return response.data
         else
             return null
     }
 
-    async getArchivedNotebooks(){
-        const response = await apiService.get("genie/notebooks/archive")
+    async getArchivedNotebooks(workspaceId){
+        const response = await apiService.get("genie/notebooks/archive/" + workspaceId)
         if(response.success === true)
             return response.data
         else

@@ -96,7 +96,8 @@ export default function NotebookTable() {
   const refreshNotebooks = async (searchText = searchTextRef.current, sorter = sorterRef.current, filter = filterRef.current, currentPage = currentPageRef.current) => {
     if(currentPageRef.current && isNotebooksRequestCompletedRef.current){
       setisNotebooksRequestCompleted(false);
-      const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sorter, filter);
+      let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+      const response = await notebookService.getNotebooks((currentPage - 1)*limit, limit, searchText, sorter, filter, workspaceId);
       setisNotebooksRequestCompleted(true);
       if(response){
         setNotebooks(response);
@@ -202,8 +203,8 @@ export default function NotebookTable() {
   }
 
   const archiveNotebook = async (notebook) => {
-    let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
-    const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1), WorkspaceId)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.archiveNotebook(notebook.id, notebook.name.substring(1), workspaceId)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " moved to archive")
       refreshNotebooks()
@@ -214,8 +215,8 @@ export default function NotebookTable() {
   }
 
   const deleteNotebook = async (notebook) => {
-    let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
-    const response = await notebookService.deleteNotebook(notebook.id, WorkspaceId)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.deleteNotebook(notebook.id, workspaceId)
     if(response.success){
       message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
       refreshNotebooks()

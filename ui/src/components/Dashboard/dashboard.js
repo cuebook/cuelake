@@ -130,7 +130,7 @@ export default function Dashboard() {
                 key="createTag"
                 type="primary"
                 onClick={(e) => {e.preventDefault();
-                    window.location.href='/workspace/add';}
+                    window.location.href='/workspace';}
                 }
             >
                 New Workspace

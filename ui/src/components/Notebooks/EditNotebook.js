@@ -34,7 +34,8 @@ export default function EditNotebook(props) {
  }
 
   const fetchConnections = async () => {
-    const response = await connectionService.getConnections();
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await connectionService.getConnections(workspaceId);
     setConnections(response.data)
   }
 

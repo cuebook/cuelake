@@ -20,7 +20,6 @@ metadata:
   namespace: {{zeppelin.k8s.namespace}}
   name: {{zeppelin.k8s.interpreter.pod.name}}
   labels:
-    workspace: WORKSPACE_NAME
     app: {{zeppelin.k8s.interpreter.pod.name}}
     interpreterGroupId: {{zeppelin.k8s.interpreter.group.id}}
     interpreterSettingName: {{zeppelin.k8s.interpreter.setting.name}}
@@ -51,7 +50,7 @@ spec:
       - "-r"
       - "{{zeppelin.k8s.interpreter.rpc.portRange}}"
       - "-c"
-      - zeppelin-server-WORKSPACE_NAME
+      - "{{zeppelin.k8s.server.rpc.service}}"
       - "-p"
       - "{{zeppelin.k8s.server.rpc.portRange}}"
       - "-i"

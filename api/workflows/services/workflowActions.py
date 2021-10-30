@@ -1,4 +1,6 @@
 import datetime as dt
+
+from django.template.base import logger
 from app.celery import app
 from workflows.models import (
     WorkflowRunLogs,

@@ -8,7 +8,7 @@ export default function SparkUI() {
   let iframeUrl = "";
   let isEmbedPage = (history.location.pathname.indexOf("api/redirect") !== -1);
   if(isEmbedPage)
-    iframeUrl = "/api/redirect/cuelake" + apiService.spark_base_url;
+    iframeUrl = "/api/redirect/cuelake" + apiService.spark_base_url + "jobs/";
   else
     iframeUrl = apiService.spark_base_url;
   return (

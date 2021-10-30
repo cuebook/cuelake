@@ -23,13 +23,16 @@ export default function Sidebar(props) {
   }
 
   const setSelectedWorkspace = (workspaceId) => {
-    localStorage.setItem('workspaceId', workspaceId);
-    setSelectedWorkspaceId(workspaceId)
-    switchWorkspaceServer(workspaceId)
+    let workspace = workspaces.find(w => w.id === workspaceId); 
+    localStorage.setItem('workspaceId', workspace.id);
+    localStorage.setItem('workspaceName', workspace.name);
+    setSelectedWorkspaceId(workspace.id)
+    switchWorkspaceServer(workspace.id)
   }
 
   const switchWorkspaceServer = async (workspaceId) => {
     const response = await workspaceService.switchWorkspaceServer(workspaceId);
+    location.reload();
   }
 
   let urlPrefix = ""
@@ -47,13 +50,23 @@ export default function Sidebar(props) {
       "label": "Dashboard",
       "path": "/dashboard",
       "icon": "fa-file"
+    },
+    {
+      "label": "Schedules",
+      "path": "/schedules",
+      "icon": "fa-calendar"
+    },
+    {
+      "label": "Settings",
+      "path": "/settings",
+      "icon": "fa-wrench"
     }
   ]
 
   const menuItems = [
     {
       "label": "Notebooks",
-      "path": "/notebook",
+      "path": "/notebooks",
       "icon": "fa-file"
     },
     {
@@ -67,18 +80,13 @@ export default function Sidebar(props) {
       "icon": "fa-tasks"
     },
     {
-      "label": "Schedules",
-      "path": "/schedules",
-      "icon": "fa-calendar"
-    },
-    {
       "label": "Spark-UI",
       "path": "/spark",
       "icon": "fa-star"
     },
     {
-      "label": "Settings",
-      "path": "/settings",
+      "label": "Interpreter",
+      "path": "/interpreterSettings",
       "icon": "fa-wrench"
     }
   ]
@@ -167,23 +175,28 @@ export default function Sidebar(props) {
             <ul className="md:flex-col md:min-w-full flex flex-col list-none">
               { adminMenuElements }
             </ul>
-            <div className={style.subMenu}>
-            {/* Workspace Selector */}
-              <label style={{fontSize: '11px'}}>Workspace</label>
-              <Select
-                    style={{width: '100%'}}
-                    showSearch
-                    onChange={(value) => setSelectedWorkspace(value)}
-                    filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 }
-                    value={selectedWorkspaceId}
-                  >
-                  {workspaceElements}
-              </Select>
-              {/* Menu */}
-              <ul className="md:flex-col md:min-w-full flex flex-col list-none">
-                { menuElements }
-              </ul> 
-            </div>
+            {
+              workspaces?.length ?
+              <div className={style.subMenu}>
+              {/* Workspace Selector */}
+                <label style={{fontSize: '11px'}}>Workspace</label>
+                <Select
+                      style={{width: '100%'}}
+                      showSearch
+                      onChange={(value) => setSelectedWorkspace(value)}
+                      filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 }
+                      value={selectedWorkspaceId}
+                    >
+                    {workspaceElements}
+                </Select>
+                {/* Menu */}
+                <ul className="md:flex-col md:min-w-full flex flex-col list-none">
+                  { menuElements }
+                </ul> 
+              </div>
+              : 
+              <label style={{fontSize: '14px'}}>Create a workspace server first</label>
+            }
           </div>
         </div>
       </nav>

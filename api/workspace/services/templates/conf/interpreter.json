@@ -471,7 +471,7 @@
           },
             "spark.hadoop.javax.jdo.option.ConnectionURL":{
               "name": "spark.hadoop.javax.jdo.option.ConnectionURL",
-              "value": "_HOST:_PORT/_DBNAME",
+              "value": "jdbc:postgresql://_HOST:_PORT/_DBNAME",
               "type": "textarea"
           },
             "spark.hadoop.javax.jdo.option.ConnectionUserName":{

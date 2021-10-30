@@ -4,7 +4,8 @@ import ReactNotification from 'react-notifications-component';
 
 // views
 import Sidebar from "components/Sidebar/Sidebar.js";
-import Settings from "views/admin/Settings.js";
+import AlertSettings from "views/admin/Settings.js";
+import ZeppelinInterpreterSettings from "views/admin/InterpreterSettings.js";
 import Notebooks from "views/admin/Notebooks.js";
 import NotebookView from "views/admin/NotebookView.js";
 import Connections from "views/admin/Connections.js";
@@ -26,12 +27,13 @@ export default function Admin() {
               <Route path="/api/redirect/cuelake/dashboard" exact component={Dashboard} />
               <Route path="/api/redirect/cuelake/notebooks"  exact component={Notebooks} />
               <Route path="/api/redirect/cuelake/notebook/:notebookId" exact component={NotebookView} />
-              <Route path="/api/redirect/cuelake/settings" exact component={Settings} />
+              <Route path="/api/redirect/cuelake/settings" exact component={AlertSettings} />
               <Route path="/api/redirect/cuelake/connections" exact component={Connections} />
               <Route path="/api/redirect/cuelake/schedules" exact component={SchedulesView} />
               <Route path="/api/redirect/cuelake/workflows" exact component={WorkflowsMain} />
+              <Route path="/interpreterSettings" exact component={ZeppelinInterpreterSettings} />
               <Route path="/api/redirect/cuelake/spark" exact component={SparkUI} />
-              <Redirect from="/" to="/api/redirect/cuelake/notebooks" />
+              <Redirect from="/" to="/api/redirect/cuelake/dashboard" />
             </Switch>
           </div>
         </div>

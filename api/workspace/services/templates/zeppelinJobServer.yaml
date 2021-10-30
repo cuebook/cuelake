@@ -41,7 +41,7 @@ spec:
         - >-
           sed -i
           's#zeppelin.k8s.server.rpc.service#zeppelin.k8s.server.pod.name#1'
-          /zeppelin/k8s/interpreter/100-interpreter-spec.yaml &&
+          /zeppelin/jobk8s/interpreter/100-interpreter-spec.yaml &&
           $(ZEPPELIN_HOME)/bin/zeppelin.sh
       ports:
         - name: http

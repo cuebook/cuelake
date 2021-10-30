@@ -275,29 +275,36 @@ class KubernetesAPI:
         with open("workspace/services/templates/conf/interpreter.json", "r") as file:
             zeppelinInterpreterTemplate = file.read()
             zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('sparkConfigJSON', sparkConfigJSON)
-            if isNew:
-               zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('_HOST', os.environ.get("POSTGRES_DB_HOST")).replace('_PORT', os.environ.get("POSTGRES_DB_PORT")).replace('_USERNAME', os.environ.get("POSTGRES_DB_USERNAME")).replace('_PASSWORD', os.environ.get("POSTGRES_DB_PASSWORD")).replace('_DBNAME', (f"{workspaceName}_metastore"))
+            zeppelinInterpreterTemplate = zeppelinInterpreterTemplate.replace('_HOST', os.environ.get("POSTGRES_DB_HOST")).replace('_PORT', os.environ.get("POSTGRES_DB_PORT")).replace('_USERNAME', os.environ.get("POSTGRES_DB_USERNAME")).replace('_PASSWORD', os.environ.get("POSTGRES_DB_PASSWORD")).replace('_DBNAME', (f"{workspaceName}_metastore"))
             
-        Path(f"data/workspaces/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
-        with open(f"data/workspaces/{workspaceName}/conf/interpreter.json", "w") as file:
+        Path(f"data/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
+        with open(f"data/{workspaceName}/conf/interpreter.json", "w") as file:
             file.write(zeppelinInterpreterTemplate)
 
         zeppelinEnvTemplate = open("workspace/services/templates/conf/zeppelin-env.sh", "r")
         zeppelinEnvTemplate = zeppelinEnvTemplate.read()
         zeppelinEnvTemplate = zeppelinEnvTemplate.format_map(SafeDict(inactivityTimeout=workspaceConfig['inactivityTimeout']))
-        Path(f"data/workspaces/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
-        zeppelinEnvFile = open(f"data/workspaces/{workspaceName}/conf/zeppelin-env.sh", "w")
+        Path(f"data/{workspaceName}/conf").mkdir(parents=True, exist_ok=True)
+        zeppelinEnvFile = open(f"data/{workspaceName}/conf/zeppelin-env.sh", "w")
         zeppelinEnvFile.write(zeppelinEnvTemplate)
 
         interpreterSpecTemplate = open("workspace/services/templates/zeppelinInterpreter.yaml", "r")
         interpreterSpecTemplate = interpreterSpecTemplate.read()
-        Path(f"data/workspaces/{workspaceName}/k8s/interpreter").mkdir(parents=True, exist_ok=True)
-        interpreterSpecFile = open(f"data/workspaces/{workspaceName}/k8s/interpreter/100-interpreter-spec.yaml", "w")
+        interpreterSpecTemplate = interpreterSpecTemplate.replace('WORKSPACE_NAME', workspaceName)
+        Path(f"data/{workspaceName}/k8s/interpreter").mkdir(parents=True, exist_ok=True)
+        interpreterSpecFile = open(f"data/{workspaceName}/k8s/interpreter/100-interpreter-spec.yaml", "w")
         interpreterSpecFile.write(interpreterSpecTemplate)
+
+        jobInterpreterSpecTemplate = open("workspace/services/templates/zeppelinJobServerInterpreter.yaml", "r")
+        jobInterpreterSpecTemplate = jobInterpreterSpecTemplate.read()
+        jobInterpreterSpecTemplate = jobInterpreterSpecTemplate.replace('WORKSPACE_NAME', workspaceName)
+        Path(f"data/{workspaceName}/jobk8s/interpreter").mkdir(parents=True, exist_ok=True)
+        jobInterpreterSpecFile = open(f"data/{workspaceName}/jobk8s/interpreter/100-interpreter-spec.yaml", "w")
+        jobInterpreterSpecFile.write(jobInterpreterSpecTemplate)
 
         if os.environ.get("ENVIRONMENT","") == "dev":
             subprocess.Popen([
-                "kubectl cp data/workspaces/WORKSPACE_NAME POD_NAMESPACE/$(kubectl get pods -n POD_NAMESPACE | grep lakehouse | awk '{print $1}'):/code/data/WORKSPACE_NAME".replace('POD_NAMESPACE', self.POD_NAMESPACE).replace("WORKSPACE_NAME", workspaceName)],shell=True)
+                "kubectl cp data/WORKSPACE_NAME POD_NAMESPACE/$(kubectl get pods -n POD_NAMESPACE | grep lakehouse | awk '{print $1}'):/code/data/WORKSPACE_NAME".replace('POD_NAMESPACE', self.POD_NAMESPACE).replace("WORKSPACE_NAME", workspaceName)],shell=True)
         
         v1Core = client.CoreV1Api()
         v1App = client.AppsV1Api()
@@ -315,11 +322,17 @@ class KubernetesAPI:
         pvcBody = pvcTemplateFile.read()
         pvcBody = pvcBody.format_map(SafeDict(workspaceName=workspaceName, podNamespace=self.POD_NAMESPACE))
         pvcBody = yaml.safe_load(pvcBody)
-        if isNew:
-            try:
-                v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
-            except:
-                pass
+        sparkServiceSpecTemplate = open("workspace/services/templates/sparkService.yaml", "r")
+        sparkServiceSpecTemplate = sparkServiceSpecTemplate.read()
+        sparkServiceSpecTemplate = sparkServiceSpecTemplate.replace('WORKSPACE_NAME', workspaceName)
+        sparkServiceBody = yaml.safe_load(sparkServiceSpecTemplate)
+        v1Core.create_namespaced_service(namespace=self.POD_NAMESPACE, body=sparkServiceBody)
+       
+        # try:
+        v1Core.create_namespaced_persistent_volume_claim(namespace=self.POD_NAMESPACE, body=pvcBody)
+        
+        # except:
+        #     pass
 
     def addZeppelinJobServer(self, podId, workspaceId):
         v1 = client.CoreV1Api()

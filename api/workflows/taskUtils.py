@@ -5,6 +5,7 @@ import logging
 import datetime as dt
 import polling
 from workflows.models import (
+    Workflow,
     WorkflowRunLogs,
     WorkflowNotebookMap,
     STATUS_SUCCESS,
@@ -32,9 +33,10 @@ class TaskUtils:
         """
         Runs workflow
         """
+        workspaceId = Workflow.objects.get(pk=workflowId).workspace_id
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
         workflowRunLogs = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunLogsId)
-        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRunLogs.id)
+        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRunLogs.id, workspaceId)
         workflowStatus = polling.poll(
             lambda: TaskUtils.__checkGivenRunStatuses(notebookRunLogsIds),
             check_success= lambda x: x != "RUNNING",

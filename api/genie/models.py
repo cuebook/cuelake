@@ -3,6 +3,7 @@ from django.db.models.fields import CharField
 from django_celery_beat.models import PeriodicTask, PeriodicTasks, CrontabSchedule
 from workflows.models import WorkflowRunLogs
 from django.db.models import signals
+from workspace.models import Workspace
 
 
 NOTEBOOK_STATUS_SUCCESS = "SUCCESS"
@@ -35,6 +36,7 @@ class NotebookRunLogs(models.Model):
     workflowRunLogs = models.ForeignKey(WorkflowRunLogs, null=True, blank=True, on_delete=models.SET_NULL)
     taskId = models.CharField(max_length=200, default="")
     zeppelinServerId = models.CharField(max_length=200, default="")
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE,null=True, default=None)
 
 
 # Connection Models
@@ -64,6 +66,7 @@ class Connection(models.Model):
     connectionType = models.ForeignKey(
         ConnectionType, on_delete=models.CASCADE, db_index=True, related_name="connectionTypeConnection"
     )
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE,null=True, default=None)
 
     def __str__(self):
         return self.name

@@ -5,9 +5,9 @@ from utils.apiResponse import ApiResponse
 class Connections:
 
     @staticmethod
-    def getConnections():
+    def getConnections(workspaceId):
         res = ApiResponse()
-        connections = Connection.objects.all()
+        connections = Connection.objects.filter(workspace=workspaceId)
         serializer = ConnectionSerializer(connections, many=True)
         res.update(True, "Connections retrieved successfully", serializer.data)
         return res
@@ -21,11 +21,11 @@ class Connections:
         return res
 
     @staticmethod
-    def addConnection(payload):
+    def addConnection(payload, workspaceId):
         res = ApiResponse()
         connectionType = ConnectionType.objects.get(id=payload["connectionType_id"])
         connection = Connection.objects.create(
-            name=payload["name"], description=payload["description"], connectionType=connectionType
+            name=payload["name"], description=payload["description"], connectionType=connectionType, workspace_id = workspaceId
         )
         for param in payload["params"]:
             cp = ConnectionParam.objects.get(name=param, connectionType=connectionType)

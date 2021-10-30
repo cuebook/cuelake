@@ -9,7 +9,7 @@ urlpatterns = [
     path("notebook/<str:notebookId>/<int:workspaceId>", views.NotebookOperationsView.as_view(), name="notebookOperations"),
     path("notebook/actions/<str:notebookId>/<int:workspaceId>", views.NotebookActionsView.as_view(), name="notebookActions"),
     path("notebook/<str:notebookId>/archive/<str:notebookName>/<int:workspaceId>", views.ArchiveNotebookView.as_view(), name="archiveNotebookView"),
-    path("notebook/<str:notebookId>/unarchive/<str:notebookName>", views.UnarchiveNotebookView.as_view(), name="unarchiveNotebookView"),
+    path("notebook/<str:notebookId>/unarchive/<str:notebookName>/<int:workspaceId>", views.UnarchiveNotebookView.as_view(), name="unarchiveNotebookView"),
     path("notebook/<int:workspaceId>", views.NotebookView.as_view(), name="notebook"),
     path("notebookObject/<int:notebookObjId>/<int:workspaceId>", views.getNotebookObject, name="notebookObject"),
     path("notebookjob/<str:notebookId>", views.NotebookJobView.as_view(), name="notebookJobView"),
@@ -22,7 +22,7 @@ urlpatterns = [
     # =====================================================================================================
     # Connections
     # =====================================================================================================
-    path("connections", views.connections, name="connections"),
+    path("connections/<int:workspaceId>", views.connections, name="connections"),
     path("connection/<int:connectionId>", views.connection, name="connection"),
     path("connectiontypes", views.connectionTypes, name="connectionTypes"),
     # =====================================================================================================

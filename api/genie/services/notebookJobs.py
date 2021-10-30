@@ -82,7 +82,7 @@ class NotebookJobServices:
                 for name in names:
                     workflowNames.append(name)
                 notebook["assignedWorkflow"] = workflowNames
-                notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
+                notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebook["id"], workspace_id= workspaceId).order_by("-startTimestamp").first()
                 if notebookRunLogs:
                     notebook["notebookStatus"] = notebookRunLogs.status if notebookRunLogs.status else None
                     notebook["lastRun"] = NotebookRunLogsSerializer(notebookRunLogs).data
@@ -325,7 +325,7 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        notebookRunLogs = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        notebookRunLogs = NotebookRunLogs.objects.create(notebookId=notebookId, workspace_id = workspaceId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
         runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, runType="Manual", workspaceId=workspaceId)
         res.update(True, "Notebook triggered successfully", None)
         return res

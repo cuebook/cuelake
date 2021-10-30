@@ -116,9 +116,9 @@ export default function Workflows(props) {
     }
 
     const getNotebooksLight = async () => {
-      let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
+      let workspaceId = parseInt(localStorage.getItem("workspaceId"))
       if (_.isEmpty(notebooksLight)){
-        const response = await notebookService.getNotebooksLight(WorkspaceId);
+        const response = await notebookService.getNotebooksLight(workspaceId);
         if(response){
           setNotebooksLight(response);
         }
@@ -156,8 +156,8 @@ export default function Workflows(props) {
           triggerWorkflowId: triggerWorkflow ? triggerWorkflow.id : null,
           triggerWorkflowStatus: triggerWorkflowStatus
         }
-        let WorkspaceId = parseInt(localStorage.getItem("workspaceId"))
-        const response = await workflowsService.setWorkflows(data, WorkspaceId);
+        let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+        const response = await workflowsService.setWorkflows(data, workspaceId);
         if(response){
           setIsEditCreateWorkflow(false)
           settingInitialValues()
