@@ -100,8 +100,9 @@ def test_getNotebookJobs(client, populate_seed_data, mocker):
 @pytest.mark.django_db
 def test_notebookJob(client, populate_seed_data, mocker):
     path = reverse('notebooksJobView')
-    data = {"notebookId": "BX976MDDE", "scheduleId": 1}
+    data = {"notebookId": "BX976MDDE", "scheduleId": 1, "workspaceId": 1}
     mixer.blend("genie.customSchedule", id=1)
+    mixer.blend("workspace.workspace", id=1)
     response = client.post(path, data=data, content_type="application/json")
     assert response.status_code == 200
     assert response.data['success'] == True
