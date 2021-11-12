@@ -64,6 +64,9 @@ class NotebookJobServices:
                 notebookObj = next((notebookObj for notebookObj in notebookObjects if notebookObj.notebookZeppelinId == notebook["id"]), False)
                 if notebookObj:
                     notebook["notebookObjId"] = notebookObj.id
+                    notebook["retryCount"] = notebookObj.retryCount
+                else:
+                    notebookObj["retryCount"] = 0
                 notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.notebookId == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True

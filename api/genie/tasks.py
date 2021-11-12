@@ -7,7 +7,7 @@ import polling
 from celery import shared_task
 from django.conf import settings
 
-from genie.models import NotebookRunLogs, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
+from genie.models import NotebookRunLogs, NotebookObject, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
 from system.services import NotificationServices
 from utils.zeppelinAPI import ZeppelinAPI
 from utils.kubernetesAPI import Kubernetes
@@ -21,7 +21,7 @@ ZEPPELIN_SERVER_CONCURRENCY = os.environ.get("ZEPPELIN_SERVER_CONCURRENCY", 5)
 ZEPPELIN_JOB_SERVER_PREFIX = "zeppelin-job-server-"
 
 @shared_task
-def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str = "Scheduled"):
+def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str = "Scheduled", retryCount: int = -1):
     """
     Celery task to run a zeppelin notebook
     :param notebookId: ID of the zeppelin notebook which to run
@@ -68,6 +68,14 @@ def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str 
         notebookRunLogs.endTimestamp = dt.datetime.now()
         notebookRunLogs.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
+    
+    if notebookRunLogs.status == NOTEBOOK_STATUS_ERROR:
+        if retryCount == -1:
+            notebookObj = NotebookObject.objects.filter(notebookZeppelinId=notebookId).first()
+            if notebookObj:
+                retryCount = notebookObj.retryCount
+        if retryCount > 0:
+            runNotebookJob(notebookId=notebookId, notebookRunLogsId=None, runType=runType, retryCount=retryCount-1)
 
 def __allocateZeppelinServer(notebookRunLogs: NotebookRunLogs):
     """

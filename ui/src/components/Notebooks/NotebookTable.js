@@ -346,6 +346,23 @@ export default function NotebookTable() {
       }
     },
     {
+      title: "Retry Count",
+      dataIndex: "retryCount",
+      key: "retryCount",
+      width: "10%",
+      sorter: ()=>{},
+      sortOrder: sorter.columnKey === 'retryCount' && sorter.order,
+      ellipsis: true,
+
+      render: text => {
+        return (
+          <span key={text}>
+            {text.substring(1)}
+          </span>
+        );
+      }
+    },
+    {
       title: "Latest Run",
       dataIndex: "lastRun",
       key: "lastRun1",

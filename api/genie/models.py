@@ -87,6 +87,7 @@ class NotebookObject(models.Model):
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, blank=True, null=True)
     notebookTemplate = models.ForeignKey(NotebookTemplate, on_delete=models.CASCADE)
     defaultPayload = models.JSONField(default={})
+    retryCount = models.IntegerField(default=0)
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=NotebookJob)
