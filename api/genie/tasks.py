@@ -75,7 +75,7 @@ def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str 
             if notebookObj:
                 retryCount = notebookObj.retryCount
         if retryCount > 0:
-            runNotebookJob(notebookId=notebookId, notebookRunLogsId=None, runType=runType, retryCount=retryCount-1)
+            runNotebookJob(notebookId=notebookId, notebookRunLogsId=notebookRunLogsId, runType=runType, retryCount=retryCount-1)
 
 def __allocateZeppelinServer(notebookRunLogs: NotebookRunLogs):
     """
