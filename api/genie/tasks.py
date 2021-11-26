@@ -63,11 +63,28 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
 
     except Exception as ex:
         logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
+
+        if runStatus.retryRemaining:
+            __reRunNotebook(runStatus)
+
         runStatus.status=NOTEBOOK_STATUS_ERROR
         runStatus.message = str(ex)
         runStatus.endTimestamp = dt.datetime.now()
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
+
+def __reRunNotebook(runStatus):
+    """
+    Sets up job 
+    """
+    newRunStatus = RunStatus.objects.create(
+        notebookId=runStatus.notebookId, status=NOTEBOOK_STATUS_QUEUED, runType=runStatus.runType, workflowRun_id=runStatus.workflowRunId, retryRemaining=runStatus.retryRemaining-1
+    )
+    response = runNotebookJob.delay(notebookId=newRunStatus.notebookId, runStatusId=newRunStatus.id)
+    newRunStatus.taskId = response.id
+    newRunStatus.save()
+    return newRunStatus.id
+
 
 def __allocateZeppelinServer(runStatus: RunStatus):
     """
@@ -116,7 +133,8 @@ def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, task
     Gets or creates a notebook run status object
     """
     if not runStatusId:
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId)
+        retryRemaining=__getRetryRemaining(notebookId)
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId, retryRemaining=retryRemaining)
     else:
         runStatus = RunStatus.objects.get(id=runStatusId)
         runStatus.startTimestamp = dt.datetime.now()
@@ -124,6 +142,15 @@ def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, task
         runStatus.taskId = taskId
         runStatus.save()
     return runStatus
+
+def __getRetryRemaining(notebookId: int):
+    """
+    Get retry count set for given notebook in notebook object
+    """
+    notebookObjects = NotebookObject.objects.filter(notebookZeppelinId=notebookId)
+    if notebookObjects.count():
+        return notebookObjects[0].retryCount
+    return 0
 
 def __checkIfNotebookRunning(notebookId: str, zeppelin: ZeppelinAPI):
     """

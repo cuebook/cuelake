@@ -78,6 +78,11 @@ class NotebookService {
         return response
     }
 
+    async updateNotebookRetryCount(notebookId, retryCount){
+        const response = await apiService.post("genie/notebookjob/", {notebookId: notebookId, retryCount: retryCount})
+        return response
+    }
+
     async getTimezones(){
         const response = await apiService.get("genie/timezones/")
         if(response.success === true)

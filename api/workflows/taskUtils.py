@@ -37,7 +37,7 @@ class TaskUtils:
         workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
         notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
         workflowStatus = polling.poll(
-            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds),
+            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds, workflowRun.id),
             check_success= lambda x: x != "RUNNING",
             step=3,
             timeout=3600*6,
@@ -59,8 +59,9 @@ class TaskUtils:
         """
         notebookRunStatusIds = []
         for notebookId in notebookIds:
+            retryRemaining = TaskUtils.__getRetryRemaining(notebookId)
             runStatus = RunStatus.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRun_id=workflowRunId
+                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRun_id=workflowRunId, retryRemaining=retryRemaining
             )
             response = runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id)
             runStatus.taskId = response.id
@@ -68,6 +69,17 @@ class TaskUtils:
             notebookRunStatusIds.append(runStatus.id)
             time.sleep(0.2) # Sleep for 200ms to make sure zeppelin server has been allocated to previous notebook
         return notebookRunStatusIds
+
+
+    def __getRetryRemaining(notebookId: int):
+        """
+        Get retry count set for given notebook in notebook object
+        """
+        notebookObjects = NotebookObject.objects.filter(notebookZeppelinId=notebookId)
+        if notebookObjects.count():
+            return notebookObjects[0].retryCount
+        return 0
+
     
     @staticmethod
     def __getNotebookIdsInWorkflow(workflowId: int):
@@ -98,14 +110,16 @@ class TaskUtils:
         return workflowRun
     
     @staticmethod
-    def __checkGivenRunStatuses(notebookRunStatusIds: List[int]):
+    def __checkGivenRunStatuses(workflowRunId: int):
         """
         Check if given runStatuses are status is SUCCESS
         """
-        runningAndQueuedNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds).exclude(status=NOTEBOOK_STATUS_RUNNING).exclude(status=NOTEBOOK_STATUS_QUEUED).count()
-        if (len(notebookRunStatusIds) == runningAndQueuedNotebookCount):
-            successfulNotebookCount = RunStatus.objects.filter(id__in=notebookRunStatusIds, status=NOTEBOOK_STATUS_SUCCESS).count()
-            logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}. Notebooks in batch: {str(len(notebookRunStatusIds))}")
-            logger.info(f"Notebook Run Status Ids: {str(notebookRunStatusIds)}")
-            return (len(notebookRunStatusIds) == successfulNotebookCount)
+        RunStatus.objects.filter(workflowRun=6).exclude(status__in=[""])
+
+        runningAndQueuedNotebookCount = RunStatus.objects.filter(workflowRun_id=workflowRunId).filter(status=NOTEBOOK_STATUS_RUNNING).filter(status=NOTEBOOK_STATUS_QUEUED).count()
+        if not runningAndQueuedNotebookCount:
+            successfulNotebookCount = RunStatus.objects.filter(workflowRun_id=workflowRunId, status=NOTEBOOK_STATUS_SUCCESS).count()
+            logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}.")
+            # logger.info(f"Notebook Run Status Ids: {str(notebookRunStatusIds)}")
+            return RunStatus.objects.filter(workflowRun_id=workflowRunId).exclude(status=NOTEBOOK_STATUS_SUCCESS).filter(retryRemaining=0).count() == 0
         return "RUNNING"

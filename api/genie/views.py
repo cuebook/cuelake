@@ -96,8 +96,13 @@ class NotebookJobView(APIView):
     
     def post(self, request):
         notebookId = request.data["notebookId"]
-        scheduleId = request.data["scheduleId"]
-        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
+        scheduleId = request.data.get("scheduleId")
+        retryCount = request.data.get("retryCount", None)
+
+        if retryCount == None:
+            res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
+        else:
+            res = NotebookJobServices.updateNotebookRetryCount(notebookId=notebookId, retryCount=retryCount)
         return Response(res.json())
 
     def delete(self, request, notebookId=None):
