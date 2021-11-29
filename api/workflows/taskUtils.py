@@ -37,7 +37,7 @@ class TaskUtils:
         workflowRun = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunId)
         notebookRunStatusIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRun.id)
         workflowStatus = polling.poll(
-            lambda: TaskUtils.__checkGivenRunStatuses(notebookRunStatusIds, workflowRun.id),
+            lambda: TaskUtils.__checkGivenRunStatuses(workflowRun.id),
             check_success= lambda x: x != "RUNNING",
             step=3,
             timeout=3600*6,
