@@ -114,9 +114,7 @@ class TaskUtils:
         """
         Check if given runStatuses are status is SUCCESS
         """
-        RunStatus.objects.filter(workflowRun=6).exclude(status__in=[""])
-
-        runningAndQueuedNotebookCount = RunStatus.objects.filter(workflowRun_id=workflowRunId).filter(status=NOTEBOOK_STATUS_RUNNING).filter(status=NOTEBOOK_STATUS_QUEUED).count()
+        runningAndQueuedNotebookCount = RunStatus.objects.filter(workflowRun_id=workflowRunId).filter(status__in=[NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_QUEUED]).count()
         if not runningAndQueuedNotebookCount:
             successfulNotebookCount = RunStatus.objects.filter(workflowRun_id=workflowRunId, status=NOTEBOOK_STATUS_SUCCESS).count()
             logger.info(f"Batch completed. Successfull Notebooks : {str(successfulNotebookCount)}.")
