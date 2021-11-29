@@ -49,6 +49,9 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 __evaluateScaleDownZeppelin()
             except Exception as ex:
                 logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
+                if runStatus.retryRemaining:
+                    __reRunNotebook(runStatus)
+
                 runStatus.status = NOTEBOOK_STATUS_ERROR
                 runStatus.message = str(ex)
                 runStatus.endTimestamp = dt.datetime.now()
@@ -56,6 +59,9 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
         else:
             logger.error(f"Error occured in notebook {notebookId}. Error: Failed to trigger notebook job")
+            if runStatus.retryRemaining:
+                __reRunNotebook(runStatus)
+
             runStatus.status=NOTEBOOK_STATUS_ERROR
             runStatus.message = "Failed running notebook"
             runStatus.endTimestamp = dt.datetime.now()
@@ -215,6 +221,10 @@ def __setNotebookStatus(response, runStatus: RunStatus):
                 NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title", "") + " " + paragraph.get("id","") + " failed")
                 return
     runStatus.status=NOTEBOOK_STATUS_SUCCESS if response else NOTEBOOK_STATUS_ERROR 
+
+    if runStatus.status == NOTEBOOK_STATUS_ERROR and runStatus.retryRemaining:
+        __reRunNotebook(runStatus)
+
     runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()
     NotificationServices.notify(notebookName=notebookName, isSuccess=True, message="Run successful")
