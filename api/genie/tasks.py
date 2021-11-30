@@ -50,7 +50,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
             except Exception as ex:
                 logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
                 if runStatus.retryRemaining:
-                    __reRunNotebook(runStatus)
+                    __retryNotebook(runStatus)
 
                 runStatus.status = NOTEBOOK_STATUS_ERROR
                 runStatus.message = str(ex)
@@ -60,7 +60,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         else:
             logger.error(f"Error occured in notebook {notebookId}. Error: Failed to trigger notebook job")
             if runStatus.retryRemaining:
-                __reRunNotebook(runStatus)
+                __retryNotebook(runStatus)
 
             runStatus.status=NOTEBOOK_STATUS_ERROR
             runStatus.message = "Failed running notebook"
@@ -71,7 +71,7 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
 
         if runStatus.retryRemaining:
-            __reRunNotebook(runStatus)
+            __retryNotebook(runStatus)
 
         runStatus.status=NOTEBOOK_STATUS_ERROR
         runStatus.message = str(ex)
@@ -79,12 +79,12 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
 
-def __reRunNotebook(runStatus):
+def __retryNotebook(runStatus):
     """
     Sets up job 
     """
     newRunStatus = RunStatus.objects.create(
-        notebookId=runStatus.notebookId, status=NOTEBOOK_STATUS_QUEUED, runType=runStatus.runType, workflowRun_id=runStatus.workflowRunId, retryRemaining=runStatus.retryRemaining-1
+        notebookId=runStatus.notebookId, status=NOTEBOOK_STATUS_QUEUED, runType=runStatus.runType, workflowRun_id=runStatus.workflowRun_id, retryRemaining=runStatus.retryRemaining-1
     )
     response = runNotebookJob.delay(notebookId=newRunStatus.notebookId, runStatusId=newRunStatus.id)
     newRunStatus.taskId = response.id
@@ -216,14 +216,14 @@ def __setNotebookStatus(response, runStatus: RunStatus):
         for paragraph in paragraphs:
             if paragraph.get("status") != "FINISHED":
                 if paragraph.get("status") != "ABORT" and runStatus.retryRemaining:
-                    __reRunNotebook(runStatus)
+                    __retryNotebook(runStatus)
                 runStatus.status=NOTEBOOK_STATUS_ABORT if paragraph.get("status") == "ABORT" else NOTEBOOK_STATUS_ERROR
                 runStatus.endTimestamp = dt.datetime.now()
                 runStatus.save()
                 NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title", "") + " " + paragraph.get("id","") + " failed")
                 return
     if not response and runStatus.retryRemaining:
-        __reRunNotebook(runStatus)
+        __retryNotebook(runStatus)
     runStatus.status=NOTEBOOK_STATUS_SUCCESS if response else NOTEBOOK_STATUS_ERROR 
     runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()
