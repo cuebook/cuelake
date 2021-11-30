@@ -19,7 +19,7 @@ def test_getNotebooks(client, populate_seed_data, mocker):
     response = client.get(path, content_type="application/json")
     assert response.status_code == 200
     assert response.data['data']["count"]  == 1
-    assert response.data['data']["notebooks"]  == [{'path': 'notebook', 'id': 'BX976MDDE', 'name': 'notebook', 'isScheduled': False, 'assignedWorkflow': []}]
+    assert response.data['data']["notebooks"]  == [{'path': 'notebook', 'id': 'BX976MDDE', 'name': 'notebook', 'isScheduled': False, 'assignedWorkflow': [], 'retryCount': 0}]
 
 
 @pytest.mark.django_db
