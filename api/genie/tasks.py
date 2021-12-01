@@ -7,7 +7,7 @@ import polling
 from celery import shared_task
 from django.conf import settings
 
-from genie.models import RunStatus, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
+from genie.models import RunStatus, NotebookObject, NOTEBOOK_STATUS_SUCCESS, NOTEBOOK_STATUS_ERROR, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_FINISHED, NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED
 from system.services import NotificationServices
 from utils.zeppelinAPI import ZeppelinAPI
 from utils.kubernetesAPI import Kubernetes
@@ -49,6 +49,9 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 __evaluateScaleDownZeppelin()
             except Exception as ex:
                 logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
+                if runStatus.retryRemaining:
+                    __retryNotebook(runStatus)
+
                 runStatus.status = NOTEBOOK_STATUS_ERROR
                 runStatus.message = str(ex)
                 runStatus.endTimestamp = dt.datetime.now()
@@ -56,6 +59,9 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
                 NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=str(ex))
         else:
             logger.error(f"Error occured in notebook {notebookId}. Error: Failed to trigger notebook job")
+            if runStatus.retryRemaining:
+                __retryNotebook(runStatus)
+
             runStatus.status=NOTEBOOK_STATUS_ERROR
             runStatus.message = "Failed running notebook"
             runStatus.endTimestamp = dt.datetime.now()
@@ -63,11 +69,28 @@ def runNotebookJob(notebookId: str, runStatusId: int = None, runType: str = "Sch
 
     except Exception as ex:
         logger.error(f"Error occured in notebook {notebookId}. Error: {str(ex)}")
+
+        if runStatus.retryRemaining:
+            __retryNotebook(runStatus)
+
         runStatus.status=NOTEBOOK_STATUS_ERROR
         runStatus.message = str(ex)
         runStatus.endTimestamp = dt.datetime.now()
         runStatus.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
+
+def __retryNotebook(runStatus):
+    """
+    Sets up job 
+    """
+    newRunStatus = RunStatus.objects.create(
+        notebookId=runStatus.notebookId, status=NOTEBOOK_STATUS_QUEUED, runType=runStatus.runType, workflowRun_id=runStatus.workflowRun_id, retryRemaining=runStatus.retryRemaining-1
+    )
+    response = runNotebookJob.delay(notebookId=newRunStatus.notebookId, runStatusId=newRunStatus.id)
+    newRunStatus.taskId = response.id
+    newRunStatus.save()
+    return newRunStatus.id
+
 
 def __allocateZeppelinServer(runStatus: RunStatus):
     """
@@ -116,7 +139,8 @@ def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, task
     Gets or creates a notebook run status object
     """
     if not runStatusId:
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId)
+        retryRemaining=__getRetryRemaining(notebookId)
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId, retryRemaining=retryRemaining)
     else:
         runStatus = RunStatus.objects.get(id=runStatusId)
         runStatus.startTimestamp = dt.datetime.now()
@@ -124,6 +148,15 @@ def __getOrCreateRunStatus(runStatusId: int, notebookId: str, runType: str, task
         runStatus.taskId = taskId
         runStatus.save()
     return runStatus
+
+def __getRetryRemaining(notebookId: int):
+    """
+    Get retry count set for given notebook in notebook object
+    """
+    notebookObjects = NotebookObject.objects.filter(notebookZeppelinId=notebookId)
+    if notebookObjects.count():
+        return notebookObjects[0].retryCount
+    return 0
 
 def __checkIfNotebookRunning(notebookId: str, zeppelin: ZeppelinAPI):
     """
@@ -182,11 +215,15 @@ def __setNotebookStatus(response, runStatus: RunStatus):
         notebookName = response.get("name", "")
         for paragraph in paragraphs:
             if paragraph.get("status") != "FINISHED":
+                if paragraph.get("status") != "ABORT" and runStatus.retryRemaining:
+                    __retryNotebook(runStatus)
                 runStatus.status=NOTEBOOK_STATUS_ABORT if paragraph.get("status") == "ABORT" else NOTEBOOK_STATUS_ERROR
                 runStatus.endTimestamp = dt.datetime.now()
                 runStatus.save()
                 NotificationServices.notify(notebookName=notebookName, isSuccess=False, message=paragraph.get("title", "") + " " + paragraph.get("id","") + " failed")
                 return
+    if not response and runStatus.retryRemaining:
+        __retryNotebook(runStatus)
     runStatus.status=NOTEBOOK_STATUS_SUCCESS if response else NOTEBOOK_STATUS_ERROR 
     runStatus.endTimestamp = dt.datetime.now()
     runStatus.save()

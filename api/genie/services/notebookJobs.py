@@ -62,8 +62,10 @@ class NotebookJobServices:
             for notebook in notebooks:
                 notebook["name"] = notebook["path"]
                 notebookObj = next((notebookObj for notebookObj in notebookObjects if notebookObj.notebookZeppelinId == notebook["id"]), False)
+                notebook["retryCount"] = 0
                 if notebookObj:
                     notebook["notebookObjId"] = notebookObj.id
+                    notebook["retryCount"] = notebookObj.retryCount
                 notebookJob = next((notebookJob for notebookJob in notebookJobs if notebookJob.notebookId == notebook["id"]), False)
                 if notebookJob:
                     notebook["isScheduled"] = True
@@ -302,6 +304,18 @@ class NotebookJobServices:
         return res
 
     @staticmethod
+    def updateNotebookRetryCount(notebookId: str, retryCount: int):
+        """
+        Service to add a new NotebookJob
+        :param notebookId: ID of the notebook for which to create job
+        :param scheduleId: ID of schedule
+        """
+        res = ApiResponse()
+        notebookObject = NotebookObject.objects.update_or_create(notebookZeppelinId=notebookId, defaults={"retryCount":retryCount})
+        res.update(True, "Notebook retry count added successfully", None)
+        return res
+
+    @staticmethod
     def deleteNotebookJob(notebookId: int):
         """
         Service to update crontab of an existing NotebookJob
@@ -318,10 +332,21 @@ class NotebookJobServices:
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        retryRemaining = NotebookJobServices.__getRetryRemaining(notebookId)
+        runStatus = RunStatus.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual", retryRemaining=retryRemaining)
         runNotebookJobTask.delay(notebookId=notebookId, runStatusId=runStatus.id, runType="Manual")
         res.update(True, "Notebook triggered successfully", None)
         return res
+
+    @staticmethod
+    def __getRetryRemaining(notebookId: int):
+        """
+        Get retry count set for given notebook in notebook object
+        """
+        notebookObjects = NotebookObject.objects.filter(notebookZeppelinId=notebookId)
+        if notebookObjects.count():
+            return notebookObjects[0].retryCount
+        return 0
 
     @staticmethod
     def stopNotebookJob(notebookId: str):

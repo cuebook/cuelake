@@ -35,6 +35,7 @@ class RunStatus(models.Model):
     workflowRun = models.ForeignKey(WorkflowRun, null=True, blank=True, on_delete=models.SET_NULL)
     taskId = models.CharField(max_length=200, default="")
     zeppelinServerId = models.CharField(max_length=200, default="")
+    retryRemaining = models.IntegerField(default=0)
 
 
 # Connection Models
@@ -85,8 +86,9 @@ class CustomSchedule(CrontabSchedule):
 class NotebookObject(models.Model):
     notebookZeppelinId = models.CharField(max_length=10)
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, blank=True, null=True)
-    notebookTemplate = models.ForeignKey(NotebookTemplate, on_delete=models.CASCADE)
+    notebookTemplate = models.ForeignKey(NotebookTemplate, on_delete=models.CASCADE, blank=True, null=True)
     defaultPayload = models.JSONField(default={})
+    retryCount = models.IntegerField(default=0)
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=NotebookJob)

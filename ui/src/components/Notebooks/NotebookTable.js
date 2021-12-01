@@ -14,9 +14,10 @@ import {
   Drawer,
   Popconfirm,
   Menu, 
-  Dropdown
+  Dropdown,
+  InputNumber
 } from "antd";
-import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { MoreOutlined, PlayCircleOutlined, UnorderedListOutlined, StopOutlined, FileTextOutlined, DeleteOutlined, CopyOutlined, CloseCircleOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
 import NotebookRunLogs from "./NotebookRunLogs.js"
 import AddNotebook from "./AddNotebook.js"
 import EditNotebook from "./EditNotebook.js"
@@ -124,7 +125,7 @@ export default function NotebookTable() {
       if(response.success){
         message.success(response.message)
       }
-      else{
+      else {
         message.error(response.message)
       }
       setSelectedNotebook(null)
@@ -133,6 +134,19 @@ export default function NotebookTable() {
     else{
       alert('Schedule not selected')
     }
+  }
+
+  const editNotebookRetryCount = async (notebookId, newRetryCount) => {
+    if (newRetryCount == null) return;
+    // console.log(notebookId, newRetryCount)
+    const response = await notebookService.updateNotebookRetryCount(notebookId, newRetryCount);
+    if(response.success){
+      message.success(response.message)
+    } else {
+      message.error(response.message)
+    }
+    setSelectedNotebook(null)
+    getNotebooks((currentPage -1)*limit)
   }
 
   const handleTableChange = (event, filter, sorter) => {
@@ -343,6 +357,34 @@ export default function NotebookTable() {
             {listIndividuals}
           </div>
         )
+      }
+    },
+    {
+      title: "Retry Count",
+      dataIndex: "retryCount",
+      key: "retryCount",
+      align: "right",
+      width: "10%",
+      sorter: ()=>{},
+      sortOrder: sorter.columnKey === 'retryCount' && sorter.order,
+      ellipsis: true,
+      render: (retryCount, notebook) => {
+          return (
+            <>
+              { 
+                selectedNotebook === notebook.id ?
+                <span>
+                  <InputNumber min={0} max={10} defaultValue={retryCount} size="small" onChange={(val)=>editNotebookRetryCount(notebook.id, val)} />
+                  <CloseCircleOutlined onClick={()=>setSelectedNotebook(null)} />
+                </span>
+                :
+                <span>
+                  {retryCount + " "}
+                  <a href={() => false} className={style.linkText} onClick={()=>setSelectedNotebook(notebook.id)}><EditOutlined /></a>
+                </span>
+              }
+            </>
+          );
       }
     },
     {

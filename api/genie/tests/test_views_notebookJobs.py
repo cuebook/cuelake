@@ -19,7 +19,7 @@ def test_getNotebooks(client, populate_seed_data, mocker):
     response = client.get(path, content_type="application/json")
     assert response.status_code == 200
     assert response.data['data']["count"]  == 1
-    assert response.data['data']["notebooks"]  == [{'path': 'notebook', 'id': 'BX976MDDE', 'name': 'notebook', 'isScheduled': False, 'assignedWorkflow': []}]
+    assert response.data['data']["notebooks"]  == [{'path': 'notebook', 'id': 'BX976MDDE', 'name': 'notebook', 'isScheduled': False, 'assignedWorkflow': [], 'retryCount': 0}]
 
 
 @pytest.mark.django_db
@@ -103,4 +103,26 @@ def test_notebookJob(client, populate_seed_data, mocker):
     response = client.delete(path, data=data, content_type="application/json")
     assert response.status_code == 200
     assert response.data['success'] == True
+
+
+@pytest.mark.django_db
+def test_notebookJob(client, populate_seed_data, mocker):
+    path = reverse('notebooksJobView')
+    data = {"notebookId": "BX976MDDE", "retryCount": 4}
+    response = client.post(path, data=data, content_type="application/json")
+    assert response.status_code == 200
+    assert response.data['success'] == True
+
+    # Test if it was updated
+    path = reverse('notebooks', kwargs={"offset": 0})
+    mocker.patch("utils.zeppelinAPI.ZeppelinAPI.getAllNotebooks", return_value = [{"path": "notebook", "id": "BX976MDDE"}])
+    response = client.get(path, content_type="application/json")
+    assert response.status_code == 200
+    assert response.data['data']["count"]  == 1
+    assert response.data['data']["notebooks"][0]["retryCount"]  == 4
+
+
+# write test case for update retryCount view
+
+# write test case
 
