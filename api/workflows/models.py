@@ -11,7 +11,7 @@ STATUS_ABORTED = "ABORTED"
 
 class Workflow(models.Model):
 	name = models.CharField(max_length=200, default="")
-	periodictask = models.ForeignKey(PeriodicTask, on_delete=models.CASCADE, null=True)
+	periodictask = models.ForeignKey(PeriodicTask, on_delete=models.SET_NULL, null=True)
 	triggerWorkflow = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, db_index=True)
 	triggerWorkflowStatus = models.CharField(max_length=50, default=STATUS_SUCCESS)
 
