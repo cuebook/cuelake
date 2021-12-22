@@ -1,18 +1,19 @@
 class ApiService {
   constructor(basePath){
+    let workspaceName = localStorage.getItem("workspaceName")
     if(process.env.NODE_ENV === "development"){
       // Development Settings
       this.host = "http://localhost:8000";
       this.base_url = this.host + basePath + "/api/";
-      this.zeppelin_base_url = "http://localhost:8080";
-      this.spark_base_url = "http://localhost:4040";
+      this.zeppelin_base_url = "http://localhost:8000/api/proxy/" + workspaceName;
+      this.spark_base_url = "http://localhost:4040" + workspaceName;
     }
     else{
       // Production Settings
       this.host = "";
       this.base_url = this.host + basePath + "/api/";
-      this.zeppelin_base_url = "/zeppelin";
-      this.spark_base_url = "/sparkui/jobs";
+      this.zeppelin_base_url = "/api/proxy/" + workspaceName;
+      this.spark_base_url = "/api/spark_proxy/" + workspaceName + "/";
     }
   }
   

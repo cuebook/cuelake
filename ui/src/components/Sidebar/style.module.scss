@@ -23,3 +23,31 @@
         }
     }
 }
+.element{
+    display: flex;
+    position: relative;
+    justify-content: space-evenly;
+    flex-flow: column;
+    .workspaceElement{
+        display: flex;
+        
+        justify-content: space-evenly;
+        flex-flow: row;
+    }
+}
+
+
+.subMenu{
+    background: #f7f7f7;
+    padding: 10px;
+    border-radius: 4px;
+    width: calc(100% + 20px);
+    margin: 0 -10px;
+    margin-top: -10px;
+
+    ul{
+        margin-bottom: 0;
+        margin-top: 10px;
+        padding-left: 3px;
+    }
+}

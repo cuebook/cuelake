@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: spark-WORKSPACE_NAME
+spec:
+  clusterIP: None
+  ports:
+    - name: spark-ui
+      port: 4040
+  selector:
+    workspace: WORKSPACE_NAME

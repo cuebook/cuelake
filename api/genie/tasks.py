@@ -21,7 +21,7 @@ ZEPPELIN_SERVER_CONCURRENCY = os.environ.get("ZEPPELIN_SERVER_CONCURRENCY", 5)
 ZEPPELIN_JOB_SERVER_PREFIX = "zeppelin-job-server-"
 
 @shared_task
-def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str = "Scheduled"):
+def runNotebookJob(notebookId: str, workspaceId: int, notebookRunLogsId: int = None, runType: str = "Scheduled"):
     """
     Celery task to run a zeppelin notebook
     :param notebookId: ID of the zeppelin notebook which to run
@@ -31,9 +31,9 @@ def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str 
     logger.info(f"Starting notebook job for: {notebookId}")
     taskId = runNotebookJob.request.id # Celery task id
     taskId = taskId if taskId else ""
-    notebookRunLogs = __getOrCreateNotebookRunLogs(notebookRunLogsId, notebookId, runType, taskId)
+    notebookRunLogs = __getOrCreateNotebookRunLogs(notebookRunLogsId, notebookId, runType, taskId, workspaceId)
     try:
-        zeppelinServerId = __allocateZeppelinServer(notebookRunLogs)
+        zeppelinServerId = __allocateZeppelinServer(notebookRunLogs, workspaceId)
         logger.info(f"Notebook {notebookId} scheduled to run on {zeppelinServerId}")
         zeppelin = ZeppelinAPI(zeppelinServerId)
         __waitUntilServerReady(zeppelinServerId, zeppelin)
@@ -69,12 +69,12 @@ def runNotebookJob(notebookId: str, notebookRunLogsId: int = None, runType: str 
         notebookRunLogs.save()
         NotificationServices.notify(notebookName=notebookName if notebookName else notebookId, isSuccess=False, message=str(ex))
 
-def __allocateZeppelinServer(notebookRunLogs: NotebookRunLogs):
+def __allocateZeppelinServer(notebookRunLogs: NotebookRunLogs, workspaceId: int):
     """
     Creates or allocates a zeppelin server to run the notebook on
     """
     zeppelinServerNotebookMap = __getZeppelinServerNotebookMap()
-    zeppelinServerId = __getOrCreateZeppelinServerId(zeppelinServerNotebookMap)
+    zeppelinServerId = __getOrCreateZeppelinServerId(zeppelinServerNotebookMap, workspaceId)
     notebookRunLogs.zeppelinServerId = zeppelinServerId
     notebookRunLogs.save()
     return zeppelinServerId
@@ -89,13 +89,13 @@ def __getZeppelinServerNotebookMap():
             zeppelinServerNotebookMap[notebookRun.zeppelinServerId] = 1
     return zeppelinServerNotebookMap
 
-def __getOrCreateZeppelinServerId(zeppelinServerMap):
+def __getOrCreateZeppelinServerId(zeppelinServerMap, workspaceId):
     for zeppelinServerId, runningNotebooks in zeppelinServerMap.items():
         if runningNotebooks < ZEPPELIN_SERVER_CONCURRENCY:
             return zeppelinServerId
     randomId = uuid.uuid4().hex.lower()[0:20]
     zeppelinServerId = ZEPPELIN_JOB_SERVER_PREFIX + randomId
-    Kubernetes.addZeppelinServer(zeppelinServerId)
+    Kubernetes.addZeppelinJobServer(zeppelinServerId, workspaceId)
     return zeppelinServerId
 
 def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
@@ -111,12 +111,12 @@ def __waitUntilServerReady(zeppelinServerId: str, zeppelin: ZeppelinAPI):
         lambda: zeppelin.healthCheck() != False, step=3, timeout=3600*6
     )
 
-def __getOrCreateNotebookRunLogs(notebookRunLogsId: int, notebookId: str, runType: str, taskId: str):
+def __getOrCreateNotebookRunLogs(notebookRunLogsId: int, notebookId: str, runType: str, taskId: str, workspaceId: int):
     """
     Gets or creates a notebook run status object
     """
     if not notebookRunLogsId:
-        notebookRunLog = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId)
+        notebookRunLog = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_RUNNING, runType=runType, taskId=taskId, workspace_id=workspaceId)
     else:
         notebookRunLog = NotebookRunLogs.objects.get(id=notebookRunLogsId)
         notebookRunLog.startTimestamp = dt.datetime.now()

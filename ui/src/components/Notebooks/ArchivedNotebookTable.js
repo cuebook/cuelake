@@ -20,7 +20,7 @@ export default function NotebookTable(props) {
 
     const refreshNotebookInterval = setInterval(() => {
       refreshNotebooks()
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearInterval(refreshNotebookInterval);
@@ -30,7 +30,8 @@ export default function NotebookTable(props) {
 
   const getNotebooks = async () => {
     setLoading(true)
-    const response = await notebookService.getArchivedNotebooks();
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.getArchivedNotebooks(workspaceId);
     if(response){
       setNotebooks(response);
     }
@@ -38,7 +39,8 @@ export default function NotebookTable(props) {
   };
 
   const refreshNotebooks = async () => {
-    const response = await notebookService.getArchivedNotebooks();
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.getArchivedNotebooks(workspaceId);
     if(response){
       setNotebooks(response);
     }
@@ -46,7 +48,8 @@ export default function NotebookTable(props) {
 
   const unarchiveNotebook = async (notebook) => {
     setUnarchivingNotebook(notebook.id)
-    const response = await notebookService.unarchiveNotebook(notebook.id, notebook.path.split("/")[2])
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.unarchiveNotebook(notebook.id, notebook.path.split("/")[2], workspaceId)
     if(response.success){
       message.success("Notebook " + notebook.path.split("/")[2] + " removed from archive")
       refreshNotebooks()
@@ -58,9 +61,10 @@ export default function NotebookTable(props) {
   }
 
   const deleteNotebook = async (notebook) => {
-    const response = await notebookService.deleteNotebook(notebook.id)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.deleteNotebook(notebook.id, workspaceId)
     if(response.success){
-      message.success("Notebook " + notebook.name.substring(1) + " deleted successfully");
+      message.success("Notebook " + notebook.path.split("/")[2] + " deleted successfully");
       refreshNotebooks()
     }
     else{

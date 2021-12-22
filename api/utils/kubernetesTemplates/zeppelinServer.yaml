@@ -28,9 +28,9 @@ spec:
           mountPath: /shared-k8s
       args:
         - >-
-          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
-          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/k8s /shared-k8s &&
-          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
+          kubectl cp $(kubectl get pods | grep {workspace}- | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
+          kubectl cp $(kubectl get pods | grep {workspace}- | awk '{print $1}' ):/zeppelin/jobk8s /shared-k8s &&
+          kubectl cp $(kubectl get pods | grep {workspace}- | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
   containers:
     - name: zeppelin-server
       image: 'cuebook/zeppelin-server-lite:0.2'
@@ -62,6 +62,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.uid
+        - name: SERVICE_DOMAIN
+          value: {workspace}
         - name: POD_NAME
           valueFrom:
             fieldRef:

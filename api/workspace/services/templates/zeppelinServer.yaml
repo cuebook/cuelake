@@ -1,0 +1,111 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: zeppelin-server-{workspaceName}
+  namespace: {podNamespace}
+  labels:
+    app: zeppelin-server-{workspaceName}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zeppelin-server-{workspaceName}
+  template:
+    metadata:
+      labels:
+        app: zeppelin-server-{workspaceName}
+    spec:
+      serviceAccountName: cuelake
+      volumes:
+        - name: notebook-volume
+          persistentVolumeClaim:
+            claimName: zeppelin-server-{workspaceName}-pvc
+        - name: shared-conf
+          emptyDir:
+        - name: shared-k8s
+          emptyDir:
+        - name: shared-jobk8s
+          emptyDir:
+      initContainers:
+        - name: init
+          image: bitnami/kubectl
+          command: ['sh', '-c']
+          volumeMounts:
+            - name: shared-conf
+              mountPath: /shared-conf
+            - name: shared-k8s
+              mountPath: /shared-k8s
+            - name: shared-jobk8s
+              mountPath: /shared-jobk8s
+          args:
+            - >-
+              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/conf /shared-conf &&
+              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/k8s /shared-k8s &&
+              kubectl cp $(kubectl get pods | grep lakehouse | awk '{print $1}' ):/code/data/{workspaceName}/jobk8s /shared-jobk8s
+      containers:
+        - name: zeppelin-server
+          image: 'cuebook/zeppelin-server-lite:0.3'
+          command:
+            - sh
+            - '-c'
+          args:
+            - >-
+              $(ZEPPELIN_HOME)/bin/zeppelin.sh
+          livenessProbe:
+            exec:
+              command:
+              - ls
+              - /tmp
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+            - name: rpc
+              containerPort: 12320
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: zeppelin-server-conf-map
+          env:
+            - name: SERVICE_DOMAIN
+              value: zeppelin-server-{workspaceName}
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: shared-conf
+              mountPath: /zeppelin/conf
+            - name: shared-k8s
+              mountPath: /zeppelin/k8s
+            - name: notebook-volume
+              mountPath: /zeppelin/notebook
+            - name: shared-jobk8s
+              mountPath: /zeppelin/jobk8s
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - '-c'
+                  - >-
+                    ps -ef | grep org.apache.zeppelin.server.ZeppelinServer | grep
+                    -v grep | awk '{print $2}' | xargs kill
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "250m"

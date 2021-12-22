@@ -35,7 +35,8 @@ export default function AddNotebook(props) {
   }
 
   const fetchConnections = async () => {
-    const response = await connectionService.getConnections();
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await connectionService.getConnections(workspaceId);
     setConnections(response.data)
   }
 
@@ -45,7 +46,8 @@ export default function AddNotebook(props) {
 
   const addNotebookFormSubmit = async (values) => {
     values["notebookTemplateId"] = selectedNotebookTemplate.id;
-    const response = await notebookService.addNotebook(values)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await notebookService.addNotebook(values, workspaceId)
     if(response.success){
         props.onAddNotebookSuccess()
     }

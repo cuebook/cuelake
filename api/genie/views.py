@@ -9,60 +9,60 @@ class NotebookOperationsView(APIView):
     """
     Class to get notebooks from zeppelin server
     """
-    def post(self, request, notebookId):
-        res = NotebookJobServices.cloneNotebook(notebookId, request.data)
+    def post(self, request, notebookId, workspaceId):
+        res = NotebookJobServices.cloneNotebook(notebookId, request.data, workspaceId)
         return Response(res.json())
 
-    def delete(self, request, notebookId):
-        res = NotebookJobServices.deleteNotebook(notebookId)
+    def delete(self, request, notebookId, workspaceId):
+        res = NotebookJobServices.deleteNotebook(notebookId, workspaceId)
         return Response(res.json())
 
 class ArchivedNotebooksView(APIView):
     """
     Class to get archived notebooks
     """
-    def get(self, request):
-        res = NotebookJobServices.archivedNotebooks()
+    def get(self, request, workspaceId):
+        res = NotebookJobServices.archivedNotebooks(workspaceId)
         return Response(res.json())
 
 class NotebookActionsView(APIView):
     """
     Class to get notebooks from zeppelin server
     """
-    def post(self, request, notebookId):
-        res = NotebookJobServices.runNotebookJob(notebookId)
+    def post(self, request, notebookId, workspaceId):
+        res = NotebookJobServices.runNotebookJob(notebookId, workspaceId)
         return Response(res.json())
 
-    def delete(self, request, notebookId):
-        res = NotebookJobServices.stopNotebookJob(notebookId)
+    def delete(self, request, notebookId, workspaceId):
+        res = NotebookJobServices.stopNotebookJob(notebookId, workspaceId)
         return Response(res.json())
 
-    def put(self, request, notebookId):
-        res = NotebookJobServices.clearNotebookResults(notebookId)
+    def put(self, request, notebookId, workspaceId):
+        res = NotebookJobServices.clearNotebookResults(notebookId, workspaceId)
         return Response(res.json())
 
 class ArchiveNotebookView(APIView):
     """
     Class to archive notebook
     """
-    def get(self, request, notebookId, notebookName):
-        res = NotebookJobServices.archiveNotebook(notebookId, notebookName)
+    def get(self, request, notebookId, notebookName, workspaceId):
+        res = NotebookJobServices.archiveNotebook(notebookId, notebookName, workspaceId)
         return Response(res.json())
                 
 class UnarchiveNotebookView(APIView):
     """
     Class to unarchive notebook
     """
-    def get(self, request, notebookId, notebookName):
-        res = NotebookJobServices.unarchiveNotebook(notebookId, notebookName)
+    def get(self, request, notebookId, notebookName, workspaceId):
+        res = NotebookJobServices.unarchiveNotebook(notebookId, notebookName, workspaceId)
         return Response(res.json())
                 
 class NotebooksLightView(APIView):
     """
     Get concise notebook data
     """
-    def get(self, request):
-        res = NotebookJobServices.getNotebooksLight()
+    def get(self, request, workspaceId):
+        res = NotebookJobServices.getNotebooksLight(workspaceId)
         return Response(res.json())
 
 
@@ -70,16 +70,16 @@ class NotebookView(APIView):
     """
     Class to get notebooks from zeppelin server
     """
-    def get(self, request, offset: int ):
+    def get(self, request, workspaceId, offset: int):
         limit = request.GET.get('limit', 25)
         searchQuery = request.GET.get('searchText', '')
         sorter = json.loads(request.GET.get('sorter', '{}'))
         _filter = json.loads(request.GET.get('filter', '{}'))
-        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sorter, _filter)
+        res = NotebookJobServices.getNotebooks(offset, limit, searchQuery, sorter, _filter, workspaceId)
         return Response(res.json())
 
-    def post(self, request):
-        res = NotebookJobServices.addNotebook(request.data)
+    def post(self, request, workspaceId):
+        res = NotebookJobServices.addNotebook(request.data, workspaceId)
         return Response(res.json())
 
 
@@ -97,11 +97,12 @@ class NotebookJobView(APIView):
     def post(self, request):
         notebookId = request.data["notebookId"]
         scheduleId = request.data["scheduleId"]
-        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId)
+        workspaceId = request.data["workspaceId"]
+        res = NotebookJobServices.addNotebookJob(notebookId=notebookId, scheduleId=scheduleId, workspaceId=workspaceId)
         return Response(res.json())
 
-    def delete(self, request, notebookId=None):
-        res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId)
+    def delete(self, request, notebookId=None, workspaceId=None):
+        res = NotebookJobServices.deleteNotebookJob(notebookId=notebookId, workspaceId=workspaceId)
         return Response(res.json())
 
 class ScheduleView(APIView):
@@ -154,16 +155,16 @@ class TimzoneView(APIView):
 # TODO 
 # Change connection views to class
 @api_view(["GET", "POST"])
-def connections(request: HttpRequest) -> Response:
+def connections(request: HttpRequest, workspaceId: int) -> Response:
     """
     Method to get or add connection
     :param request: HttpRequest
     """
     if request.method == "GET":
-        res = Connections.getConnections()
+        res = Connections.getConnections(workspaceId)
         return Response(res.json())
     elif request.method == "POST":
-        res = Connections.addConnection(request.data)
+        res = Connections.addConnection(request.data, workspaceId)
         return Response(res.json())
 
 
@@ -207,7 +208,7 @@ def datasetDetails(request: HttpRequest) -> Response:
     return Response(res.json())
 
 @api_view(["GET", "PUT"])
-def getNotebookObject(request: HttpRequest, notebookObjId: int) -> Response:
+def getNotebookObject(request: HttpRequest, notebookObjId: int, workspaceId: int) -> Response:
     """
     Method to get details of Notebook Object with given id
     :param notebookObjId: ID of the notebook object
@@ -216,7 +217,7 @@ def getNotebookObject(request: HttpRequest, notebookObjId: int) -> Response:
         res = NotebookJobServices.getNotebookObject(notebookObjId)
         return Response(res.json())
     if request.method == "PUT":
-        res = NotebookJobServices.editNotebook(notebookObjId, request.data)
+        res = NotebookJobServices.editNotebook(notebookObjId, request.data, workspaceId)
         return Response(res.json())
 
 

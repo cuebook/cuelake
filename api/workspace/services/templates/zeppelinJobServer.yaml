@@ -1,0 +1,92 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: {podId}
+  namespace: {podNamespace}
+  labels:
+    app.kubernetes.io/name: zeppelin-server
+    statefulset.kubernetes.io/pod-name: {podId}
+spec:
+  serviceAccountName: cuelake
+  volumes:
+    - name: shared-notebook
+      emptyDir:
+    - name: shared-conf
+      emptyDir:
+    - name: shared-k8s
+      emptyDir:
+  initContainers:
+    - name: init
+      image: bitnami/kubectl
+      command: ['sh', '-c']
+      volumeMounts:
+        - name: shared-notebook
+          mountPath: /shared-notebook
+        - name: shared-conf
+          mountPath: /shared-conf
+        - name: shared-k8s
+          mountPath: /shared-k8s
+      args:
+        - >-
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/conf /shared-conf &&
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/k8s /shared-k8s &&
+          kubectl cp $(kubectl get pods | grep zeppelin-server | awk '{print $1}' ):/zeppelin/notebook /shared-notebook
+  containers:
+    - name: zeppelin-server
+      image: 'cuebook/zeppelin-server-lite:0.2'
+      command:
+        - sh
+        - '-c'
+      args:
+        - >-
+          sed -i
+          's#zeppelin.k8s.server.rpc.service#zeppelin.k8s.server.pod.name#1'
+          /zeppelin/jobk8s/interpreter/100-interpreter-spec.yaml &&
+          $(ZEPPELIN_HOME)/bin/zeppelin.sh
+      ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        - name: rpc
+          containerPort: 12320
+          protocol: TCP
+      envFrom:
+        - configMapRef:
+            name: zeppelin-server-conf-map
+      env:
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.uid
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+      volumeMounts:
+        - name: shared-notebook
+          mountPath: /zeppelin/notebook
+        - name: shared-conf
+          mountPath: /zeppelin/conf
+        - name: shared-k8s
+          mountPath: /zeppelin/k8s
+      lifecycle:
+        preStop:
+          exec:
+            command:
+              - sh
+              - '-c'
+              - >-
+                ps -ef | grep org.apache.zeppelin.server.ZeppelinServer | grep
+                -v grep | awk '{print $2}' | xargs kill
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "1024Mi"
+          cpu: "250m"

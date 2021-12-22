@@ -35,7 +35,8 @@ export default function AddConnection(props) {
         connectionType_id: selectedConnectionType.id,
         params: params
     };
-    const response = await connectionService.addConnection(payload)
+    let workspaceId = parseInt(localStorage.getItem("workspaceId"))
+    const response = await connectionService.addConnection(payload, workspaceId)
     if(response.success){
         props.onAddConnectionSuccess()
     }

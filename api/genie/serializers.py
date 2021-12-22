@@ -103,6 +103,7 @@ class ConnectionSerializer(serializers.ModelSerializer):
             "description",
             "connectionTypeId",
             "connectionType",
+            "workspace"
         ]
 
 

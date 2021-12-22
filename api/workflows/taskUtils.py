@@ -5,6 +5,7 @@ import logging
 import datetime as dt
 import polling
 from workflows.models import (
+    Workflow,
     WorkflowRunLogs,
     WorkflowNotebookMap,
     STATUS_SUCCESS,
@@ -12,7 +13,6 @@ from workflows.models import (
     STATUS_RUNNING,
     STATUS_ABORTED
 )
-from utils.zeppelinAPI import Zeppelin
 
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from genie.models import NOTEBOOK_STATUS_QUEUED, NotebookRunLogs, NOTEBOOK_STATUS_RUNNING, NOTEBOOK_STATUS_SUCCESS
@@ -33,9 +33,10 @@ class TaskUtils:
         """
         Runs workflow
         """
+        workspaceId = Workflow.objects.get(pk=workflowId).workspace_id
         notebookIds = TaskUtils.__getNotebookIdsInWorkflow(workflowId)
         workflowRunLogs = TaskUtils.__getOrCreateWorkflowRun(workflowId, taskId, workflowRunLogsId)
-        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRunLogs.id)
+        notebookRunLogsIds = TaskUtils.__runNotebookJobsFromList(notebookIds, workflowRunLogs.id, workspaceId)
         workflowStatus = polling.poll(
             lambda: TaskUtils.__checkGivenRunStatuses(notebookRunLogsIds),
             check_success= lambda x: x != "RUNNING",
@@ -53,16 +54,16 @@ class TaskUtils:
         return workflowRunLogs.status
 
     @staticmethod
-    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunLogsId: int):
+    def __runNotebookJobsFromList(notebookIds: List[int], workflowRunLogsId: int, workspaceId: int = 0):
         """
         Runs notebook jobs for all notebookIds
         """
         notebookRunLogsIds = []
         for notebookId in notebookIds:
             notebookRunLogs = NotebookRunLogs.objects.create(
-                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId
+                notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Workflow", workflowRunLogs_id=workflowRunLogsId, workspace_id=workspaceId
             )
-            response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id)
+            response = runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, workspaceId=workspaceId)
             notebookRunLogs.taskId = response.id
             notebookRunLogs.save()
             notebookRunLogsIds.append(notebookRunLogs.id)

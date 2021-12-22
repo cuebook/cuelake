@@ -2,8 +2,8 @@ import apiService from "./api";
 
 class ConnectionService {
 
-    async getConnections(){
-        const response = await apiService.get("genie/connections")
+    async getConnections(workspaceId){
+        const response = await apiService.get("genie/connections/" + workspaceId)
         return response
     }
 
@@ -17,8 +17,8 @@ class ConnectionService {
         return response
     }
 
-    async addConnection(payload){
-        const response = await apiService.post("genie/connections", payload)
+    async addConnection(payload, workspaceId){
+        const response = await apiService.post("genie/connections/" + workspaceId, payload)
         return response
     }
 

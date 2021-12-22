@@ -1,5 +1,6 @@
 from django.db import models
 from django_celery_beat.models import PeriodicTask
+from workspace.models import Workspace
 
 STATUS_SUCCESS = "SUCCESS"
 STATUS_ERROR = "ERROR"
@@ -14,6 +15,7 @@ class Workflow(models.Model):
 	periodictask = models.ForeignKey(PeriodicTask, on_delete=models.SET_NULL, null=True)
 	triggerWorkflow = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, db_index=True)
 	triggerWorkflowStatus = models.CharField(max_length=50, default=STATUS_SUCCESS)
+	workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE,null=True, default=None)
 
 class WorkflowRunLogs(models.Model):
 	workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, db_index=True)

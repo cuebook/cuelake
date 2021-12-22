@@ -18,13 +18,13 @@ class WorkflowServices:
     """
 
     @staticmethod
-    def getWorkflows(offset: int = 0, limit: int = 25, sortColumn : str = None, sortOrder : str = None):
+    def getWorkflows(workspaceId: int, offset: int = 0, limit: int = 25, sortColumn : str = None, sortOrder : str = None):
         """
         Service to fetch and serialize Workflows
         :param offset: Offset for fetching NotebookJob objects
         """
         res = ApiResponse(message="Error retrieving workflows")
-        workflows = Workflow.objects.order_by("-id")
+        workflows = Workflow.objects.filter(workspace_id=workspaceId).order_by("-id")
         total = workflows.count()
 
         if(sortColumn):
@@ -64,6 +64,7 @@ class WorkflowServices:
         triggerWorkflowId: int,
         triggerWorkflowStatus: str,
         notebookIds: List[int],
+        workspaceId:int
     ):
         """
         Creates workflow
@@ -80,7 +81,8 @@ class WorkflowServices:
             name=name,
             periodictask=periodictask,
             triggerWorkflow_id=triggerWorkflowId,
-            triggerWorkflowStatus=triggerWorkflowStatus
+            triggerWorkflowStatus=triggerWorkflowStatus,
+            workspace_id=workspaceId
         )
         if scheduleId:
             periodictask = PeriodicTask.objects.create(

@@ -25,6 +25,7 @@ class ZeppelinAPI:
     def __init__(self, zeppelinServerId: str = None):
         if(zeppelinServerId):
             self.ZEPPELIN_ADDR = "http://" + zeppelinServerId + ":" + settings.ZEPPELIN_PORT
+            logger.info(f"{self.ZEPPELIN_ADDR} {zeppelinServerId}")
 
     def setZeppelinAddress(self, host: str, port: str):
         self.ZEPPELIN_ADDR = "http://"+ host + ":" + port

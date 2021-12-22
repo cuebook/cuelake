@@ -26,7 +26,7 @@ class Metastore:
                 "DBS"."NAME" as "database",
 				"size"."PARAM_VALUE" as "size",
 				"last_updated"."PARAM_VALUE" as "last_updated"
-            FROM "TBLS" 
+            FROM "TBLS"
             LEFT JOIN "DBS" ON "TBLS"."DB_ID" = "DBS"."DB_ID"
 			LEFT JOIN "TABLE_PARAMS" as "size" ON "TBLS"."TBL_ID" = "size"."TBL_ID" AND "size"."PARAM_KEY" = 'totalSize'
 			LEFT JOIN "TABLE_PARAMS" as "last_updated" ON "TBLS"."TBL_ID" = "last_updated"."TBL_ID" AND "last_updated"."PARAM_KEY" = 'transient_lastDdlTime'

@@ -1,9 +1,10 @@
 # build environment
-FROM node:12-alpine as builder
+FROM node:10-alpine as builder
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY ui/package.json /app/package.json
 RUN npm install
+RUN npm i react-router-dom
 COPY ui /app
 
 RUN npm run build

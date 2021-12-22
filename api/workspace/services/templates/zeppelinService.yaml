@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: zeppelin-server-{workspaceName}
+  namespace: {podNamespace}
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+    - name: rpc
+      protocol: TCP
+      port: 12320
+      targetPort: 12320
+  selector:
+    app: zeppelin-server-{workspaceName}
+  type: ClusterIP

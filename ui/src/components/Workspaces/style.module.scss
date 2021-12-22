@@ -1,0 +1,70 @@
+.addWorksapceForm{
+    background: #fff;
+    padding: 20px;
+    margin: 0px;
+    height: calc(100vh - 32px);
+}
+
+.addWorkspaceSteps{
+    margin: 40px auto 70px auto;
+    width: 70%;
+}
+
+.workspaceForm{
+    width: 40%;
+    margin: 0 auto 50px auto;
+}
+
+.storageTypes{
+    display: inline-block;
+    width: 100%;
+    // margin-left: 15%;
+}
+
+.selectedStorage, .storage{
+    width: calc(33.33% - 10px);
+    margin-right: 10px;
+    margin-bottom: 10px;
+    height: 130px;
+    float: left;
+    border: 1px solid #fafafa;
+    border-radius: 5px;
+    text-align: center;
+    background-color: #fafafa;
+    cursor: pointer;
+    padding: 20px;
+
+    &:hover{
+        background-color: #eee;
+    }
+}
+
+.selectedStorage{
+    background-color: #ccc;
+    &:hover{
+        background-color: #ccc;
+    }
+}
+
+.storageLogo{
+    background-size: contain;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    width: 50%;
+    margin: auto auto;
+    height: 70px;
+}
+
+.buttonDiv{
+    text-align: right;
+}
+
+.formItem{
+    float: left;
+}
+
+.preview{
+    input{
+        margin-bottom: 10px;
+    }
+}

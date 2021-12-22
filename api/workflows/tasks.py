@@ -27,7 +27,7 @@ def runWorkflowJob(workflowId: int, workflowRunLogsId: int = None):
             Workflow.objects.filter(
                 triggerWorkflow_id=workflowId,
                 triggerWorkflowStatus__in=[STATUS_ALWAYS, workflowRunStatus],
-            ).values_list("id", flat=True)
+            ).values_list("id", flat=True)	
         )
 		for workflowId in dependentWorkflowIds:
 			workflowRun = WorkflowRunLogs.objects.create(workflow_id=workflowId, status=STATUS_QUEUED)

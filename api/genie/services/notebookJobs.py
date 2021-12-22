@@ -1,3 +1,4 @@
+from utils.helperFunctions import helperFunctions
 import asyncio
 import json
 import pytz
@@ -10,7 +11,7 @@ from genie.models import NOTEBOOK_STATUS_ABORT, NOTEBOOK_STATUS_QUEUED, NOTEBOOK
 from genie.serializers import NotebookObjectSerializer, NotebookRunLogsSerializer
 from workflows.models import Workflow, WorkflowNotebookMap
 from utils.apiResponse import ApiResponse
-from utils.zeppelinAPI import Zeppelin, ZeppelinAPI
+from utils.zeppelinAPI import ZeppelinAPI
 from genie.tasks import runNotebookJob as runNotebookJobTask
 from django.conf import settings
 
@@ -28,27 +29,29 @@ class NotebookJobServices:
     Class containing services related to NotebookJob model
     """    
     @staticmethod
-    async def _fetchNotebookStatuses(notebooks: list):
+    async def _fetchNotebookStatuses(notebooks: list, workspaceId: int = 0):
         """
         Async method to fetch notebook status details for multiple notebooks
         Returns a dict with notebook ids as keys
         :param notebooks: List of notebook describing dicts each containing the 'id' field
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         notebookStatuses = {}
-        for future in asyncio.as_completed([Zeppelin.getNotebookStatus(notebook["id"]) for notebook in notebooks]):
+        for future in asyncio.as_completed([ZeppelinAPI(workspaceName).getNotebookStatus(notebook["id"]) for notebook in notebooks]):
             status = await future
             notebookStatuses[status["id"]] = status
         return notebookStatuses
 
     @staticmethod
-    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sorter: dict = None, _filter: dict = None):
+    def getNotebooks(offset: int = 0, limit: int = None , searchQuery: str = None, sorter: dict = None, _filter: dict = None, workspaceId: int = 0):
         """
         Service to fetch and serialize NotebookJob objects
         Number of NotebookObjects fetched is stored as the constant GET_NOTEBOOKOJECTS_LIMIT
         :param offset: Offset for fetching NotebookJob objects
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error retrieving notebooks")
-        notebooks =  Zeppelin.getAllNotebooks()
+        notebooks =  ZeppelinAPI(workspaceName).getAllNotebooks()
         if searchQuery:
             notebooks = NotebookJobServices.search(notebooks, "path", searchQuery)
         if sorter.get('order', False):
@@ -79,7 +82,7 @@ class NotebookJobServices:
                 for name in names:
                     workflowNames.append(name)
                 notebook["assignedWorkflow"] = workflowNames
-                notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebook["id"]).order_by("-startTimestamp").first()
+                notebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebook["id"], workspace_id= workspaceId).order_by("-startTimestamp").first()
                 if notebookRunLogs:
                     notebook["notebookStatus"] = notebookRunLogs.status if notebookRunLogs.status else None
                     notebook["lastRun"] = NotebookRunLogsSerializer(notebookRunLogs).data
@@ -159,12 +162,13 @@ class NotebookJobServices:
         return notebooks
 
     @staticmethod
-    def archivedNotebooks():
+    def archivedNotebooks(workspaceId: int = 0):
         """
         Get archived notebooks
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error retrieving archived notebooks")
-        notebooks = Zeppelin.getAllNotebooks("~Trash")
+        notebooks =  ZeppelinAPI(workspaceName).getAllNotebooks("~Trash")
         if notebooks:
             res.update(True, "Archived notebooks retrieved successfully", notebooks)
         return res
@@ -183,10 +187,11 @@ class NotebookJobServices:
 
 
     @staticmethod
-    def getNotebooksLight():
+    def getNotebooksLight(workspaceId: int = 0):
         """ Gets concise notebook data"""
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error retrieving notebooks")
-        notebooks = Zeppelin.getAllNotebooks()
+        notebooks = ZeppelinAPI(workspaceName).getAllNotebooks()
         res.update(True, "Notebooks retrieved successfully", notebooks)
         return res
     
@@ -235,7 +240,7 @@ class NotebookJobServices:
 
 
     @staticmethod
-    def addNotebook(payload: dict):
+    def addNotebook(payload: dict, workspaceId: int = 0):
         """
         Service to create and add a template based notebook
         :param payload: Dict containing notebook template info
@@ -244,28 +249,30 @@ class NotebookJobServices:
         defaultPayload = payload.copy()
         notebookTemplate = NotebookTemplate.objects.get(id=payload.get("notebookTemplateId", 0))
         notebook, connection = NotebookJobServices._prepareNotebookJson(notebookTemplate, payload)
-        notebookZeppelinId = Zeppelin.addNotebook(notebook)
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
+        notebookZeppelinId = ZeppelinAPI(workspaceName).addNotebook(notebook)
         if notebookZeppelinId:
             NotebookObject.objects.create(notebookZeppelinId=notebookZeppelinId, connection=connection, notebookTemplate=notebookTemplate, defaultPayload=defaultPayload)
             res.update(True, "Notebook added successfully")
         return res
 
     @staticmethod
-    def editNotebook(notebookObjId: int, payload: dict):
+    def editNotebook(notebookObjId: int, payload: dict, workspaceId: int = 0):
         """
         Service to update a template based notebook
         :param notebookObjId: ID of the NotebookObject to be edited
         :param payload: Dict containing notebook template info
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error updating notebook")
         defaultPayload = payload.copy()
         notebookObject = NotebookObject.objects.get(id=notebookObjId)
         notebook, connection = NotebookJobServices._prepareNotebookJson(notebookObject.notebookTemplate, payload)
 
-        updateSuccess = Zeppelin.updateNotebookParagraphs(notebookObject.notebookZeppelinId, notebook)
+        updateSuccess = ZeppelinAPI(workspaceName).updateNotebookParagraphs(notebookObject.notebookZeppelinId, notebook)
         if updateSuccess:
             if defaultPayload.get("name"):
-                Zeppelin.renameNotebook(notebookObject.notebookZeppelinId, defaultPayload.get("name"))
+                ZeppelinAPI(workspaceName).renameNotebook(notebookObject.notebookZeppelinId, defaultPayload.get("name"))
             notebookObject.defaultPayload = defaultPayload
             notebookObject.connection = connection
             notebookObject.save()
@@ -289,7 +296,7 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def addNotebookJob(notebookId: str, scheduleId: int):
+    def addNotebookJob(notebookId: str, workspaceId: int, scheduleId: int):
         """
         Service to add a new NotebookJob
         :param notebookId: ID of the notebook for which to create job
@@ -297,40 +304,40 @@ class NotebookJobServices:
         """
         res = ApiResponse()
         scheduleObj = Schedule.objects.get(crontabschedule_ptr_id=scheduleId)
-        NotebookJob.objects.update_or_create(name=notebookId, notebookId=notebookId, defaults={"crontab":scheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}"]'})
+        NotebookJob.objects.update_or_create(name=notebookId, workspace_id=workspaceId, notebookId=notebookId, defaults={"crontab":scheduleObj, "task":CELERY_TASK_NAME, "args":f'["{notebookId}", {workspaceId}]'})
         res.update(True, "NotebookJob added successfully", None)
         return res
 
     @staticmethod
-    def deleteNotebookJob(notebookId: int):
+    def deleteNotebookJob(notebookId: int, workspaceId: int):
         """
         Service to update crontab of an existing NotebookJob
         :param notebookId: ID of the Notebook for which to delete
         """
         res = ApiResponse()
-        NotebookJob.objects.filter(name=notebookId).delete()
+        NotebookJob.objects.filter(name=notebookId, workspace_id=workspaceId).delete()
         res.update(True, "NotebookJob deleted successfully", None)
         return res
 
     @staticmethod
-    def runNotebookJob(notebookId: str):
+    def runNotebookJob(notebookId: str, workspaceId: int = 0):
         """
         Service to run notebook job
         """
         res = ApiResponse("Error in running notebook")
-        notebookRunLogs = NotebookRunLogs.objects.create(notebookId=notebookId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
-        runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, runType="Manual")
+        notebookRunLogs = NotebookRunLogs.objects.create(notebookId=notebookId, workspace_id = workspaceId, status=NOTEBOOK_STATUS_QUEUED, runType="Manual")
+        runNotebookJobTask.delay(notebookId=notebookId, notebookRunLogsId=notebookRunLogs.id, runType="Manual", workspaceId=workspaceId)
         res.update(True, "Notebook triggered successfully", None)
         return res
 
     @staticmethod
-    def stopNotebookJob(notebookId: str):
+    def stopNotebookJob(notebookId: str, workspaceId: int):
         """
         Service to stop notebook job
         """
         res = ApiResponse(message="Error in stopping notebook")
         # Updating NotebookRunLogs that the task is being aborted
-        notebookNotebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId).order_by("-startTimestamp").first()
+        notebookNotebookRunLogs = NotebookRunLogs.objects.filter(notebookId=notebookId, workspace_id=workspaceId).order_by("-startTimestamp").first()
         if(notebookNotebookRunLogs.status == NOTEBOOK_STATUS_RUNNING):
             notebookNotebookRunLogs.status = NOTEBOOK_STATUS_ABORT
             notebookNotebookRunLogs.save()
@@ -341,56 +348,61 @@ class NotebookJobServices:
         return res
 
     @staticmethod
-    def clearNotebookResults(notebookId: str):
+    def clearNotebookResults(notebookId: str, workspaceId: int = 0):
         """
         Service to clear notebook job
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error in clearing notebook")
-        response = Zeppelin.clearNotebookResults(notebookId)
+        response = ZeppelinAPI(workspaceName).clearNotebookResults(notebookId)
         if response:
             res.update(True, "Notebook cleared successfully", None)
         return res
 
     @staticmethod
-    def cloneNotebook(notebookId: str, payload: dict):
+    def cloneNotebook(notebookId: str, payload: dict, workspaceId: int = 0):
         """
         Service to clone notebook job
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error in cloning notebook")
-        response = Zeppelin.cloneNotebook(notebookId, json.dumps(payload))
+        response = ZeppelinAPI(workspaceName).cloneNotebook(notebookId, json.dumps(payload))
         if response:
             res.update(True, "Notebook cloned successfully", None)
         return res
 
     @staticmethod
-    def archiveNotebook(notebookId: str, notebookName: str):
+    def archiveNotebook(notebookId: str, notebookName: str, workspaceId: int = 0):
         """ 
         Service to run notebook 
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error in archiving notebook")
-        response = Zeppelin.renameNotebook(notebookId, "~Trash/" + notebookName)
+        response = ZeppelinAPI(workspaceName).renameNotebook(notebookId, "~Trash/" + notebookName)
         if response:
             res.update(True, "Notebook archived successfully", None)
         return res
 
     @staticmethod
-    def unarchiveNotebook(notebookId: str, notebookName: str):
+    def unarchiveNotebook(notebookId: str, notebookName: str, workspaceId: int = 0):
         """
         Service to unarchive notebook 
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error in archiving notebook")
-        response = Zeppelin.renameNotebook(notebookId, notebookName)
+        response = ZeppelinAPI(workspaceName).renameNotebook(notebookId, notebookName)
         if response:
             res.update(True, "Notebook unarchived successfully", None)
         return res
 
     @staticmethod
-    def deleteNotebook(notebookId: str):
+    def deleteNotebook(notebookId: str, workspaceId: int = 0):
         """
         Service to run notebook job
         """
+        workspaceName = helperFunctions.getWorkspaceName(workspaceId)
         res = ApiResponse(message="Error in deleting notebook")
-        response = Zeppelin.deleteNotebook(notebookId)
+        response = ZeppelinAPI(workspaceName).deleteNotebook(notebookId)
         if response:
             NotebookObject.objects.filter(notebookZeppelinId=notebookId).delete()
             res.update(True, "Notebook deleted successfully", None)
