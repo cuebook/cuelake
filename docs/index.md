@@ -72,21 +72,6 @@ For general help using CueLake, read the documentation, or go to [Github Discuss
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
 
-# Community
-Join our [cuelake discord server](https://discord.gg/R7EABXwUnv) and ask your questions to the developers directly.
-
-# Newsletter
-
-<form
-  action="https://formspree.io/f/mleanwdk"
-  method="POST"
->
-  <label>
-    Your email:
-    <input type="email" name="_replyto">
-  </label>
-  <button type="submit">Subscribe</button>
-</form>
 
 # Contributors!
 
