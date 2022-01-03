@@ -78,8 +78,5 @@ For general help using CueLake, read the [documentation](https://cuelake.cuebook
 
 To report a bug or request a feature, open an [issue](https://github.com/cuebook/cuelake/issues).
 
-# Community
-Join our [cuelake discord server](https://discord.gg/R7EABXwUnv) and ask your questions to the developers directly.
-
 # Contributing
 We'd love contributions to CueLake. Before you contribute, please first discuss the change you wish to make via an [issue](https://github.com/cuebook/cuelake/issues) or a [discussion](https://github.com/cuebook/cuelake/discussions). Contributors are expected to adhere to our [code of conduct](https://github.com/cuebook/cuelake/blob/main/CODE_OF_CONDUCT.md).
