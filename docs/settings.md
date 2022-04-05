@@ -64,8 +64,8 @@ Copy all contents from the cloned directory to /zeppelin/notebook
 cp -R <remote-repo>/* /zeppelin/notebook/
 ```
 
-### Configure zeppelin-conf.xml
-Go to file `/zeppelin/conf/zeppelin-conf.xml` and add:
+### Configure zeppelin-site.xml
+Go to file `/zeppelin/conf/zeppelin-site.xml` and add:
 
 ```xml
 <property>
