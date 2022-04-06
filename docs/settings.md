@@ -114,3 +114,16 @@ Create a `pre-commit` file, make it executable `chmod +x filename`, and add:
 #!/bin/sh
 git add -A
 ```
+
+After making these changes update the zeppelin-server-main deployment
+```bash
+kubectl edit -n cuelake deployment/zeppelin-server-main
+```
+from `args` under `spec`>`container`, remove this
+```bash
+url https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-env.sh -o $(ZEPPELIN_HOME)/conf/zeppelin-env.sh && curl https://raw.githubusercontent.com/cuebook/cuelake/main/zeppelinConf/zeppelin-site.xml -o $(ZEPPELIN_HOME)/conf/zeppelin-site.xml
+```
+leading it to look like this then
+```bash
+$(ZEPPELIN_HOME)/bin/zeppelin.sh
+```
