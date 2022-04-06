@@ -64,6 +64,13 @@ Copy all contents from the cloned directory to /zeppelin/notebook
 cp -R <remote-repo>/* /zeppelin/notebook/
 ```
 
+Update `.git/config`
+```
+[remote "origin"]
+        url = https://<username>:<token>@github.com/<your repo>
+
+```
+
 ### Configure zeppelin-site.xml
 Go to file `/zeppelin/conf/zeppelin-site.xml` and add:
 
@@ -127,3 +134,6 @@ leading it to look like this then
 ```bash
 $(ZEPPELIN_HOME)/bin/zeppelin.sh
 ```
+
+
+
